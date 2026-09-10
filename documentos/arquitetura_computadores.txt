@@ -1,0 +1,45 @@
+A arquitetura de computadores é a forma como os diversos componentes de um computador são organizados, determina aspectos relacionados à qualidade, ao desempenho e à aplicação para a qual o dispositivo vai ser orientado. É frequentemente definida como, o conjunto de componentes/atributos de um dispositivo específico que um programador deve compreender para que consiga programar softwares/aplicativos com sucesso, ou seja, compreender para que consiga saber o que o programa irá fazer quando da sua execução neste dispositivo. Por exemplo, parte da arquitetura são as instruções e o raio de operadores manipulados por elas (a frequência em que o sistema opera não é incluída na arquitetura). Esta definição revela as duas principais considerações dos arquitetos de computadores: desenhar hardware que se comporta como o programador pensa que se irá comportar e utilizar implementações existentes de tecnologias (por exemplo, semicondutores), para construir o melhor computador possível, referida como a microarquitetura.
+
+A evolução da informática foi caracterizada pelo desenvolvimento de computadores com as mais diversas características, traduzidas pelos diferentes parâmetros, cada vez mais conhecidos da maioria de usuários de computador: a CPU adotada, a capacidade de memória, a capacidade do disco rígido, a existência de memória cache e outros menos conhecidos. 
+Existem vários modos de uso do termo, que podem se referir a:
+
+desenho da arquitetura da CPU do computador, o seu conjunto de instruções, modo de endereçamento e, técnicas, tais como paralelismo SIMD e MIMD.
+termo também utilizado com significado análogo, ou semelhante, a Arquitetura de microprocessadores (RISC x CISC).
+arquiteturas de hardware mais generalizadas, tais como computação em cluster e arquiteturas NUMA (acesso não-uniforme à memória).
+utilização menos formal do termo, referindo-se a uma descrição dos requisitos (especialmente requisitos de velocidades e interligação) ou implementação do design para as várias partes de um computador, tais como memória, placa-mãe, periféricos eletrônicos ou, mais frequentemente, CPU.
+
+História
+A expressão "arquitetura de computadores", na literatura, pode ser atribuída a Lyle R. Johnson, Muhammad Usman Khan e Frederick P. Brooks, Jr. Em 1959, eram membros do departamento de Organização de Máquinas da IBM.
+Johnson teve a oportunidade de escrever uma comunicação de pesquisa proprietária sobre Strech, um supercomputador desenvolvido pela IBM para o Laboratório Nacional de Los Alamos. Na tentativa de caracterizar o seu nível desejado de detalhe, ele observou que sua descrição de formatos, tipos de instruções, os parâmetros de hardware e melhorias de velocidade foi no nível de "arquitetura do sistema" - Um termo que parecia ser mais útil do que "organização de máquina".
+Posteriormente, Brooks, um dos projetistas do Strech, começou o capítulo 2 de um livro (Planning a Computer System: Project Stretch, ed W. Buchholz, 1962), escrevendo: "Arquitetura de computadores, como outra arquitetura, é a arte de determinar as necessidades do usuário de uma estrutura e, possível dentro das limitações econômicas e tecnológicas.".
+Brooks passou a desempenhar um papel no desenvolvimento do IBM System/360(agora chamado de IBM System z) linha de computadores, onde a "arquitetura" ganhou moeda como um substantivo com a definição como "o que o usuário precisa saber". Mais tarde, o mundo da informática, empregaria o termo, em formas muito menos explícitas.
+
+Funções básicas do computador
+Tanto a estrutura quanto o funcionamento de um computador são, essencialmente, simples.
+Em termos gerais, existem apenas quatro: 
+
+Processamento de dados;
+Armazenamento de dados;
+Movimentação de dados;
+Controle de dados.
+
+Estrutura do Computador
+Existem quatro componentes estruturais principais.
+
+CPU: Faz o controle da operação do computador e realiza suas funções de processamento de dados;
+Memória principal: Faz o armazenamento de dados;
+E/S (Entrada/Saída): Movimenta os dados entre o computador e seu ambiente externo;
+Interconexão do sistema: Mecanismo que oferece comunicação entre a CPU, memória principal e E/S.
+
+Memória principal e secundária
+Memória principal (RAM): componente de memória volátil para armazenar os programas e execuções de forma mais rápida.
+Memória secundária: é a de acesso mais lento para armazenagem dos dados não-volátil também conhecida como HD ou HDD (hard disk drive ou disco rígido) hoje também difundida em SSD. Curiosidade que a primeira memória secundária foi a fita magnética ainda muito usada, mesmo sendo o componente mais lento.
+Memórias voláteis são as que perdem os dados assim que o fluxo de energia é encerrado. Por este motivo as memórias primárias são voláteis e as secundárias não-voláteis, pois a primeira precisa armazenar os dados para processamento de forma rápida, já a segunda, não precisa de acesso tão rápido, e sim de segurança de que a informação armazenada lá não se perca quando o fluxo de energia for cortado.
+
+Memória virtual
+Outro problema recorrente envolve a memória virtual.
+Historicamente, a memória de acesso aleatório (RAM) foi centenas de vezes mais cara que o armazenamento mecânico rotativo, isto é, discos rígidos, num computador moderno.
+O processador só pode executar uma instrução que esteja na memória real. O mecanismo de Memória Virtual divide a memória real em frames e divide um arquivo no disco em páginas de mesmo tamanho dos frames. No disco existem muito mais páginas do que frames na memória. Sempre que for preciso uma página é copiada da memória virtual (arquivo em disco) para um frame da memória real. Surge a necessidade de saber quando é preciso copiar. Surge a necessidade de saber se um frame pode ser descartado ou se precisa ser recopiado para sua página correspondente no arquivo em disco. Sempre que uma instrução é executada a partir de um frame o hardware controlador de memória virtual testa se o dado a que ela se refere já se encontra em algum frame. Se for o caso, uma interrupção ocorre para que a rotina de tratamento cuide de copiar do disco para a memória real uma página completa contendo o dado necessário.
+
+Segmentação das instruções (pipeline)
+O conjunto e instruções orienta fortemente como funcionará a segmentação de instruções. A ideia é análoga a linha de produções em série, mas utilizada na execução das instruções. Primeiro divide-se as instruções em pedaços menores de forma que uma instrução em código de máquina demore muitos ciclos curtos para ser executada. Depois disso o controle do microprocessador encarrega-se de executar várias instruções ao mesmo tempo, cada uma utilizando um pedaço distinto do processador. Isto tem como objetivo que na média cada instrução demore um ciclo curto para ser executada. Existem diversas complicações em instruções de desvio (condicionais), que são tratadas por paralelismo de código conhecida como threading (nome comercial da Intel Hyperthreading).

@@ -1,0 +1,123 @@
+Na informática, banco de dados (português brasileiro) ou base de dados (português europeu) é um conjunto de arquivos ou dados relacionados, contendo registros sobre pessoas, lugares ou informações em geral, normalmente acessíveis de maneira eletrônica. É um tipo de armazenamento de dados baseado no uso de um sistema de gerenciamento de banco de dados (DBMS) - um software que interage com usuários finais, aplicativos e com o próprio banco de dados, para captura e análise. O DBMS também abrange os recursos essenciais fornecidos para administrar o banco de dados. A soma total do banco de dados, do DBMS e dos aplicativos associados pode ser chamada de sistema de banco de dados. Muitas vezes, o termo "banco de dados" também é usado de forma vaga para se referir a qualquer DBMS, sistema de banco de dados ou um aplicativo associado ao banco de dados.
+Os bancos de dados tornaram-se a principal fonte de armazenamento de dados para sistemas de informação e segurança. Frequentemente, eles permanecem por muitos anos sem alterações significativas em sua estrutura sistemática.
+Os bancos de dados são operados por Sistemas Gerenciadores de Bancos de Dados (SGBD), que surgiram na década de 1970. Antes do advento desses sistemas, as aplicações utilizavam os sistemas de arquivos do sistema operacional para armazenar suas informações. Na década de 1980, a tecnologia de SGBDs relacionais passou a dominar o mercado e, atualmente, é amplamente utilizada em praticamente todos os bancos de dados.
+Os mais utilizados atualmente são nomeados de SGBD relacionais, como os presentes nas tecnologias de banco de dados MySQL, Oracle, PostgreSQL, Microsoft SQL Server, entre outros sistemas que gerenciam bases de dados. Outro tipo notável é o SGBD orientado a objetos, implementado em bancos de dados com estruturas complexas ou aplicações que mudam constantemente. 
+
+A principal aplicação dos bancos de dados é o controle de operações empresariais, normalmente armazenando dados relevantes para a gestão de um negócio, como dados de clientes, funcionários, fornecedores e outras informações. Outra aplicação importante é o gerenciamento de informações de estudos, como fazem os Bancos de Dados Geográficos, que reúnem informações como mapas, imagens de satélite, pontos, linhas, áreas, entre outros dados geográficos.
+No aspecto de segurança da informação, os bancos de dados precisam garantir a privacidade dos dados armazenados. É importante construir camadas que gerenciem quais informações podem ou não ser acessadas pelos usuários. Se usuários não autorizados tiverem acesso a dados sensíveis, ultrapassando a fronteira de informação que podem acessar, isso fere o princípio da confidencialidade.
+
+História
+Diante da necessidade humana de registrar os eventos e informações relevantes, foram criadas diversas técnicas com esse fim. Técnicas, como pinturas pré-históricas, hieróglifos, escrita cuneiforme e, posteriormente, a própria escrita alfabética, foram usadas como meios para registrar dados. Com a invenção do papel em meados de 105 d.C. e, posteriormente, no âmbito ocidental, da prensa móvel de Gutenberg, as tecnologias de impressão evoluíram muito, especialmente a partir do século XV, quando o papel passou a ser o meio físico mais comum de registro de informações.
+Essa herança fez com que no início da era computacional, se usasse o papel perfurado e, depois, o cartão perfurado em máquinas, ambos idealizados por Herman Hollerith, fundador da International Business Machines (IBM). O uso do papel como um meio indispensável de armazenamento pode ser encontrado em bancos de dados não computadorizados, como ocorre com arquivos de aço, fichas e pastas.
+
+Entretanto, novos fatores que levaram ao desenvolvimento dos bancos de dados computadorizados foram a praticidade, eficiência, rapidez e confiabilidade do registro de informações em meios eletrônicos, em conjunto com o barateamento e disponibilidade de sua oferta.
+A origem dos programas de bancos de dados ocorreu de maneira síncrona ao surgimento dos computadores, tendo em vista que, antes mesmo do desenvolvimento de programas específicos para este uso, os computadores já utilizavam recursos de gravação e leitura de dados em disco.
+Apesar de cada aplicação ser responsável pelo gerenciamento de dados, alguns fatores dificultaram o seu uso, como:
+
+Falta de controle de acesso dos usuários;
+Impossibilidade de executar mais de um processo ao mesmo tempo;
+Estrutura do arquivo armazenada no próprio código do aplicativo, criando forte dependência do arquivo em relação à aplicação;
+Inconsistência e dificuldade de acesso e isolamento de dados;
+Segurança dos dados;
+Duplicidade de informações;
+Incompatibilidade entre formatos de arquivos.
+Em sistemas orientados a arquivos, ocorre um fluxo de informações em duas vias, em que há interações entre o usuário e a aplicação, e a aplicação com o banco de dados, e vice-versa.
+Esses sistemas são conhecidos como sistemas de processamento de arquivos, pois não possuem estruturas de dados definidas no código-fonte, tornando sua manutenção muito difícil.
+Além disso, o compartilhamento de dados de um mesmo arquivo entre vários programas também é um problema, visto que todo fragmento de código responsável pela definição da estrutura de dados precisa necessariamente ser copiada para vários programas.
+Outro fator que dificultava a utilização de sistemas deste tipo era o método de acesso ao arquivo de dados, em que as rotinas de leitura e escrita estavam inseridas no próprio código-fonte, ocasionando um desalinhamento do padrão, visto que cada aplicação trabalhava de forma diferente em relação à metodologia de acesso dos arquivos. 
+Em um sistema de banco de dados, os aplicativos não possuem nenhum conhecimento relacionado aos métodos de escrita e leitura dos dados nas tabelas; em vez disso, eles se comunicam com o software de gerenciamento para recuperar e armazenar registros, fazendo com que vários programas consigam acessar um mesmo banco de dados ao mesmo tempo, sem implicações nos aplicativos.
+Dessa forma, os sistemas gerenciadores de banco de dados (SGBDs) oferecem uma produtividade maior no desenvolvimento de softwares e aplicativos, proporcionando um nível mais alto de qualidade às aplicações.
+Uma das maiores vantagens de se utilizar um gerenciador de banco de dados é a confiabilidade das informações, devido à coerência em que se encontram os dados.
+Por ser um ótimo segmento e muito lucrativo, houve um grande investimento por parte do mercado em sistemas de gerenciamento e hoje existem diversas versões de banco de dados disponíveis em várias plataformas e sistemas operacionais.
+Nos dias de hoje, é indispensável o uso do banco de dados, uma vez que é possível encontrar inúmeras atividades que possuem alguma interação com eles, desde redes sociais até aplicativos de gerenciamento de produção.
+
+Sistemas Gerenciadores de Banco de Dados (SGBDs) e seus modelos
+
+Existem vários modelos de bases de dados: Modelo Plano (ou tabular), Modelo de Memória Transacional, Modelo em Rede, Modelo Hierárquico, Modelo Relacional, Orientado a objetos e Objeto Relacional.
+
+O modelo plano (ou tabular) consiste em matrizes simples, bidimensionais, compostas por elementos de dados: inteiros, números reais, etc. Este modelo plano é a base das planilhas eletrônicas;
+O modelo em rede permite que várias tabelas sejam usadas simultaneamente por meio do uso de apontadores (ou referências).  Algumas colunas contêm apontadores para outras tabelas em vez de dados. Assim, as tabelas são ligadas por referências, o que pode ser visto como uma rede;
+O modelo hierárquico é uma variação particular do modelo em rede, limitando as relações a uma estrutura semelhante à de uma árvore (hierarquia - tronco, galhos), em vez do modelo mais geral direcionado por grafos;
+Bases de dados relacionais consistem, principalmente, em três componentes:
+Uma coleção de estruturas de dados, conhecidas como relações, ou informalmente tabelas;
+Uma coleção dos operadores, a álgebra e cálculo relacionais;
+Uma coleção de restrições da integridade, definindo um conjunto consistente de estados de base de dados e de alterações de estados. As restrições de integridade podem ser de quatro tipos: de domínio (também conhecidas como type), de atributo, "relvar" (variável relacional) e restrições de base de dados.
+
+Bases de dados relacionais
+Diferentemente dos modelos hierárquico e de rede, não existem quaisquer apontadores, de acordo com o Princípio da Informação: toda a informação deve ser representada como dados; qualquer tipo de atributo representa relações entre conjuntos de dados.
+As bases de dados relacionais permitem aos utilizadores (incluindo programadores) escrever consultas (queries) que não foram antecipadas por quem projetou a base de dados.
+Como resultado, bases de dados relacionais podem ser utilizadas por várias aplicações em formas que os projetistas originais não previram, o que é especialmente importante em bases de dados que são utilizadas por longos períodos. Isto torna as bases de dados relacionais muito populares no meio empresarial.
+O modelo relacional é uma teoria matemática desenvolvida por Edgar Frank Codd para descrever como as bases de dados devem funcionar.
+Embora esta teoria seja a base para o software de bases de dados relacionais, poucos sistemas de gestão de bases de dados seguem integralmente as 12 leis do modelo relacional. Todos têm funcionalidades que violam a teoria, desta forma variando a complexidade e o poder.
+A discussão se esses bancos de dados merecem ser chamados de relacional foi se esgotando à medida que os bancos de dados evoluíram.
+Os bancos de dados hoje implementam o modelo definido como objeto relacional.
+Os primeiros sistemas comerciais baseados no modelo relacional foram disponibilizados em 1980, e desde então ele foi implementado em muitos sistemas, tais como Access, Oracle, MySQL, PostgreSQL, entre outros.
+
+Aplicações de bancos de dados
+Sistemas Gerenciadores de Bancos de Dados são usados em muitas aplicações, abrangendo virtualmente a gama inteira de software de computador. Os Sistemas Gerenciadores de Bancos de Dados são o método preferido de armazenamento e recuperação de dados/informações para aplicações multiusuários grandes, onde a coordenação entre os usuários é necessária. Até mesmo usuários individuais os consideram convenientes, entretanto, muitos programas de correio eletrônico e organizadores pessoais estão baseados em tecnologia de banco de dados padrão.
+
+Transação
+Uma transação é um conjunto de procedimentos, executados num banco de dados, que o usuário percebe como uma única ação.
+A integridade de uma transação depende de quatro propriedades, conhecidas como ACID:
+
+Atomicidade: Todas as ações devem ser concluídas com sucesso para que a transação seja efetivada. Se, durante a transação, qualquer ação que constitui unidade de trabalho falhar, a transação inteira deve ser desfeita (rollback). Quando todas as ações são efetuadas com sucesso, a transação pode ser efetivada e persistida em banco (commit).
+Consistência: Todas as regras e restrições definidas no banco de dados devem ser obedecidas. Relacionamentos por chaves estrangeiras, verificação de valores para campos restritos ou únicos devem ser obedecidos para que uma transação possa ser completada com sucesso.
+Isolamento: Cada transação funciona completamente à parte de outras transações. Todas as operações são parte de uma transação única. O princípio é que nenhuma outra transação operando no mesmo sistema possa interferir na transação corrente, sendo assim um mecanismo de controle. Outras transações não podem visualizar os resultados parciais das operações de uma transação em andamento (ainda em respeito à propriedade da atomicidade).
+Durabilidade: Significa que os resultados de uma transação são permanentes e podem ser desfeitos somente por uma transação subsequente. Por exemplo: todos os dados e status relativos a uma transação devem ser armazenados num repositório permanente, não sendo passíveis de falha por falha de hardware.
+A transação possui os seguintes estados:
+
+Ativa
+É o estado inicial de toda transação e, enquanto está ativa, ela executa uma ou mais operações de leitura e gravação.
+Em processo de efetivação
+A transação irá entrar nesse processo quando executar sua última operação, a solicitação do commit.
+É nesse processo que o sistema precisa garantir que a transação ocorra com êxito, e, em caso de falhas, deve ser utilizada alguma técnica de recuperação.
+Efetivada
+Uma transação entra nesse estado após ter sido realizada com sucesso.
+Em processo de aborto
+Caso uma transação não consiga proceder em sua execução ela entra nesse estado.
+Só é possível que passe para esse estado caso esteja ativa ou em processo de efetivação.
+Caso uma transação não tenha sido concluída com sucesso, ela pode ser reiniciada automaticamente.
+Concluída
+Estado final da transação.
+Suas informações mantidas em catálogo já podem ser excluídas.
+Caso uma transação não tenha sido concluída com sucesso, ela pode ser reiniciada automaticamente.
+
+Controle de concorrência
+Controle de concorrência é um método usado para garantir que as transações sejam executadas de forma segura e sigam as regras ACID. Os SGBD devem ser capazes de assegurar que nenhuma ação de transações completadas com sucesso (committed transactions) seja perdida ao desfazer transações abortadas (rollback).
+Uma transação é uma unidade que preserva consistência. Requer-se, portanto, que qualquer escalonamento produzido ao processar um conjunto de transações concorrentemente seja computacionalmente equivalente a um escalonamento produzido executando essas transações serialmente em alguma ordem. Um sistema que garante esta propriedade assegura a serialização.
+
+Bloqueio
+Em vez de bloquear (blocking) um banco de dados inteiro, uma transação pode bloquear apenas os itens de dados que ela acessa. Sobre tal política, a transação precisa manter bloqueios por tempo suficiente para garantir a serialização, mas por um período curto o suficiente para não prejudicar o desempenho excessivamente.
+
+Segurança
+Os bancos de dados são utilizados para armazenar diversos tipos de informações, desde dados sobre uma conta de e-mail até dados importantes da Receita Federal. A segurança do banco de dados enfrenta as mesmas dificuldades que a segurança da informação enfrenta, que é garantir a integridade, a disponibilidade e a confidencialidade. Um sistema gerenciador de banco de dados deve fornecer mecanismos que auxiliem nesta tarefa.
+Uma forma comum de ataque à segurança do banco de dados é injeção de SQL, em bancos de dados que utilizam essa linguagem, mas bancos de dados NoSQL também podem ser vítimas. Para evitar estes ataques, o desenvolvedor de aplicações deve garantir que nenhuma entrada possa alterar a estrutura da consulta enviada ao sistema.
+Bancos de dados SQL implementam mecanismos que restringem ou permitem acesso aos dados de acordo com papéis (roles) fornecidos pelo administrador. O comando GRANT concede privilégios específicos para um objeto (tabela, visão, banco de dados, função, linguagem procedimental, esquema ou espaço de tabelas) para um ou mais usuários ou grupos de usuários.
+
+Falhas
+Em um banco de dados podem ocorrer falhas: de transação, de sistema ou de mídia.
+A falha de transação, que é a mais comum, é aquela em que a transação é finalizada irregularmente (abruptamente), normalmente por falta de dados necessários ou programação equivocada. A falha de sistema, que tem probabilidade de ocorrência mediana, ocorre quando a execução do sistema é interrompida por causa de problemas como falta de energia, falha no hardware ou mau funcionamento do sistema operacional. Em uma falha de mídia, o banco de dados não fica plenamente acessível, fazendo com que parte do disco perca dados. Normalmente, ocorre devido a disfunções na leitura ou a partes do disco danificadas.
+
+Recuperação
+Existem alguns mecanismos capazes de permitir a recuperação de um banco de dados de algumas inconsistências causadas por falhas internas (erros de consistência, como recuperação de um estado anterior a uma transação que deu erro) e externas (queda de energia, catástrofe ambiental). Entretanto, não é um método 100% seguro.
+Os mecanismos mais comuns são o Log de dados, que é usado em conjunto com outros métodos; utilização de Buffer no qual, apesar de normalmente ser feito pelo próprio sistema operacional, é controle por rotinas de baixo nível pelo Sistema de gerenciamento de banco de dados. Possui também as possibilidades de Write-ahead logging (WAL) e informações das transações possibilitando o REDO (refazer) e o UNDO (desfazer), assim sempre possibilitando a volta do banco de dados a um estado anterior consistente, além de cópias de sombra dos logs e dos últimos dados alterados do banco de dados.
+Ações básicas da recuperação de banco de dados:
+
+Transaction UNDO: Ocorre caso uma transação não conclua suas operações, nesse caso, todas as alterações feitas por ela são desfeitas.
+Global UNDO: Ocorre quando mais de uma transação não consiga concluir suas operações, nesse caso, todas as alterações feitas por tais transações são desfeitas.
+Partial REDO: Em caso de falha, alguma transação pode ter sido concluída, porém, sem que suas ações fossem refletidas na base de dados. Neste caso, as modificações realizadas por essa transição são refeitas.
+Global REDO: Ocorre caso a base de dados seja corrompida e todas as transações aplicadas no banco de dados são perdidas. Nesse caso, todas as alterações vindas dessas transações que foram perdidas são refeitas.
+
+Pesquisa
+A tecnologia de banco de dados tem sido um tópico de pesquisa ativo desde 1960, tanto na academia como nos grupos de pesquisa e desenvolvimento de empresas (por exemplo, IBM Research). A atividade de pesquisa inclui teoria e desenvolvimento de protótipos. Tópicos de pesquisa notáveis incluem modelos, o conceito de transação atômica e técnicas relacionadas ao controle de concorrência, linguagens de consulta e métodos de otimização de consulta, RAID e muito mais.
+A área de pesquisa de banco de dados tem vários periódicos acadêmicos dedicados (por exemplo,  ACM Transactions on Database Systems  - TODS,  Data and Knowledge Engineering  - DKE) e conferências anuais (por exemplo, ACM SIGMOD, ACM PODS, VLDB e IEEE ICDE).
+
+Funções internas comuns
+Tabelas
+Regras
+Procedimentos armazenados (mais conhecidos como stored procedures)
+Gatilho
+Default
+Visão
+Índice
+Generalizadores

@@ -1,0 +1,125 @@
+A segurança da informação (SI) está diretamente relacionada com proteção de um conjunto de informações, no sentido de preservar o valor que possuem para um indivíduo ou uma organização. São propriedades básicas da segurança da informação: confidencialidade, integridade, disponibilidade, autenticidade e legalidade.
+A SI não está restrita somente a sistemas computacionais, informações eletrônicas ou sistemas de armazenamento. O conceito aplica-se a todos os aspectos de proteção de informações e dados. O conceito de Segurança Informática ou Segurança de Computadores está intimamente relacionado com o de Segurança da Informação, incluindo não apenas a segurança dos dados/informação, mas em si o sistema.
+Atualmente o conceito de Segurança da Informação está padronizado pela norma ISO/IEC 17799:2005, influenciada pelo padrão inglês (British Standard) BS 7799. A norma técnica de segurança da informação em vigor é: ABNT NBR ISO/IEC 27002:2013
+
+Conceitos de segurança
+A maioria das definições de Segurança da Informação (SI) (Brostoff, 2004; Morris e Thompson, 1979; Sieberg, 2005; Smith, 2002) pode ser sumarizada como a proteção contra o uso ou acesso não-autorizado à informação, bem como a proteção contra a negação do serviço a usuários autorizados, enquanto a integridade e a confidencialidade dessa informação são preservadas. A SI não está confinada a sistemas de computação, nem à informação em formato eletrônico. Ela se aplica a todos os aspectos de proteção da informação ou dados, em qualquer forma. O nível de proteção deve, em qualquer situação, corresponder ao valor dessa informação e aos prejuízos que poderiam decorrer do uso impróprio da mesma. É importante lembrar que a SI também cobre toda a infraestrutura que permite o seu uso, como processos, sistemas, serviços, tecnologias, e outros.
+A Segurança da informação refere-se à proteção existente sobre as informações de uma determinada empresa ou pessoa, isto é, aplica-se tanto às informações corporativas quanto às pessoais. Entende-se por informação todo e qualquer conteúdo ou dado que tenha valor para alguma organização ou pessoa. Ela pode estar guardada para uso restrito ou exposta ao público para consulta ou aquisição.
+Podem ser estabelecidas métricas (com o uso ou não de ferramentas) para a definição do nível de segurança existente e, com isto, serem estabelecidas as bases para análise da melhoria ou piora da situação de segurança existente. A segurança de uma determinada informação pode ser afetada por fatores comportamentais e de uso de quem se utiliza dela, pelo ambiente ou infraestrutura que a cerca ou por pessoas mal intencionadas que têm o objetivo de furtar, destruir ou modificar tal informação.
+A tríade CIA (Confidentiality, Integrity and Availability) — Confidencialidade, Integridade e Disponibilidade — representa os principais atributos que, atualmente, orientam a análise, o planejamento e a implementação da segurança para um determinado grupo de informações que se deseja proteger. Outros atributos importantes são não-repúdio (irretratabilidade), autenticidade e conformidade. Com a evolução do comércio eletrônico e da sociedade da informação, a privacidade é também uma grande preocupação.
+Portanto os atributos básicos da segurança da informação, segundo os padrões internacionais (ISO/IEC 17799:2005) são os seguintes:
+
+Confidencialidade: propriedade que limita o acesso a informação tão somente às entidades legítimas, ou seja, àquelas autorizadas pelo proprietário da informação;
+Integridade: propriedade que garante que a informação manipulada mantenha todas as características originais estabelecidas pelo proprietário da informação, incluindo controle de mudanças e garantia do seu ciclo de vida (Corrente, intermediária e permanente). O ciclo de vida da informação orgânica - criada em ambiente organizacional - segue as três fases do ciclo de vida dos documentos de arquivos; conforme preceitua os canadenses da Universidade do Quebec (Canadá): Carol Couture e Jean Yves Rousseau, no livro Os Fundamentos da Disciplina Arquivística;
+Disponibilidade: propriedade que garante que a informação esteja sempre disponível para o uso legítimo, ou seja, por aqueles usuários autorizados pelo proprietário da informação;
+Autenticidade: propriedade que garante que a informação é proveniente da fonte anunciada e que não foi alvo de mutações ao longo de um processo;
+
+Mecanismos de segurança
+O suporte para as recomendações de segurança pode ser encontrado em:
+
+Controles físicos: são barreiras que limitam o contato ou acesso direto a informação ou a infraestrutura (que garante a existência da informação) que a suporta. Mecanismos de segurança que apoiam os controles físicos: portas, trancas, paredes, blindagem, guardas, etc.
+Controles lógicos: são barreiras que impedem ou limitam o acesso a informação, que está em ambiente controlado, geralmente eletrônico, e que, de outro modo, ficaria exposta a alteração não autorizada por elemento mal intencionado. Mecanismos de segurança que apoiam os controles lógicos:
+Mecanismos de cifração ou encriptação: permitem a transformação reversível da informação de forma a torná-la ininteligível a terceiros. Utiliza-se para tal, algoritmos determinados e uma chave secreta para, a partir de um conjunto de dados não criptografados, produzir uma sequência de dados criptografados. A operação inversa é a decifração.
+Assinatura digital: Um conjunto de dados criptografados, associados a um documento do qual são função, garantindo a integridade e autenticidade do documento associado, mas não a sua confidencialidade.
+Mecanismos de garantia da integridade da informação: usando funções de "Hashing" ou de checagem, é garantida a integridade através de comparação do resultado do teste local com o divulgado pelo autor.
+Mecanismos de controle de acesso: palavras-chave, sistemas biométricos, firewalls, cartões inteligentes.
+Mecanismos de certificação: atesta a validade de um documento.
+Honeypot: é uma ferramenta que tem a função de propositalmente simular falhas de segurança de um sistema e colher informações sobre o invasor enganando-o, fazendo-o pensar que esteja de fato explorando uma vulnerabilidade daquele sistema. É uma espécie de armadilha para invasores. O honeypot não oferece nenhum tipo de proteção.
+Protocolos seguros: uso de protocolos que garantem um grau de segurança e usam alguns dos mecanismos citados aqui.
+Atualmente existe uma grande variedade de ferramentas e sistemas que pretendem fornecer segurança. Alguns exemplos: antivírus, firewalls, filtros anti-spam, fuzzers, detectores de intrusões (IDS), analisadores de código, etc.
+
+Ameaças à segurança
+As ameaças à segurança da informação são relacionadas diretamente à perda de uma de suas três principais características, quais sejam:
+
+Perda de confidencialidade: há uma quebra de sigilo de uma determinada informação (ex: a senha de um usuário ou administrador de sistema) permitindo que sejam expostas informações restritas as quais seriam acessíveis apenas por um determinado grupo de usuários.
+Perda de integridade: determinada informação fica exposta a manuseio por uma pessoa não autorizada, que efetua alterações que não foram aprovadas e não estão sob o controle do proprietário (corporativo ou privado) da informação.
+Perda de disponibilidade: a informação deixa de estar acessível por quem necessita dela. Seria o caso da perda de comunicação com um sistema importante para a empresa, que aconteceu com a queda de um servidor ou de uma aplicação crítica de negócio, que apresentou uma falha devido a um erro causado por motivo interno ou externo ao equipamento ou por ação não autorizada de pessoas com ou sem má intenção.
+No caso de ameaças à rede de computadores ou a um sistema, estas podem vir de agentes maliciosos, muitas vezes conhecidos como crackers, (hackers não são agentes maliciosos, pois tentam ajudar a encontrar possíveis falhas). Os crackers são motivados a fazer esta ilegalidade por vários motivos, dentre eles: notoriedade, autoestima, vingança e enriquecimento ilícito. De acordo com pesquisa elaborada pelo Computer Security Institute, mais de 70% dos ataques partem de usuários legítimos de sistemas de informação (insiders), o que motiva corporações a investir largamente em controles de segurança para seus ambientes corporativos (intranet).
+
+Invasões na Internet
+Todo sistema de computação necessita de um sistema para proteção de arquivos. Este sistema é um conjunto de regras que garantem que a informação não seja lida, ou modificada por quem não tem permissão.
+A segurança é usada especificamente para referência do problema genérico do assunto, já os mecanismos de proteção são usados para salvar as informações a serem protegidas. A segurança é analisada de várias formas, sendo os principais problemas causados com a falta dela a perda de dados e as invasões de intrusos. A perda de dados na maioria das vezes é causada por algumas razões:
+
+Fatores naturais: incêndios, enchentes, terremotos, e vários outros problemas de causas naturais;
+Erros de hardware ou de software: falhas no processamento, erros de comunicação, ou bugs em programas;
+Erros humanos: entrada de dados incorreta, montagem errada de disco ou perda de um disco.
+Para evitar a perda destes dados é necessário manter um backup confiável, armazenado geograficamente distante dos dados originais.
+
+Exemplos de invasões
+Em 1988, um estudante colocou na internet um programa malicioso (malware), escrito em linguagem C, derrubando milhares de computadores pelo mundo, que foi identificado e removido logo após. Mas até hoje há controvérsias de que ele não foi completamente removido da rede. Até hoje não se sabe qual era seu objetivo, o que se sabe é que ele tentava descobrir todas as senhas que o usuário digitava. Mas esse programa se autocopiava em todos os computadores em que o estudante invadia. Essa “brincadeira” não durou muito, pois o estudante foi descoberto pouco tempo depois, processado e condenado a liberdade condicional, e teve que pagar uma alta multa.
+Um dos casos mais recentes de invasão por meio de vírus foi o do worm Conficker (ou Downup, Downadup e Kido) que tinha como objetivo afetar computadores dotados do sistema operacional Microsoft Windows, e que foi primeiramente detectado em outubro de 2008. Uma versão anterior do malware propagou-se pela internet através de uma vulnerabilidade dos sistemas de rede do Windows (2000, XP, Vista, Server 2003, Server 2008, 7 Beta e Server 2008 R2 Beta, que tinha sido lançado anteriormente naquele mês). O worm bloqueia o acesso a websites destinados à venda, protegidos com sistemas de segurança e, portanto, é possível a qualquer usuário de internet verificar se um computador está infectado ou não, simplesmente por meio do acesso a websites destinados a venda de produtos dotados de sistemas de segurança.
+Em 15 de outubro de 2008, a Microsoft liberou um bugfix de emergência para corrigir a vulnerabilidade MS08-067, através da qual o worm prevalece-se para poder se espalhar. As aplicações da atualização automática se aplicam somente para o Windows XP SP2, SP3, Windows 2000 SP4 e Windows Vista; o Windows XP SP1 e versões mais antigas não são mais suportados.
+Em janeiro de 2009, o número estimado de computadores infectados variou entre 9 e 15 milhões. Em 13 de fevereiro de 2009, a Microsoft oferecia US$ 250mil em recompensa para qualquer informação que levasse à condenação e à prisão de pessoas por trás da criação e/ou distribuição do Conficker.
+Os softwares antivírus não-ligados a Microsoft, tais como a BitDefender, Enigma Software, Eset, F-Secure, Symantec, Sophos, e o Kaspersky Lab liberaram atualizações com programas de detecção em seus produtos e são capazes de remover o worm. A McAfee e o AVG também são capazes de remover o vírus através de escaneamentos de discos rígidos e mídias removíveis.
+Através dessas informações históricas percebemos que os antivírus devem estar cada vez mais atualizados, porque estão surgindo novos vírus rapidamente, e com a mesma velocidade deve ser lançado atualizações para os bancos de dados dos antivírus para que os mesmos sejam identificados e excluídos. Com a criação da internet essa propagação de vírus é muito rápida e muito perigosa, pois se não houver a atualização dos antivírus o computador e usuário estão vulneráveis, pois com a criação da internet várias empresas começarão a utilizar internet como exemplo empresas mais precisamente bancos, mas como é muito vulnerável esse sistema, pois existem vírus que tem a capacidade de ler o teclado (in/out), instruções privilegiadas como os keyloggers. Com esses vírus é possível ler a senha do usuário que acessa sua conta no banco, com isso é mais indicado utilizar um teclado virtual para digitar as senhas ou ir diretamente ao banco.
+
+Nível de segurança
+Depois de identificado o potencial de ataque, as organizações têm que decidir o nível de segurança a estabelecer para uma rede ou sistema os recursos físicos e lógicos a necessitar de proteção. No nível de segurança devem ser quantificados os custos associados aos ataques e os associados à implementação de mecanismos de proteção para minimizar a probabilidade de ocorrência de um ataque.
+
+Segurança física
+Considera as ameaças físicas como incêndios, desabamentos, relâmpagos, alagamento, algo que possa danificar a parte física da segurança, acesso indevido de estranhos (controle de acesso), forma inadequada de tratamento e manuseio dos veículos.
+
+Segurança lógica
+Atenta contra ameaças ocasionadas por vírus, acessos remotos à rede, backup desatualizados, violação de senhas, furtos de identidades, etc.
+Segurança lógica é a forma como um sistema é protegido no nível de sistema operacional e de aplicação. Normalmente é considerada como proteção contra ataques, mas também significa proteção de sistemas contra erros não intencionais, como remoção acidental de importantes arquivos de sistema ou aplicação. É fácil manipular a informação usando palavras-chave, como nesse caso: informação; segurança; e controle.
+
+Pontos de controle de segurança
+ Conforme Bluephoenix(2008) apud Espírito Santo(2012), após identificar os riscos, os níveis de proteção e determinar as  decorrências que os riscos podem causar, deve-se executar os pontos de controle para reduzir riscos. Os controles podem aplicar-se na seguinte forma:
+
+Políticas de segurança da informação;
+Organização da segurança da informação;
+Gestão e controle de ativos;
+Segurança em recursos humanos;
+Segurança física e do ambiente;
+Gestão das operações e comunicações;
+Controle de acessos;
+Aquisição, desenvolvimento e manutenção de sistemas de informação;
+Gestão da continuidade do negócio;
+Conformidade legal.
+Outra abordagem é a pontuação de ciber-segurança. Aqui, o servidor público na rede é automaticamente digitalizado para detectar vulnerabilidades de segurança conhecidas e a partir daí é determinada uma pontuação objectiva, o que torna possível comparar diferentes níveis de segurança entre organizações. Por exemplo, é possível comparar todos os fornecedores de uma grande empresa.
+
+Políticas de segurança
+
+De acordo com o RFC 2196 (The Site Security Handbook), uma política de segurança consiste num conjunto formal de regras que devem ser seguidas pelos utilizadores dos recursos de uma organização.
+As políticas de segurança devem ter implementação realista, e definir claramente as áreas de responsabilidade dos utilizadores, do pessoal de gestão de sistemas e redes e da direção. Deve também adaptar-se a alterações na organização. As políticas de segurança fornecem um enquadramento para a implementação de mecanismos de segurança, definem procedimentos de segurança adequados, processos de auditoria à segurança e estabelecem uma base para procedimentos legais na sequência de ataques.
+O documento que define a política de segurança deve deixar de fora todos os aspectos técnicos de implementação dos mecanismos de segurança, pois essa implementação pode variar ao longo do tempo. Deve ser também um documento de fácil leitura e compreensão, além de resumido.
+Algumas normas definem aspectos que devem ser levados em consideração ao elaborar políticas de segurança. Entre essas normas estão a BS 7799 (elaborada pela British Standards Institution) e a NBR ISO/IEC 17799 (a versão brasileira desta primeira). A ISO começou a publicar a série de normas 27000, em substituição à ISO 17799 (e por conseguinte à BS 7799), das quais a primeira, ISO 27001, foi publicada em 2005.
+Existem duas filosofias por trás de qualquer política de segurança:
+
+a proibitiva (tudo que não é expressamente permitido é proibido) e
+a permissiva (tudo que não é proibido é permitido).
+Os elementos da política de segurança devem ser considerados:
+
+Disponibilidade: o sistema deve estar disponível de forma que quando o usuário necessitar, possa usar. Dados críticos devem estar disponíveis ininterruptamente;
+Integridade: o sistema deve estar sempre íntegro e em condições de ser usado;
+Confidencialidade: dados privados devem ser apresentados somente aos donos dos dados ou ao grupo por ele liberado;
+Autenticidade: o sistema deve ter condições de garantir de que a informação e/ou a identidade dos usuários, são quem dizem ser;
+Legalidade: valor legal das informações dentro de um processo de comunicação.
+
+Políticas de senhas
+
+Dentre as políticas utilizadas pelas grandes corporações a composição da senha é a mais controversa. Por um lado profissionais com dificuldade de memorizar várias senhas de acesso com mais de 10 caracteres diferenciados, por outro funcionários displicentes que anotam a senha sob o teclado, no fundo das gavetas e, em casos mais graves, até em post-it no monitor.
+Recomenda-se a adoção das seguintes regras para minimizar o problema, mas a regra fundamental é a conscientização dos colaboradores quanto ao uso e manutenção das senhas:
+
+Senha com data para expiração.
+Adota-se um padrão definido onde a senha possui prazo de validade de 30 ou 45 dias, obrigando o colaborador ou usuário a renovar sua senha;
+Inibir a repetição.
+Adota-se através de regras predefinidas que uma senha não poderá ter mais que 60% dos caracteres utilizados nas últimas senhas. Por exemplo: caso a senha anterior fosse “123senha”, a nova senha deve ter mais de 60% dos caracteres diferentes, como “456seuse”, neste caso foram repetidos somente os caracteres “s” “e” os demais diferentes;
+Obrigar a composição com número mínimo de caracteres numéricos e alfabéticos.
+Define-se obrigatoriedade de 4 caracteres alfabéticos e 4 caracteres numéricos. Por exemplo: 1432seus ou até 1s4e3u2s ;
+Criar um conjunto com possíveis senhas que não podem ser utilizadas.
+Monta-se uma base de dados com formatos conhecidos de senhas e proibir o seu uso. Exemplos: o nome da empresa ou abreviatura, caso o funcionário chame-se José da Silva, sua senha não deveria conter partes do nome como 1221jose ou 1212silv etc., nem sua data de nascimento/aniversário, número de telefone, e similares.
+Recomenda-se ainda utilizar senhas que mesclam caracteres em cAiXa aLtA e bAiXa, além da utilização de caracteres especiais como: @ # $ % & * ;
+Usar a técnica leet na composição das senhas, substituindo letras por números e símbolos;
+Automaticamente gerar a senha para os usuários ou deixar que eles escolham entre um número limitado de opções exibidas.
+
+A Gestão de riscos unida à segurança da informação
+A gestão de riscos, por sua vez, fundamental para garantir o perfeito funcionamento de toda a estrutura tecnológica da empresa, engloba a Segurança da Informação, já que a quantidade de vulnerabilidades e riscos que podem comprometer as informações da empresa é cada vez maior.
+Ao englobar a gestão da segurança da informação, a gestão de riscos tem como principais desafios:
+
+proteger um dos principais ativos da organização – a informação – assim como a reputação e a marca da empresa;
+implementar e gerir controles que tenham como foco principal os objetivos do negócio;
+promover ações corretivas e preventivas de forma eficiente;
+garantir o cumprimento de regulamentações;
+definir os processos de gestão da Segurança da Informação.
+Entre as vantagens de investir na gestão de riscos voltada para a segurança da informação estão a priorização das ações de acordo com a necessidade e os objetivos da empresa e a utilização de métricas e indicadores de resultados.

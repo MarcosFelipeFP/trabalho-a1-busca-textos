@@ -1,0 +1,129 @@
+Uma estrutura de dados (ED), em ciência da computação, é uma coleção tanto de valores (e seus relacionamentos) quanto de operações (sobre os valores e estruturas decorrentes). É uma implementação concreta de um tipo abstrato de dado (TAD) ou um tipo de dado (TD) básico ou primitivo. Assim, o termo ED pode ser considerado sinônimo de TD, se considerado TAD um hipônimo de TD, isto é, se um TAD for um TD.
+Critérios para escolha e estudo de uma estrutura de dados incluem eficiência para buscas e padrões específicos de acesso, necessidades especiais para manejo de grandes volumes (veja big data), ou a simplicidade de implementação e uso. Ou seja, EDs eficientes são cruciais para a elaboração de algoritmos, diversas linguagens possuem ênfase nas EDs, como evidenciado pela POO, e aplicações distintas usufruem de ou requerem EDs específicas (e.g. um compilador usa uma tabela de dispersão para identificadores e namespaces, enquanto uma Árvore B ou Árvore AA é apropriada para acessos randômicos).
+Em termos de EDs, os TDs e TADs são definidos indiretamente pelas operações e usos, e propriedades destas operações e usos: e.g. o custo computacional e o espaço que pode representar e ocupa na memória.
+
+Relevância para a Ciência da Computação
+Na ciência da computação, uma ED é um modo particular de armazenamento e organização de dados em um computador de modo que possam ser usados eficientemente, facilitando sua busca e modificação.
+EDs e algoritmos são temas fundamentais da ciência da computação, sendo utilizados nas mais diversas áreas do conhecimento e com os mais diferentes propósitos de aplicação. Sabe-se que algoritmos manipulam dados. Quando estes dados estão organizados (dispostos) de forma coerente, caracterizam uma forma, uma estrutura de dados. A organização e os métodos para manipular essa estrutura é que lhe confere singularidade (e vantagens estratégicas, como a minimização do espaço ocupado na memória RAM), além (potencialmente) de tornar o código-fonte mais enxuto e simples.
+
+Principais Estruturas de Dados (clássicas)
+VETOR
+LISTA
+PILHA
+FILA
+ÁRVORE
+
+Conceito-chave: ponteiro
+Um ponteiro é um objeto cujo valor aponta para outro valor através de um endereço de memória
+(e.g. da memória RAM). A forma como os ponteiros são usados em uma ED, seja explicitamente (como em uma lista ligada) ou implicitamente (como em um vetor homogêneo), evidencia suas propriedades, usos e operações. Por exemplo, em uma estrutura ligada, em que cada elemento possui um (ou mais) ponteiro(s) para outro(s) elemento(s), os valores podem assumir diferentes tipos e estruturas arbitrariamente complexas; já com a omissão dos ponteiros, por exemplo em um vetor (sequência de valores de um mesmo tipo), a representação fica compacta e muitas vezes favorece o processamento massivamente paralelo, como no caso de tensores e outras variantes multidimensionais tão comuns na física, engenharia e matemática aplicada em geral.
+Mesmo quando ponteiros não são usados diretamente, como em linguagens que não utilizam distinção entre ponteiros e outras variáveis (veja o exemplo abaixo), a noção de referenciar a uma outra estrutura de dado arbitrária é usada, noção que é canonicamente abordada pela utilização do ponteiro.
+
+Exemplo de discussão a respeito de ponteiros
+É usual dizer que linguagens de alto nível, e.g. Python, não utilizam ponteiros. No entanto, pode-se argumentar que mais fiel aos fatos é considerar que, ao menos em Python, os ponteiros são utilizados por padrão:
+
+Estas variáveis em Python são referências no jargão de linguagens de programação.
+
+EDs para a Web, computação científica e scripting em geral
+
+Embora a teoria básica de EDs seja centrada no processamento sequencial e uso de ponteiros, em muitos contextos, em especial na programação para a web com uso de linguagens de alto nível como Javascript, Python, ou Ruby, há ênfase em padrões simples, reutilização de implementações otimizadas há décadas, e processamento paralelo/assíncrono, em contraste com a teoria básica de EDs. Nesta seção alguns aspectos selecionados são expostos.
+
+EDs na computação científica
+Uma prática espúria, muitas vezes limitante, e (infelizmente) bastante frequente na computação científica, é a iteração sobre EDs multidimensionais. Veja a diferença de eficiência mesmo em um caso bem simples e isolado:
+
+Já para a modelagem e otimização (e.g. através de métodos de aprendizagem de máquina), são convenientes abstrações de conceitos e a POO. Ou seja, na programação científica como encontrada nas ciências naturais e engenharias, por exemplo, a POO está associada ao uso de técnicas e modelos através dos TADs, ao passo que as EDs homogêneas e os TDs primitivos estão associados ao processamento eficiente de dados advindos de sistemas reais ou modelos.
+Para um exemplo de computação natural, considere a otimização bio-inspirada através de um algoritmo ACO: as classes Formiga e Solução são potencialmente TADs, instanciam objetos inspirados em conceitos reais e encapsulam os dados em concordância com a POO. No processamento de dados multidimensionais (como no problema do caixeiro viajante e outros problemas NP-completos ou NP-difíceis, por exemplo), a implementação provavelmente recorrerá a TDs homogêneos para processamentos lineares/matriciais (utilizando rotinas como as do BLAS [en], LAPACK [en] e FFTW [en]) e massivamente paralelos (utilizando técnicas como thread, serviços/jobs, message passing, basicamente para processamento assíncrono [en]).
+No ACO, estes TDs homogêneos estarão presentes, por exemplo, na evaporação do feromônio e nas escolhas de trajetórias de cada Formiga instanciada.
+
+JSON-compatível
+Os dados são preferencialmente mantidos nas estruturas de listas (sequências heterogêneas, e.g. uma lista ligada) e de dicionários (tabelas de dispersão (hash tables), e há distinção entre os tipos básicos numéricos (e.g. floats e  INT) e textuais (e.g. chars e strings).
+A maior limitação prática desta abordagem é o processamento de vetores multidimensionais e dados muito volumosos, motivo pelo qual há bibliotecas com implementações otimizadas, como as citadas no exemplo sobre computação científica.
+Quando um valor pode ser uma função/rotina, tal objeto permite a representação de objetos para a POO. A impedância neste contexto se refere à resistência que os objetos possuem de serem representados como TADs.
+Embora o padrão lista e dicionário de representação de estruturas de dados esteja aqui utilizada de forma genérica, JSON quer dizer Javascript Object Notation, e é um padrão formalmente definido de representação de dados, ao qual e.g. Python, Vim language (VimL), e o próprio Javascript, com frequência se adequam para transferir ou armazenar dados.
+
+Aspectos de visualização de dados
+Para dados em lista, são apropriados métodos de visualização de séries temporais e sequenciais em geral. Já para pilhas, a visualização tende a ser feita por torres de hanoi ou características próprias do contexto. Há diversas visualizações de EDs apreciadas esteticamente ou com fins didáticos. Destaque a este respeito deve ser dado aos aplicativos online para escrutinação de EDs e os vídeos em que operações, como de ordenação, são dançadas ao acompanhamento musical.
+Na visualização dos dados, sejam eles e.g. módulos de componentes frequenciais (e.g. de Fourier) ou valores cujo valor semântico é desconhecido, é muitas vezes necessário utilizar escalas exponenciais/logarítmicas ou que sigam leis de potência para que as estruturas possam ser audiovisualizadas informativamente. De fato, a percepção humana e de outros animais utiliza lineariza estas escalas de modo a obter uma recepção de sinais informativa em um espectro/âmbito largo: ouvimos de forma útil desde um alfinete batendo no chão até um prédio implodindo, ouvimos frequências aproximadamente de 20 Hz a 20 kHz, enxergamos sob espectros igualmente generosos de intensidade e frequência).
+
+Considerações sobre processamento e transferência
+Tome o seguinte contexto atual, bastante frequente e até paradigmático, da computação em nuvem. A recomendação da W3C para a representação de dados e de conhecimentos para a utilização de dados ligados, representados em RDF e integrados à web semântica via ontologias OWL ou RDF's e vocabulários SKOS [en].
+Suponha que haja um cliente que quer um navegador/browser de arquivos HTML via HTTP,(a exemplo do Firefox, Chrome, ou Chromium).Por exemplo, suponha também que haja um servidor no software Web em uso ou/em desenvolvimento. Esse software serve o HTML para o navegador carregar quando recebe uma URL que especifica que o HTML deve entregar.
+Nesse contexto descrito, favorecer os protocolos em detrimento de jargões da teoria, é razoável supor que as rotinas a serem executadas pelo navegador do cliente, sejam para poupar o processamento no servidor ou para fins de interatividade,
+serão escritas em Javascript com bibliotecas como  D3.js. Já as rotinas a serem executadas no servidor, elaborar o HTML a ser enviado, acessar bancos de dados e análises estatísticas serão implementadas em Python, por exemplo, utilizando RDFLib [en],  SPARQL, NumPy,  SciPy, Flask [en]. Os casos que não dependem dos processamentos matriciais e massivamente paralelos poderão ser escritos usando o  Node.js(de preferência) para a escrita do servidor.
+As seguintes questões dependem expressivamente das EDs escolhidas, seus volumes, processamentos, etc, e são dúvidas honestas, pertinentes e típicas na prática da web semântica:
+
+Uma ordenação, ou média ou desvio padrão ou padrão de regex, é mais rápida no endpoint  SPARQL (e.g. Jena (computação) [en], Virtuoso (base de dados) [en], RDFLib [en]) ou no Python? Pode ser crucial decidir quais operações devem (ou podem) ser feitas no endpoint, no servidor e no cliente. Fatores:
+processamento no endpoint SparQL é confiável? Até que ponto? Jena e Virtuoso são considerados estáveis e confiáveis mas ao visitar o histórico das listas são encontrados erros grosseiros de interpretação de chamadas e variações entre os protocolos SPARQL oficial, do Jena, Virtuoso e rdflib.
+Quanto mais dado é enviado para o python (pelo endpoint SPARQL), mais trafego na rede é utilizada.
+Quanto mais dado é enviado pelo python (para o cliente em Javascript), mais trafego na rede é utilizada.
+Como regra geral: procura-se maximizar o processamento nas etapas anteriores de acesso aos dados.
+Como regra geral: procura-se maximizar o processamento nas etapas que possuem as ferramentas apropriadas. Por exemplo, as busca e seleção dos dados são feitas em SPARQL, as otimizações e reconhecimento de padrões em Python, a relatoria e visualização em Javascript. Cada uma destas etapas trasforma EDs em outras EDs para transferência e representação subsequente. O HTML será muito provavelmente gerado em parte pelo servidor (em Python, e.g. usando Flask ou Django) e em parte pelo cliente (em Javascript, e.g. usando Bootstrap e D3js).
+Em consonância, nas consultas em SPARQL podem ser realizadas as operações:
+
+Obtenção de redes/grafos junto a metadados de vértices e arestas.
+Ordenação.
+Obtenção de Data cube [en] (dq:Slice) ou dados em segundo algum critério (e.g. âmbito  RDF Schema).
+Obtenção de descritores estatíticos: média, modo, mediana, valores máximos e mínimos, número de palavras, etc.
+Escrita de dados derivados (gerados pelo servidor/Python ou cliente/Javascript) para consulta posterior.
+Outras operações dependentes da aplicação, como busca por termos/tokens em dados textuais através de padrões de regex.
+No servidor em Python:
+
+Obtenção de histogramas, interpolações e obtenção de curvas/distribuições mais próximas (curve fitting), PCA, MDS.
+Manutenção e registro de estado dos dados, análises, visualizações e manutenção da interface (e.g. dados sobre o usuário, sessão, etc) internamente (no servidor), no endpoint SPARQL e no cliente.
+Cálculo de quantís e medidas estatísticas mais elaboradas que a descrição obtida diretamente nas consultas SPARQL (e.g. curtose).
+Síntese de queries SparQL e escrita de arquivos RDF:
+Para relacionamentos entre dados, análises, audiovisuaizações e interfaces (DAAI)
+Para inferências de relações possíveis em DAAI.
+No cliente em Javascript:
+
+layout das redes complexas
+Interatividade e efetivação da Analítica Audiovisual
+Exemplo de questão a ser investigada e para a qual provavelmente há diferentes soluções em uso dada a dependência da aplicação: como prevenir que o usuário faça queries que sobrecarreguem os servidores com leitura e escrita? Por exemplo, um dos princípios da AA estabelece "primeiro forneça um panorama geral, os detalhes são sob demanda" — Ben Shneiderman
+Ou seja, há remoção de dados para ênfase no detalhamento ou aquisição de dados para possibilitar a resolução requisitada, e portanto um aplicativo de AA operante na web semântica estará lidando potencialmente com fluxo de dados em todas as direções e até de forma contínua (veja streaming).
+
+Estruturas de dados canônicas
+Como evidenciado neste artigo, reconhecida a utilidade da teoria, é pertinente que o programador pondere se há ganho no uso destas estruturas de dados e.g. em Python ou Javascript. De todo modo, a reimplementação destas estruturas é desaconselhada quando há EDs correspondentes disponibilizadas pela linguagem por padrão, pois costumeiramente apresentam otimizações diversas. Esta orientação é válida até mesmo para linguagens consideradas de baixo nível, como C, C++, e Fortran.
+
+Taxonomia de EDs
+Pode-se conceitualizar que, na PE, as variáveis são chaves cujos valores são TDs, enquanto na POO os valores são TDs ou TADs. Estes TDs são em geral classificados como:
+
+ligados, quando um elemento possui um ou mais ponteiros para outros elementos;
+lineares, quando os valores se sucedem em sequência;
+homogeneos, quando os elementos são dos mesmo tipo;
+heterogêneos, quanto os elementos não são do mesmo tipo.
+TADs em geral são concebidos com características similares, o que implica nos padrões de design (veja GoF). As EDs podem se combinar de formas diversas. Por exemplo, um grafo/rede pode ser implementado através de uma ED homogênea e linear (e.g uma matriz) ou de uma ED ligada e.g. em que cada vértice contém os ponteiros para os vértices vizinhos. A escolha dentre estas representações, por exemplo, passa pela observação da densidade do grafo, da necessidade de manipular metadados, vértices heterogêneos, métodos a serem utilizados (e.g. os ciclos são encontrados imediatamente quando a matriz de adjacências está disponível).
+Note a severidade da escolha de uma ED para representar um grafo (que é outra ED): os ciclos são encontrados imediatamente quando a matriz de adjacências está disponível, o que facilita análises envolvendo fluxos de informação e a identificação de árvores ou até o estabelecimento de um dipolo árvore - grafo cíclico. Já uma ED ligada é conveniente para a lida com EDs heterogêneas, metadados, e para representação compacta de grafos esparsos (pouco conectados).
+Outro exemplo de relacionamento entre EDs: uma ED linear é muitas vezes também homogênea (e.g. uma matriz de inteiros, pixels em triplas RGB hexadecimais, ou amostras de inteiros com sinal, little-endians de 16bits, em um áudio PCM com taxa de amostragem de 44,1 kHz amostras por segundo), e é processada com bastante eficiência por processadores massivamente paralelos [en] como os utilizados nas placas gráficas usuais.
+Dados relacionais é um termo ambíguo: pode se referir a dados representados em um banco de dados relacional (e.g. MySQL, PostgreSQL) ou a dados caracterizados pelas relações duais/binárias/dicotômicas, paradigmaticamente compreendidos como grafos/redes.
+Algumas EDs são básicas/padrão para cada linguagem, e em geral há também suporte para estruturas compostas/elaboradas de dados, que se baseiam nos dados básicos.
+
+Template para formalização de conhecimento sobre uma ED
+Observada a literatura, um vocabulário sobre EDs pode seguir o seguinte padrão:
+
+Vocabulário em português e inglês e definições e relações entre vocábulos.
+Passível de formalização como vocabulário SKOS.
+
+(CONCEITO)
+termos pt-br
+termos en
+definição
+Descrição geral da teoria básica relacionada ao item
+Tipos de dados relacionados
+características abstratas (sequência ou conjunto de valores, dicionário, etc)
+proveniências (áudio, redes sociais, etc)
+Importância do item e limitações
+Demais notas teóricas
+Implementações em Pseudocódigo
+Ontologias: diagramas de conceitualização passíveis de formalização em OWL, utilizável por máquina para realizar inferências, tomada de decisão e consulta aos dados. Útil para discussões teoricas precisas.
+Nota histórica
+origens
+percurso
+estado atual da teoria e implementações
+Problemas típicos e soluções canônicas
+Aplicações clássicas
+Exercícios selecionados
+Usos em aprendizado de máquina, classificação e otimização; Medições
+Visualizações de informação de dados relacionados ao item. Visualizações/diagramas/imagens pertinentes para a teoria do item.
+Usos artísticos e educacionais de representações audiovisuais do item; música
+encontrados na literatura e outros artefatos audiovisuais
+potenciais
+Software para implementação. Implementações em linguagens de programação (Python, Scheme, Javascript, Java, C/C++, Fortran, Bash, Vimscript, ChucK, SuperCollider, PD)

@@ -1,0 +1,2213 @@
+Um computador quântico é um computador real ou teórico que explora fenômenos quânticos como sobreposição e entrelaçamento de maneira essencial. Acredita-se amplamente que um computador quântico poderia realizar alguns cálculos exponencialmente mais rápido do que qualquer computador clássico. Por exemplo, um computador quântico de grande escala poderia quebrar alguns esquemas de encriptação amplamente utilizados e ajudar físicos na realização de simulações físicas. No entanto, as implementações atuais de hardware de computação quântica são em grande parte experimentais e adequadas apenas para tarefas especializadas.
+A unidade de informação básica na computação quântica, o qubit (ou "bit quântico"), serve à mesma função que o bit na computação comum ou "clássica". No entanto, diferentemente de um bit clássico, que pode estar em um de dois estados (um binário), um qubit pode existir numa combinação linear de dois estados conhecida como sobreposição quântica. O resultado da medição de um qubit é um dos dois estados dado por uma regra probabilística. Se um computador quântico manipula o qubit de uma maneira particular, os efeitos de interferência de ondas amplificam a probabilidade do resultado de medição desejado. O projeto de algoritmos quânticos envolve a criação de procedimentos que permitem a um computador quântico realizar essa amplificação.
+Os computadores quânticos ainda não são práticos para aplicações no mundo real. Engenheiramente, a produção de qubits de alta qualidade tem se mostrado desafiadora. Se um qubit físico não estiver suficientemente isolado do seu ambiente, ele sofre de decoerência quântica, introduzindo ruído nos cálculos. Governos nacionais investiram pesadamente em pesquisa experimental visando desenvolver qubits escaláveis com tempos de coerência mais longos e taxas de erro mais baixas. Exemplos de implementações incluem supercondutores (que isolam uma corrente elétrica eliminando a resistência elétrica) e armadilhas de íons (que confinam uma única partícula atômica usando campos eletromagnéticos). Pesquisadores afirmaram, e acredita-se amplamente estar correto, que certos dispositivos quânticos podem superar computadores clássicos em tarefas estreitamente definidas, um marco referido como vantagem quântica ou supremacia quântica. Essas tarefas não são necessariamente úteis para aplicações do mundo real. Como resultado, as demonstrações atuais são melhor entendidas como marcos científicos, em vez de evidências de implantação generalizada em curto prazo. Em dezembro de 2024, o chip Willow do Google alcançou a correção de erros abaixo do limiar, um marco esperado há 30 anos, enquanto o investimento governamental global em computação quântica atingiu US$ 10 bilhões até abril de 2025.
+
+Introdução
+Na computação clássica o computador é baseado na arquitetura de Von Neumann, que faz uma distinção clara entre elementos de processamento e armazenamento de dados, isto é, possui processador (CPU) e memória (RAM) destacados por um barramento de comunicação, sendo o seu processamento inerentemente sequencial. As operações são realizadas sobre bits, que só podem existir em um de dois estados definidos: 0 ou 1. Essa arquitetura tem sido a base de toda a revolução digital, permitindo avanços extraordinários ao longo de décadas.
+Entretanto os computadores atuais possuem limitações fundamentais, como por exemplo na área de Inteligência Artificial (IA), onde não existem computadores com potência ou velocidade de processamento suficiente para suportar uma IA avançada, especialmente em tarefas de otimização combinatória e amostragem de distribuições de probabilidade complexas. Problemas que envolvem um grande número de variáveis e interações, como a simulação precisa de moléculas para o desenvolvimento de novos fármacos ou materiais, rapidamente se tornam impossíveis para máquinas clássicas devido à explosão exponencial do espaço de estados a ser explorado. Dessa forma surgiu a necessidade da criação de um computador alternativo dos usuais que resolvesse problemas de IA, ou outros como a fatoração em primos de números muito grandes (que ameaça a criptografia moderna), logaritmos discretos e, crucialmente, a simulação de problemas da própria Física Quântica, uma tarefa para a qual os computadores clássicos são inerentemente inadequados.
+A Lei de Moore afirma que a velocidade de um computador, ou mais precisamente, o número de transistores em um circuito integrado, é dobrada a cada 12 a 24 meses. Por décadas, essa observação empírica impulsionou um crescimento constante na velocidade e capacidade de processamento dos computadores. Entretanto, essa evolução exponencial tem um certo limite físico, um ponto onde não será possível miniaturizar mais os componentes eletrônicos, como os transistores de silício, e aumentar essa velocidade. À medida que os componentes se aproximam da escala atômica, efeitos quânticos indesejados, como o tunelamento quântico, começam a interferir no funcionamento clássico dos transistores, causando vazamento de corrente e erros. Este limite físico, conhecido como o fim da Lei de Moore, fez com que se tornasse necessária uma revolução significativa na computação para que este obstáculo fosse quebrado. E assim os estudos em Computação Quântica se tornaram cruciais e a necessidade do desenvolvimento de uma máquina fundamentalmente mais eficiente se torna maior a cada dia, não apenas para continuar o progresso computacional, mas para abrir portas para tipos de problemas inteiramente novos.
+
+História e Evolução
+A pesquisa para o desenvolvimento da computação quântica iniciou-se já na década de 50, quando cientistas começaram a pensar em aplicar as leis da física e da mecânica quântica nos computadores. Contudo, as ideias eram ainda embrionárias e dispersas. O campo começou a tomar forma nas décadas seguintes, culminando em propostas formais e avanços teóricos que estabeleceram as bases para a área como a conhecemos hoje. Esta linha do tempo mostra os principais marcos:
+
+Marcos Históricos
+1950-1980 - Primeiras ideias e fundamentos teóricos. O físico Paul Benioff, em 1980, foi um dos primeiros a descrever um modelo mecânico quântico da Máquina de Turing, mostrando que a computação poderia, em princípio, ser realizada de acordo com as leis da mecânica quântica.
+1981 - Em uma palestra no MIT, o físico e prêmio Nobel Richard Feynman propõe formalmente o conceito de um "simulador quântico". Ele argumentou que para simular um sistema quântico de forma eficiente, seria necessário um computador que também operasse com princípios quânticos, uma ideia que é considerada o ponto de partida conceitual para o campo.
+1985 - O físico David Deutsch, na Universidade de Oxford, descreve a primeira Máquina de Turing Quântica universal. Ele provou que um computador quântico universal poderia simular eficientemente qualquer outro sistema físico local, estabelecendo a base teórica para a computação quântica de propósito geral.
+1994 - Peter Shor, um matemático do Bell Labs da AT&T, em Nova Jersey, desenvolve seu revolucionário Algoritmo de Shor. Este algoritmo mostrou que um computador quântico poderia fatorar números inteiros grandes exponencialmente mais rápido do que os melhores algoritmos clássicos conhecidos, um avanço que preocupou especialistas em criptografia mundial, pois ameaça a segurança de sistemas como o RSA.
+1996 - Lov Grover, também do Bell Labs, cria o algoritmo de busca quântica, que oferece uma aceleração quadrática para a busca em bancos de dados não estruturados. Nesse mesmo ano foi proposto um modelo para a correção do erro quântico, um passo crucial para a construção de computadores quânticos tolerantes a falhas.
+1999 - No MIT foram construídos os primeiros protótipos de computadores quânticos utilizando montagem térmica e Ressonância Magnética Nuclear (RMN), demonstrando o controle de alguns poucos qubits.
+2007 - Surge o Orion, um processador quântico de 16 qubits que realiza tarefas de otimização, desenvolvido pela empresa canadense D-Wave Systems. Embora houvesse debate sobre se o dispositivo era um computador quântico universal, marcou o início da era comercial da computação quântica.
+2011 - A D-Wave One torna-se o primeiro computador quântico comercial, um sistema de 128 qubits projetado para recozimento quântico (quantum annealing). Porém o D-Wave One ainda não é totalmente independente, precisa ser usado em conjunto com computadores convencionais para programação e leitura dos resultados.
+2017 - Um grande avanço (breakthrough) com a arquitetura de 'flip-flop qubits' é proposto. O físico brasileiro Guilherme Tosi, juntamente com uma equipe de pesquisadores da Universidade de Nova Gales do Sul, na Austrália, inventou uma nova arquitetura radical para a computação quântica, baseada em 'flip-flop qubits' que pode ser usada em um novo tipo de computador quântico permitindo, assim, a fabricação de processadores quânticos em larga escala de forma muito mais barata – e mais fácil – do que se pensava ser possível, sem a necessidade do processo complicado da colocação precisa dos átomos de silício no processador.
+2019 - O Google anuncia ter alcançado a "supremacia quântica" com seu processador Sycamore de 53 qubits, ao realizar uma tarefa específica em 200 segundos que, segundo a empresa, levaria 10.000 anos no supercomputador clássico mais rápido da época. Embora o feito seja um marco, a utilidade prática da tarefa executada é limitada.
+2020s - Inicia-se a Era NISQ (Noisy Intermediate-Scale Quantum), caracterizada por computadores quânticos com dezenas a centenas de qubits que são ruidosos (propensos a erros) e ainda não possuem correção de erros quânticos robusta. Empresas como IBM, Google, IonQ e Rigetti competem para aumentar o número e a qualidade de seus qubits.
+
+Princípios Fundamentais
+
+A mecânica quântica é considerada a mais bem sucedida teoria física. Pois desde a sua criação no início do século XX até os dias atuais, ela tem sido aplicada com precisão inigualável em diversos ramos, desde a física de partículas, atômica e molecular até a astrofísica e matéria condensada. A computação quântica se baseia em três de seus mais contraintuitivos, porém poderosos, fenômenos: superposição, emaranhamento e interferência.
+
+Qubits e Superposição
+Na computação clássica, a unidade fundamental de informação é o bit, que pode assumir o valor 0 ou 1. Na computação quântica a unidade de informação básica é o Bit quântico ou q-bit (quantum bit). O fato da computação quântica ser tão poderosa está no fato de que além de assumir '0' ou '1' como na computação clássica, um qubit pode existir em uma superposição de ambos os estados. Isso significa que ele pode ser uma combinação linear dos estados '0' e '1' ao mesmo tempo. Parece estranho algo assumir os dois estados diferentes ao mesmo tempo, mas a experiência mental do Gato de Schrödinger, na qual um gato está simultaneamente vivo e morto até ser observado, pode dar um sentido intuitivo à situação.
+Graças à essa propriedade da superposição de estados, um registrador de N qubits pode representar 2^N estados simultaneamente. Por exemplo, 3 qubits podem representar 8 (2³) valores ao mesmo tempo, enquanto 3 bits clássicos só podem representar um desses 8 valores por vez. Com 300 qubits, um computador quântico poderia representar mais estados do que o número de átomos no universo observável. Se na computação clássica o processamento é sequencial, operando sobre um estado de cada vez, na computação quântica o processamento é inerentemente paralelo, aplicando operações a todos os estados da superposição simultaneamente.
+Imagine que uma pessoa precise encontrar o contato de telefone de alguma pessoa em uma lista, na computação clássica é como se ela olhasse em cada nome conferindo se é o contato procurado. Já em um processamento quântico, graças à superposição, é como se uma pessoa conseguisse conferir vários nomes a cada processamento, explorando um vasto espaço de possibilidades de uma só vez.
+
+Emaranhamento Quântico
+O emaranhamento é talvez o fenômeno mais misterioso e poderoso da mecânica quântica. Quando dois ou mais qubits estão emaranhados, seus destinos se tornam intrinsecamente ligados, não importando a distância que os separe. O estado de um qubit emaranhado não pode ser descrito independentemente do estado do outro. Se medirmos o estado de um qubit e o encontrarmos como '0', sabemos instantaneamente que o estado do outro será '0' (ou '1', dependendo de como foram emaranhados), e vice-versa. Albert Einstein famosamente descreveu isso como "ação fantasmagórica à distância". No contexto da computação, o emaranhamento é um recurso crucial que permite correlações complexas entre qubits, sendo essencial para a execução de algoritmos quânticos como o de Shor e para o teletransporte quântico.
+
+Interferência Quântica
+Assim como ondas de luz ou som podem interferir construtiva (reforçando-se) ou destrutivamente (cancelando-se), os estados quânticos também podem exibir interferência. Os algoritmos quânticos são projetados de forma inteligente para manipular a fase dos estados em superposição, de modo que os caminhos computacionais que levam às respostas erradas sofram interferência destrutiva e se anulem, enquanto os caminhos que levam à resposta correta sofram interferência construtiva e sejam amplificados. No final do cálculo, a medição tem uma probabilidade muito alta de colapsar para o estado que representa a solução correta.
+
+Representação Matemática
+O q-bit é descrito por um vetor de estado em um sistema quântico de dois níveis, o qual é matematicamente equivalente a um vetor em um espaço vetorial complexo de duas dimensões, conhecido como espaço de Hilbert. Usa-se a notação bra-ket de Paul Dirac para representá-los:
+
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+        =
+        
+          
+            [
+            
+              
+                
+                  1
+                
+              
+              
+                
+                  0
+                
+              
+            
+            ]
+          
+        
+      
+    
+    {\displaystyle |0\rangle ={\begin{bmatrix}1\\0\end{bmatrix}}}
+  
+
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+        =
+        
+          
+            [
+            
+              
+                
+                  0
+                
+              
+              
+                
+                  1
+                
+              
+            
+            ]
+          
+        
+      
+    
+    {\displaystyle |1\rangle ={\begin{bmatrix}0\\1\end{bmatrix}}}
+  
+
+Esses dois estados, 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ e 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+, formam uma base ortonormal para este espaço, chamada de base computacional. Assim, o estado geral de um q-bit, 
+  
+    
+      
+        
+          |
+        
+        ψ
+        ⟩
+      
+    
+    {\displaystyle |\psi \rangle }
+  
+, pode ser representado como uma superposição linear desses estados base:
+
+  
+    
+      
+        
+          |
+        
+        ψ
+        ⟩
+        =
+        α
+        
+          |
+        
+        0
+        ⟩
+        +
+        β
+        
+          |
+        
+        1
+        ⟩
+        ,
+        
+      
+    
+    {\displaystyle |\psi \rangle =\alpha |0\rangle +\beta |1\rangle ,\,}
+  
+
+onde α (alfa) e β (beta) são coeficientes chamados de amplitudes de probabilidade. Eles são números complexos e a regra da mecânica quântica dita que a soma dos quadrados de seus módulos deve ser igual a 1, o que representa a certeza de que o qubit, ao ser medido, será encontrado em um dos dois estados. Matematicamente, isso é expresso como 
+  
+    
+      
+        
+          |
+        
+        α
+        
+          
+            |
+          
+          
+            2
+          
+        
+        +
+        
+          |
+        
+        β
+        
+          
+            |
+          
+          
+            2
+          
+        
+        =
+        1
+      
+    
+    {\displaystyle |\alpha |^{2}+|\beta |^{2}=1}
+  
+. O valor de 
+  
+    
+      
+        
+          |
+        
+        α
+        
+          
+            |
+          
+          
+            2
+          
+        
+      
+    
+    {\displaystyle |\alpha |^{2}}
+  
+ representa a probabilidade de se medir o estado 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+, e 
+  
+    
+      
+        
+          |
+        
+        β
+        
+          
+            |
+          
+          
+            2
+          
+        
+      
+    
+    {\displaystyle |\beta |^{2}}
+  
+ é a probabilidade de se medir o estado 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+.
+
+Implementação Física
+Construir e controlar um computador quântico é um dos maiores desafios da engenharia e da física experimental moderna. Os qubits são extremamente frágeis e suscetíveis à decoerência, que é a perda de suas propriedades quânticas devido à interação com o ambiente (ruído, variações de temperatura, campos eletromagnéticos, etc.). Para a manipulação dos estados quânticos, mantendo a coerência pelo maior tempo possível, utiliza-se principalmente técnicas ópticas (lasers) e de micro-ondas. Estes dispositivos constituem-se as portas lógicas quânticas. As principais abordagens físicas para a criação de qubits incluem:
+
+Tecnologias de Qubits
+Qubits Supercondutores: Esta é uma das abordagens mais populares, perseguida por empresas como Google, IBM e Rigetti. Utiliza circuitos elétricos feitos de materiais supercondutores, como alumínio ou nióbio, resfriados a temperaturas criogênicas (próximas do zero absoluto, na ordem de milikelvins) para eliminar a resistência elétrica. Os estados '0' e '1' do qubit correspondem a diferentes níveis de energia do circuito, que são controlados por pulsos de micro-ondas. Suas vantagens são a alta velocidade das portas lógicas e a relativa facilidade de fabricação com técnicas de semicondutores. A desvantagem é a baixa coerência (são muito sensíveis ao ruído) e a necessidade de refrigeração complexa e cara.
+Armadilhas de Íons: Esta abordagem, utilizada por empresas como a IonQ, usa átomos carregados (íons) suspensos em um vácuo por campos eletromagnéticos. Os estados do qubit são representados pelos níveis de energia eletrônica internos do íon. Lasers são usados para resfriar os íons e para manipular seus estados quânticos com altíssima precisão. As armadilhas de íons possuem os qubits de maior fidelidade e os tempos de coerência mais longos conhecidos. Suas desvantagens são a velocidade mais lenta das operações de porta e a dificuldade de escalar para um grande número de íons interconectados.
+Pontos Quânticos: Conhecidos como "átomos artificiais", são nanoestruturas semicondutoras que confinam um ou mais elétrons em um pequeno espaço. O spin do elétron ou a carga confinada pode ser usado como um qubit. A grande vantagem desta abordagem é o potencial de integração com a tecnologia de fabricação de silício já existente, prometendo uma escalabilidade massiva. O desafio é controlar e conectar muitos pontos quânticos com alta fidelidade.
+Fótons: Partículas de luz (fótons) podem ser usadas para codificar informações quânticas em suas propriedades, como polarização ou caminho. A computação quântica fotônica tem a grande vantagem de poder operar à temperatura ambiente e os fótons serem portadores altamente estáveis de informação quântica, pois interagem fracamente com o ambiente. Entretanto, como fótons não interagem diretamente entre si, criar portas lógicas de dois qubits é um desafio, sendo necessário o uso de um átomo ou outro sistema mediador, que introduz um ruído adicional e complicações no experimento.
+Átomos Neutros (ou Frios): Utiliza lasers para criar "pinças ópticas" que aprisionam átomos eletricamente neutros em uma grade. Os estados de energia dos átomos servem como qubits. Esta abordagem permite criar arranjos com centenas de qubits e controlar suas interações, tornando-a promissora para simulações quânticas.
+Centros de Vacância em Diamante (NV Centers): Um defeito específico na estrutura cristalina do diamante, onde um átomo de carbono é substituído por um de nitrogênio ao lado de uma lacuna (vacância), pode funcionar como um qubit. O spin eletrônico do centro NV pode ser manipulado com micro-ondas e lido opticamente, e pode operar à temperatura ambiente, embora a escalabilidade seja um desafio.
+Para armazenar os q-bits, além das técnicas já mencionadas, como as armadilhas de íons (íon trap) e armadilhas de átomos neutros (neutral atom trap), outras tecnologias estão em desenvolvimento. Outra classe de processamento de informação quântica é baseada na ressonância magnética nuclear (RMN). Neste caso a informação quântica é armazenada nos spins nucleares dos átomos em moléculas e as portas lógicas manipulam essa informação usando a radiação eletromagnética. Um pósitron ou elétron podem ter um spin 'para cima', 'para baixo' e os dois ao mesmo tempo, representando os estados do qubit. Os momentos magnéticos nucleares fazem um movimento natural de precessão na presença de campos magnéticos. Os estados quânticos dos núcleos podem ser manipulados irradiando os núcleos com pulsos de rádio frequência sintonizados na frequência de precessão destes.
+
+Circuitos Quânticos
+Assim como na computação clássica, na computação quântica utiliza-se circuitos para descrever uma sequência de operações. Um circuito quântico é um modelo de computação que descreve um algoritmo quântico passo a passo. Os componentes de um diagrama de circuito quântico são:
+
+Entrada: Os qubits de entrada são preparados em um estado inicial, geralmente 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ para cada qubit. O estado conjunto de múltiplos qubits é descrito matematicamente pelo que é chamado de seu produto tensorial.
+Linhas horizontais: Cada linha representa a evolução temporal de um único qubit. Elas não são necessariamente fios físicos, podendo ser apenas a passagem do tempo para um íon aprisionado ou o deslocamento espacial de um fóton.
+Sentido: O circuito é lido da esquerda para a direita, descrevendo a evolução do sistema quântico no tempo.
+Portas Quânticas: Os blocos nas linhas representam as portas quânticas, que são as operações unitárias aplicadas aos qubits.
+Linhas verticais: Um segmento vertical conectando múltiplas linhas de qubits, como em uma porta CNOT, informa que a porta atua simultaneamente nesses qubits. A linha vertical representa o sincronismo da operação, e não o envio de informação.
+Controle: Em uma porta controlada (como a CNOT), um ponto sólido (●) em uma linha indica que o qubit representado nessa linha é um qubit de controle. Caso esteja no estado 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+        ,
+      
+    
+    {\displaystyle |1\rangle ,}
+  
+ a porta realiza a operação no qubit alvo; caso esteja no estado 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+        ,
+      
+    
+    {\displaystyle |0\rangle ,}
+  
+ a porta não realiza operação alguma. Caso o qubit de controle seja um estado superposto ou os 2 qubits estejam emaranhados, não é possível compreender o comportamento individual do qubit de controle e do qubit alvo. Deve-se considerar a ação do operador unitário, que representa todo o circuito, atuando simultaneamente no estado conjunto dos qubits.
+Saída: No final do circuito, os qubits que compõem a saída podem ser medidos. A medição colapsa a superposição de cada qubit para um resultado clássico (0 ou 1).
+
+Portas Quânticas Fundamentais
+Na computação clássica, é possível realizar qualquer operação lógica utilizando somente portas NAND. O mesmo princípio de universalidade existe em circuitos quânticos. Um conjunto de portas quânticas é dito universal se qualquer operação quântica pode ser aproximada com uma sequência finita dessas portas. Um conjunto universal comum inclui as portas: Hadamard (H), CNOT, Fase (S) e 
+  
+    
+      
+        π
+        
+          /
+        
+        8
+      
+    
+    {\displaystyle \pi /8}
+  
+ (T). Exemplos de portas quânticas:
+
+Porta NOT Quântica (ou Pauli-X):
+No caso clássico, a porta NOT troca o 1 por 0 e vice-versa. A generalização para o caso quântico é dada por um operador 
+  
+    
+      
+        X
+      
+    
+    {\displaystyle X}
+  
+ que satisfaz 
+  
+    
+      
+        X
+        
+          |
+        
+        0
+        ⟩
+        =
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle X|0\rangle =|1\rangle }
+  
+ e 
+  
+    
+      
+        X
+        
+          |
+        
+        1
+        ⟩
+        =
+        
+          |
+        
+        0
+        ⟩
+        .
+      
+    
+    {\displaystyle X|1\rangle =|0\rangle .}
+  
+ Com isso, verifica-se facilmente que a representação matricial do operador 
+  
+    
+      
+        X
+      
+    
+    {\displaystyle X}
+  
+ é dada por:
+
+  
+    
+      
+        X
+        =
+        
+          
+            [
+            
+              
+                
+                  0
+                
+                
+                  1
+                
+              
+              
+                
+                  1
+                
+                
+                  0
+                
+              
+            
+            ]
+          
+        
+        .
+      
+    
+    {\displaystyle X={\begin{bmatrix}0&1\\1&0\end{bmatrix}}.}
+  
+
+Com a porta NOT quântica, existem situações sem contrapartida no caso clássico, pois, se a entrada 
+  
+    
+      
+        
+          |
+        
+        ψ
+        ⟩
+      
+    
+    {\displaystyle |\psi \rangle }
+  
+ for uma superposição dos estados 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ e 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+        ,
+      
+    
+    {\displaystyle |1\rangle ,}
+  
+ 
+  
+    
+      
+        
+          |
+        
+        ψ
+        ⟩
+        =
+        α
+        
+          |
+        
+        0
+        ⟩
+        +
+        β
+        
+          |
+        
+        1
+        ⟩
+        ,
+      
+    
+    {\displaystyle |\psi \rangle =\alpha |0\rangle +\beta |1\rangle ,}
+  
+ a saída será 
+  
+    
+      
+        X
+        
+          |
+        
+        ψ
+        ⟩
+        =
+        α
+        X
+        
+          |
+        
+        0
+        ⟩
+        +
+        β
+        X
+        
+          |
+        
+        1
+        ⟩
+        =
+        β
+        
+          |
+        
+        0
+        ⟩
+        +
+        α
+        
+          |
+        
+        1
+        ⟩
+        ,
+      
+    
+    {\displaystyle X|\psi \rangle =\alpha X|0\rangle +\beta X|1\rangle =\beta |0\rangle +\alpha |1\rangle ,}
+  
+ trocando as amplitudes de probabilidade. A porta 
+  
+    
+      
+        X
+      
+    
+    {\displaystyle X}
+  
+ é apenas uma das portas de 1 qubit, já que há infinitas matrizes unitárias 
+  
+    
+      
+        2
+        ×
+        2
+      
+    
+    {\displaystyle 2\times 2}
+  
+ que representam rotações na Esfera de Bloch.
+
+Porta Hadamard (H):
+A porta Hadamard é uma das mais importantes, pois é a principal ferramenta para criar superposições. Aplicada a um qubit no estado 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ ou 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+, ela gera uma superposição uniforme:
+
+  
+    
+      
+        H
+        
+          |
+        
+        0
+        ⟩
+        =
+        
+          
+            
+              
+                |
+              
+              0
+              ⟩
+              +
+              
+                |
+              
+              1
+              ⟩
+            
+            
+              2
+            
+          
+        
+      
+    
+    {\displaystyle H|0\rangle ={\frac {|0\rangle +|1\rangle }{\sqrt {2}}}}
+  
+ e 
+  
+    
+      
+        H
+        
+          |
+        
+        1
+        ⟩
+        =
+        
+          
+            
+              
+                |
+              
+              0
+              ⟩
+              −
+              
+                |
+              
+              1
+              ⟩
+            
+            
+              2
+            
+          
+        
+      
+    
+    {\displaystyle H|1\rangle ={\frac {|0\rangle -|1\rangle }{\sqrt {2}}}}
+  
+
+Sua representação matricial é:
+
+  
+    
+      
+        H
+        =
+        
+          
+            1
+            
+              2
+            
+          
+        
+        
+          
+            [
+            
+              
+                
+                  1
+                
+                
+                  1
+                
+              
+              
+                
+                  1
+                
+                
+                  −
+                  1
+                
+              
+            
+            ]
+          
+        
+        .
+      
+    
+    {\displaystyle H={\frac {1}{\sqrt {2}}}{\begin{bmatrix}1&1\\1&-1\end{bmatrix}}.}
+  
+
+Porta CNOT Quântica (Controlled-NOT):
+Esta porta atua em um estado de 2 qubits e é a contrapartida quântica da porta XOR clássica. Ela tem 2 qubits de entrada: o de controle e o alvo. Uma porta controlada age dependendo do valor do qubit de controle. Ela é "ativada" (aplica uma porta NOT no alvo) se o qubit de controle estiver no estado 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+        ,
+      
+    
+    {\displaystyle |1\rangle ,}
+  
+ e nada faz se ele estiver no estado 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+        .
+      
+    
+    {\displaystyle |0\rangle .}
+  
+ Essa descrição é adequada apenas quando o qubit de controle está nos estados da base. Entretanto, o que distingue a porta CNOT quântica da clássica é que, na porta CNOT quântica, os qubits alvo e de controle podem ser estados superpostos, e é a principal forma de gerar emaranhamento. A ação da porta CNOT pode ser caracterizada pelas transformações operadas nos elementos da base computacional associada, ou seja:
+
+  
+    
+      
+        
+          
+            
+              
+                
+                  |
+                
+                00
+                ⟩
+              
+              
+                →
+              
+              
+                
+                  |
+                
+                00
+                ⟩
+                ,
+              
+            
+            
+              
+                
+                  |
+                
+                01
+                ⟩
+              
+              
+                →
+              
+              
+                
+                  |
+                
+                01
+                ⟩
+                ,
+              
+            
+            
+              
+                
+                  |
+                
+                10
+                ⟩
+              
+              
+                →
+              
+              
+                
+                  |
+                
+                11
+                ⟩
+                ,
+              
+            
+            
+              
+                
+                  |
+                
+                11
+                ⟩
+              
+              
+                →
+              
+              
+                
+                  |
+                
+                10
+                ⟩
+                .
+              
+            
+          
+        
+      
+    
+    {\displaystyle {\begin{matrix}|00\rangle &\rightarrow &|00\rangle ,\\|01\rangle &\rightarrow &|01\rangle ,\\|10\rangle &\rightarrow &|11\rangle ,\\|11\rangle &\rightarrow &|10\rangle .\end{matrix}}}
+  
+
+Note que é possível representar essa ação na base computacional de forma mais esquemática por 
+  
+    
+      
+        
+          |
+        
+        i
+        ,
+        j
+        ⟩
+        →
+        
+          |
+        
+        i
+        ,
+        i
+        ⊕
+        j
+        ⟩
+        ,
+      
+    
+    {\displaystyle |i,j\rangle \rightarrow |i,i\oplus j\rangle ,}
+  
+ onde 
+  
+    
+      
+        i
+        ,
+        j
+        ∈
+        {
+        0
+        ,
+        1
+        }
+      
+    
+    {\displaystyle i,j\in \{0,1\}}
+  
+ e 
+  
+    
+      
+        ⊕
+      
+    
+    {\displaystyle \oplus }
+  
+ é a adição módulo 2.
+Entretanto, da mesma maneira que a superposição de estados permite a criação do computador quântico, é essa mesma propriedade, e sua fragilidade inerente, que inviabiliza a criação deles em larga escala sem erros. A superposição é muito sensível a qualquer microrruído eletromagnético, que pode alterar o estado do q-bit fazendo com que a informação quântica que ele continha seja perdida no processo de decoerência. Outro fato importante em questão é o superaquecimento das máquinas, não pela computação em si, mas pelos complexos sistemas de controle e refrigeração necessários.
+
+Algoritmos Quânticos
+No mundo da computação quântica, estamos sempre buscando maneiras de tornar nossos computadores mais rápidos e eficientes para resolver problemas específicos. Existem diferentes tipos de programas, chamados de algoritmos, que podem ajudar nisso. Alguns desses algoritmos, que exploram as propriedades quânticas, funcionam de maneira diferente e podem oferecer vantagens exponenciais ou polinomiais sobre os programas normais que usamos em nossos computadores todos os dias.
+
+Pilares dos Algoritmos Quânticos
+Transformada Quântica de Fourier (QFT): É a análoga quântica da transformada de Fourier discreta clássica. Fundamental em muitos algoritmos quânticos, como o de Shor, a QFT realiza transformações de dados codificados em amplitudes de estados quânticos para um espaço de frequências. É um exemplo de como a computação quântica pode realizar certas transformações lineares de forma exponencialmente mais rápida que computadores clássicos.
+Amplificação de Amplitude: Uma técnica geral, da qual o algoritmo de Grover é o exemplo mais famoso. É usada para aumentar a probabilidade de medir o estado (ou estados) que corresponde à solução correta de um problema. Funciona iterativamente, "girando" o vetor de estado em direção ao estado desejado.
+Interferência Quântica: Trabalhando junto com a amplificação de amplitude, a interferência é o mecanismo pelo qual os algoritmos quânticos funcionam. As operações são cuidadosamente orquestradas para que os estados indesejados se cancelem por interferência destrutiva, enquanto o estado da solução é reforçado por interferência construtiva, deixando-o como o resultado mais provável na medição final.
+Simulação Hamiltoniana: Inspirado na ideia original de Feynman, este pilar envolve o uso de um computador quântico para simular a evolução de outro sistema quântico. Isso é feito mapeando a Hamiltoniana (o operador que descreve a energia total do sistema) do sistema a ser simulado em uma sequência de portas quânticas.
+Princípio da Incerteza de Heisenberg: A mecânica quântica é fundamentalmente probabilística. Os outputs dos algoritmos não vão nos devolver um resultado único e determinado, mas sim uma distribuição de probabilidade sobre os possíveis resultados. Executamos o algoritmo várias vezes e analisamos a estatística dos resultados para inferir a solução.
+O progresso em achar algoritmos quânticos normalmente foca no modelo de circuito quântico, apesar de exceções como o algoritmo adiabático quântico existirem. Algoritmos quânticos podem ser grosseiramente categorizados pela quantidade de aumento na velocidade de processamento alcançada sobre o correspondente algoritmo clássico.
+
+Algoritmo de Shor
+O algoritmo quântico mais famoso, desenvolvido por Peter Shor em 1994, resolve o problema de fatoração de números inteiros em tempo polinomial, o que é exponencialmente mais rápido que os melhores algoritmos clássicos conhecidos. O problema da fatoração é encontrar os fatores primos de um número N. Classicamente, a dificuldade deste problema aumenta exponencialmente com o número de dígitos de N. O algoritmo de Shor utiliza a Transformada Quântica de Fourier para encontrar o período de uma função, o que pode ser usado para deduzir os fatores de N. Isso tem implicações profundas para a criptografia de chave pública, já que muitos sistemas de segurança atuais, como o RSA, dependem da dificuldade computacional de fatorar grandes números.
+
+Algoritmo de Grover
+Desenvolvido por Lov Grover em 1996, este algoritmo fornece uma aceleração quadrática para problemas de busca em um banco de dados não estruturado. Imagine procurar por um nome específico em uma lista telefônica que não está em ordem alfabética. Enquanto um algoritmo clássico exigiria, em média, O(N/2) e no pior caso O(N) operações para encontrar um item em uma lista de N itens, o algoritmo de Grover pode fazê-lo em aproximadamente O(√N) operações. Embora a aceleração seja "apenas" quadrática e não exponencial, ela é aplicável a uma vasta gama de problemas de otimização e busca.
+
+Algoritmo Adiabático e Computação Quântica Adiabática
+O algoritmo quântico adiabático funciona com base no teorema adiabático da física, que afirma que se um sistema quântico começa em seu estado de mais baixa energia (estado fundamental) e a sua Hamiltoniana é alterada de forma suficientemente lenta, ele permanecerá em seu estado fundamental ao longo da evolução. Os computadores quânticos adiabáticos, como os da D-Wave, são relativamente mais simples de serem produzidos, mas sua aplicação também é bem mais limitada, sendo projetados especificamente para problemas de otimização. Um dos exemplos de usos desses computadores é ao calcular rotas ótimas em logística.
+Primeiro, é encontrada uma Hamiltoniana final (potencialmente complicada) cujo estado fundamental descreve a solução do problema de interesse. Em seguida, o sistema é preparado com uma Hamiltoniana inicial simples, cujo estado fundamental é fácil de criar. Por fim, a Hamiltoniana simples é evoluída adiabaticamente (lentamente) para a Hamiltoniana complicada desejada. Pelo teorema adiabático, o sistema permanece no estado fundamental, então, no final, o estado do sistema descreve a solução do problema. Foi demonstrado que a computação quântica adiabática é polinomialmente equivalente à computação quântica convencional no modelo de circuito, embora as implementações práticas tenham focos diferentes.
+
+Outros Algoritmos Importantes
+Algoritmo de Deutsch-Jozsa: Embora de pouca utilidade prática, foi um dos primeiros exemplos de um algoritmo quântico que é exponencialmente mais rápido que sua contraparte clássica. Ele demonstra a superioridade quântica resolvendo um problema artificial (determinar se uma função é constante ou balanceada) com uma única consulta à função, enquanto um algoritmo clássico determinístico precisaria de múltiplas consultas.
+Simulação Quântica: Como proposto por Feynman, esta é uma das aplicações mais promissoras. Algoritmos como o Variational Quantum Eigensolver (VQE) são usados para encontrar a energia do estado fundamental de moléculas, um problema central em química quântica.
+Aprendizado de Máquina Quântico (QML): Um campo emergente que explora como a computação quântica pode acelerar tarefas de aprendizado de máquina. Isso inclui algoritmos como Quantum Support Vector Machines (QSVM) e o uso de circuitos quânticos como se fossem redes neurais (Quantum Neural Networks).
+Algoritmo HHL: Nomeado a partir de seus inventores Harrow, Hassidim e Lloyd, este algoritmo resolve sistemas de equações lineares e pode oferecer uma aceleração exponencial em certas condições, com aplicações potenciais em diversas áreas da ciência e engenharia.
+
+Processamento de informação quântica
+Os engenheiros de computação geralmente descrevem a operação de um computador moderno em termos de eletrodinâmica clássica. Nesses computadores "clássicos", alguns componentes (como semicondutores e geradores de números aleatórios) podem depender do comportamento quântico; no entanto, como não estão isolados do seu ambiente, qualquer informação quântica eventualmente decoere rapidamente. Embora os programadores possam depender da teoria das probabilidades ao projetar um algoritmo randomizado, noções da mecânica quântica, como sobreposição e interferência de ondas, são amplamente irrelevantes na análise de programas.
+O termo "clássico" em computação clássica refere-se, portanto, ao modelo computacional, não ao fato de a física microscópica do hardware ser, em última análise, quântica ou não. Um computador digital convencional pode ser descrito por estados e regras de transição clássicos: a memória armazena bits, enquanto os elementos lógicos transformam uma configuração de bits em outra. Este comportamento computacional não está vinculado à eletrônica e pode ser abstraído através da ideia de uma máquina de Turing, um dispositivo mecânico que realiza transformações determinísticas num estado finito. Em princípio, as mesmas regras de transição clássicas podem ser implementadas por algum dispositivo mecânico completamente clássico, possivelmente com uma desaceleração fixa no tempo físico. Se uma computação clássica utiliza aleatoriedade, isto pode ser modelado como acesso a bits clássicos aleatórios, em vez de como informação quântica coerente. Um computador quântico, por outro lado, usa estados quânticos coerentes, de modo que a sobreposição, a fase relativa e a interferência são parte da própria computação, não tendo contraparte clássica.
+Programas quânticos dependem, em vez disso, do controle preciso de sistemas quânticos coerentes. Os físicos descrevem esses sistemas matematicamente usando álgebra linear. Números complexos modelam as amplitudes de probabilidade, vetores modelam os estados quânticos e matrizes modelam as operações que podem ser realizadas nesses estados. Programar um computador quântico é, então, uma questão de compor operações de tal forma que o programa resultante calcule um resultado útil em teoria e seja implementável na prática.
+O físico Charlie Bennett observou que, como os computadores clássicos são compostos de átomos quânticos, pode-se estudá-los a partir da direção oposta:
+
+Um computador clássico é um computador quântico ... então não deveríamos perguntar "de onde vêm os ganhos de velocidade quânticos?" Deveríamos dizer: "Bem, todos os computadores são quânticos. ... De onde vêm as desacelerações clássicas?"
+
+Informação quântica
+Assim como o bit é o conceito básico da teoria da informação clássica, o qubit é a unidade fundamental da informação quântica. O mesmo termo qubit é usado para se referir a um modelo matemático abstrato e a qualquer sistema físico que seja representado por esse modelo. Um bit clássico, por definição, existe em um de dois estados físicos, que podem ser denotados como 0 e 1. Um qubit também é descrito por um estado, e dois estados, frequentemente escritos como 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ e 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+, servem como as contrapartes quânticas dos estados clássicos 0 e 1. No entanto, os estados quânticos 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ e 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+ pertencem a um espaço vetorial, o que significa que podem ser multiplicados por constantes e somados, e o resultado é novamente um estado quântico válido. Tal combinação é conhecida como uma sobreposição de 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ e 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+.
+Um vetor bidimensional representa matematicamente um estado de qubit. Os físicos geralmente usam a notação bra–ket para a álgebra linear da mecânica quântica, escrevendo 
+  
+    
+      
+        
+          |
+        
+        ψ
+        ⟩
+      
+    
+    {\displaystyle |\psi \rangle }
+  
+ ("cet psi") para um vetor rotulado 
+  
+    
+      
+        ψ
+      
+    
+    {\displaystyle \psi }
+  
+. Como um qubit é um sistema de dois estados, qualquer estado de qubit assume a forma 
+  
+    
+      
+        α
+        
+          |
+        
+        0
+        ⟩
+        +
+        β
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle \alpha |0\rangle +\beta |1\rangle }
+  
+, onde 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ e 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+ são os estados de base padrão,[[#ref_A base padrão é também a base computacional.|↑]]  e 
+  
+    
+      
+        α
+      
+    
+    {\displaystyle \alpha }
+  
+ e 
+  
+    
+      
+        β
+      
+    
+    {\displaystyle \beta }
+  
+ são as amplitudes de probabilidade, que são geralmente números complexos. Se 
+  
+    
+      
+        α
+      
+    
+    {\displaystyle \alpha }
+  
+ ou 
+  
+    
+      
+        β
+      
+    
+    {\displaystyle \beta }
+  
+ for zero, o qubit é efetivamente um bit clássico; quando ambos são diferentes de zero, o qubit está em sobreposição. Tal vetor de estado quântico comporta-se de forma semelhante a um vetor de probabilidade (clássico), com uma diferença fundamental: ao contrário das probabilidades, as amplitudes de probabilidade não são necessariamente números positivos. Amplitudes negativas permitem a interferência destrutiva das ondas.
+Quando um qubit é medido na base padrão, o resultado é um bit clássico. A regra de Born descreve a correspondência do quadrado da norma entre amplitudes e probabilidades — ao medir um qubit 
+  
+    
+      
+        α
+        
+          |
+        
+        0
+        ⟩
+        +
+        β
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle \alpha |0\rangle +\beta |1\rangle }
+  
+, o estado colapsa para 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ com probabilidade 
+  
+    
+      
+        
+          |
+        
+        α
+        
+          
+            |
+          
+          
+            2
+          
+        
+      
+    
+    {\displaystyle |\alpha |^{2}}
+  
+, ou para 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+ com probabilidade 
+  
+    
+      
+        
+          |
+        
+        β
+        
+          
+            |
+          
+          
+            2
+          
+        
+      
+    
+    {\displaystyle |\beta |^{2}}
+  
+. Qualquer estado de qubit válido tem coeficientes 
+  
+    
+      
+        α
+      
+    
+    {\displaystyle \alpha }
+  
+ e 
+  
+    
+      
+        β
+      
+    
+    {\displaystyle \beta }
+  
+ tais que 
+  
+    
+      
+        
+          |
+        
+        α
+        
+          
+            |
+          
+          
+            2
+          
+        
+        +
+        
+          |
+        
+        β
+        
+          
+            |
+          
+          
+            2
+          
+        
+        =
+        1
+      
+    
+    {\displaystyle |\alpha |^{2}+|\beta |^{2}=1}
+  
+. Como exemplo, medir o qubit 
+  
+    
+      
+        1
+        
+          /
+        
+        
+          
+            2
+          
+        
+        
+          |
+        
+        0
+        ⟩
+        +
+        1
+        
+          /
+        
+        
+          
+            2
+          
+        
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle 1/{\sqrt {2}}|0\rangle +1/{\sqrt {2}}|1\rangle }
+  
+ produziria 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ ou 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+ com igual probabilidade.
+Dois estados de sobreposição particularmente importantes são o estado "mais" 
+  
+    
+      
+        
+          |
+        
+        +
+        ⟩
+        =
+        
+          
+            
+              1
+              
+                2
+              
+            
+          
+        
+        
+          |
+        
+        0
+        ⟩
+        +
+        
+          
+            
+              1
+              
+                2
+              
+            
+          
+        
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |+\rangle ={\tfrac {1}{\sqrt {2}}}|0\rangle +{\tfrac {1}{\sqrt {2}}}|1\rangle }
+  
+ e o estado "menos" 
+  
+    
+      
+        
+          |
+        
+        −
+        ⟩
+        =
+        
+          
+            
+              1
+              
+                2
+              
+            
+          
+        
+        
+          |
+        
+        0
+        ⟩
+        −
+        
+          
+            
+              1
+              
+                2
+              
+            
+          
+        
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |-\rangle ={\tfrac {1}{\sqrt {2}}}|0\rangle -{\tfrac {1}{\sqrt {2}}}|1\rangle }
+  
+. Embora ambos produzam resultados 0 e 1 com igual probabilidade na medição da base padrão, eles se comportam de forma diferente sob operações como a porta de Hadamard — que mapeia 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+        ↔
+        
+          |
+        
+        +
+        ⟩
+      
+    
+    {\displaystyle |0\rangle \leftrightarrow |+\rangle }
+  
+ e 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+        ↔
+        
+          |
+        
+        −
+        ⟩
+      
+    
+    {\displaystyle |1\rangle \leftrightarrow |-\rangle }
+  
+ — demonstrando que as diferenças de fase relativa carregam informação quântica significativa.
+Cada qubit adicional dobra a dimensão do espaço de estados. Como exemplo, o vetor 
+  
+    
+      
+        
+          
+            
+              1
+              
+                2
+              
+            
+          
+        
+        
+          |
+        
+        00
+        ⟩
+        +
+        
+          
+            
+              1
+              
+                2
+              
+            
+          
+        
+        
+          |
+        
+        01
+        ⟩
+      
+    
+    {\displaystyle {\tfrac {1}{\sqrt {2}}}|00\rangle +{\tfrac {1}{\sqrt {2}}}|01\rangle }
+  
+ representa um estado de dois qubits, um produto tensorial do qubit 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+ com o qubit 
+  
+    
+      
+        
+          
+            
+              1
+              
+                2
+              
+            
+          
+        
+        
+          |
+        
+        0
+        ⟩
+        +
+        
+          
+            
+              1
+              
+                2
+              
+            
+          
+        
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle {\tfrac {1}{\sqrt {2}}}|0\rangle +{\tfrac {1}{\sqrt {2}}}|1\rangle }
+  
+. Este vetor habita um espaço vetorial quadridimensional gerado pelos vetores de base 
+  
+    
+      
+        
+          |
+        
+        00
+        ⟩
+      
+    
+    {\displaystyle |00\rangle }
+  
+, 
+  
+    
+      
+        
+          |
+        
+        01
+        ⟩
+      
+    
+    {\displaystyle |01\rangle }
+  
+, 
+  
+    
+      
+        
+          |
+        
+        10
+        ⟩
+      
+    
+    {\displaystyle |10\rangle }
+  
+ e 
+  
+    
+      
+        
+          |
+        
+        11
+        ⟩
+      
+    
+    {\displaystyle |11\rangle }
+  
+.
+Em geral, o espaço vetorial para um sistema de 
+  
+    
+      
+        n
+      
+    
+    {\displaystyle n}
+  
+ qubits é 
+  
+    
+      
+        
+          2
+          
+            n
+          
+        
+      
+    
+    {\displaystyle 2^{n}}
+  
+-dimensional, e isso torna desafiador para um computador clássico simular um quântico: representar um sistema de 100 qubits requer armazenar 
+  
+    
+      
+        
+          2
+          
+            100
+          
+        
+      
+    
+    {\displaystyle 2^{100}}
+  
+ valores clássicos.
+
+Operadores unitários
+
+O estado desta memória quântica de um qubit pode ser manipulado aplicando portas lógicas quânticas, de forma análoga a como a memória clássica pode ser manipulada com portas lógicas clássicas. Uma porta importante tanto para a computação clássica quanto para a quântica é a porta NOT, que pode ser representada por uma matriz
+
+  
+    
+      
+        X
+        :=
+        
+          
+            (
+            
+              
+                
+                  0
+                
+                
+                  1
+                
+              
+              
+                
+                  1
+                
+                
+                  0
+                
+              
+            
+            )
+          
+        
+        .
+      
+    
+    {\displaystyle X:={\begin{pmatrix}0&1\\1&0\end{pmatrix}}.}
+  
+
+Matematicamente, a aplicação de tal porta lógica a um vetor de estado quântico é modelada com multiplicação de matrizes. Assim
+
+  
+    
+      
+        X
+        
+          |
+        
+        0
+        ⟩
+        =
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle X|0\rangle =|1\rangle }
+  
+ e 
+  
+    
+      
+        X
+        
+          |
+        
+        1
+        ⟩
+        =
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle X|1\rangle =|0\rangle }
+  
+.
+A matemática das portas de um único qubit pode ser estendida para operar em memórias quânticas de múltiplos qubits de duas maneiras importantes. Uma maneira é simplesmente selecionar um qubit e aplicar essa porta ao qubit alvo, deixando o restante da memória inalterado. Outra maneira é aplicar a porta ao seu alvo apenas se outra parte da memória estiver num estado desejado. Essas duas escolhas podem ser ilustradas usando outro exemplo. Os possíveis estados de uma memória quântica de dois qubits são
+
+  
+    
+      
+        
+          |
+        
+        00
+        ⟩
+        :=
+        
+          
+            (
+            
+              
+                
+                  1
+                
+              
+              
+                
+                  0
+                
+              
+              
+                
+                  0
+                
+              
+              
+                
+                  0
+                
+              
+            
+            )
+          
+        
+        ;
+        
+        
+          |
+        
+        01
+        ⟩
+        :=
+        
+          
+            (
+            
+              
+                
+                  0
+                
+              
+              
+                
+                  1
+                
+              
+              
+                
+                  0
+                
+              
+              
+                
+                  0
+                
+              
+            
+            )
+          
+        
+        ;
+        
+        
+          |
+        
+        10
+        ⟩
+        :=
+        
+          
+            (
+            
+              
+                
+                  0
+                
+              
+              
+                
+                  0
+                
+              
+              
+                
+                  1
+                
+              
+              
+                
+                  0
+                
+              
+            
+            )
+          
+        
+        ;
+        
+        
+          |
+        
+        11
+        ⟩
+        :=
+        
+          
+            (
+            
+              
+                
+                  0
+                
+              
+              
+                
+                  0
+                
+              
+              
+                
+                  0
+                
+              
+              
+                
+                  1
+                
+              
+            
+            )
+          
+        
+        .
+      
+    
+    {\displaystyle |00\rangle :={\begin{pmatrix}1\\0\\0\\0\end{pmatrix}};\quad |01\rangle :={\begin{pmatrix}0\\1\\0\\0\end{pmatrix}};\quad |10\rangle :={\begin{pmatrix}0\\0\\1\\0\end{pmatrix}};\quad |11\rangle :={\begin{pmatrix}0\\0\\0\\1\end{pmatrix}}.}
+  
+
+A porta NOT controlada (CNOT) pode então ser representada usando a seguinte matriz:
+
+  
+    
+      
+        CNOT
+        :=
+        
+          
+            (
+            
+              
+                
+                  1
+                
+                
+                  0
+                
+                
+                  0
+                
+                
+                  0
+                
+              
+              
+                
+                  0
+                
+                
+                  1
+                
+                
+                  0
+                
+                
+                  0
+                
+              
+              
+                
+                  0
+                
+                
+                  0
+                
+                
+                  0
+                
+                
+                  1
+                
+              
+              
+                
+                  0
+                
+                
+                  0
+                
+                
+                  1
+                
+                
+                  0
+                
+              
+            
+            )
+          
+        
+        .
+      
+    
+    {\displaystyle \operatorname {CNOT} :={\begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&0&1\\0&0&1&0\end{pmatrix}}.}
+  
+
+Como consequência matemática desta definição, 
+  
+    
+      
+        CNOT
+        ⁡
+        
+          |
+        
+        00
+        ⟩
+        =
+        
+          |
+        
+        00
+        ⟩
+      
+    
+    {\displaystyle \operatorname {CNOT} |00\rangle =|00\rangle }
+  
+, 
+  
+    
+      
+        CNOT
+        ⁡
+        
+          |
+        
+        01
+        ⟩
+        =
+        
+          |
+        
+        01
+        ⟩
+      
+    
+    {\displaystyle \operatorname {CNOT} |01\rangle =|01\rangle }
+  
+, 
+  
+    
+      
+        CNOT
+        ⁡
+        
+          |
+        
+        10
+        ⟩
+        =
+        
+          |
+        
+        11
+        ⟩
+      
+    
+    {\displaystyle \operatorname {CNOT} |10\rangle =|11\rangle }
+  
+ e 
+  
+    
+      
+        CNOT
+        ⁡
+        
+          |
+        
+        11
+        ⟩
+        =
+        
+          |
+        
+        10
+        ⟩
+      
+    
+    {\displaystyle \operatorname {CNOT} |11\rangle =|10\rangle }
+  
+. Em outras palavras, o CNOT aplica uma porta NOT (
+  
+    
+      
+        X
+      
+    
+    {\displaystyle X}
+  
+ de antes) ao segundo qubit se e somente se o primeiro qubit estiver no estado 
+  
+    
+      
+        
+          |
+        
+        1
+        ⟩
+      
+    
+    {\displaystyle |1\rangle }
+  
+. Se o primeiro qubit for 
+  
+    
+      
+        
+          |
+        
+        0
+        ⟩
+      
+    
+    {\displaystyle |0\rangle }
+  
+, nada é feito em nenhum dos qubits.
+Em resumo, a computação quântica pode ser descrita como uma rede de portas lógicas quânticas e medições. No entanto, qualquer medição pode ser diferida para o final da computação quântica, embora este adiamento possa ter um custo computacional, portanto a maioria dos circuitos quânticos descreve uma rede consistindo apenas de portas lógicas quânticas e nenhuma medição.
+
+Paralelismo quântico
+"Paralelismo quântico" é a heurística de que os computadores quânticos podem ser pensados como avaliando uma função para múltiplos valores de entrada simultaneamente. Isto pode ser alcançado preparando um sistema quântico numa sobreposição de estados de entrada e aplicando uma transformação unitária que codifica a função a ser avaliada. O estado resultante codifica os valores de saída da função para todos os valores de entrada na sobreposição, permitindo o cálculo simultâneo de múltiplas saídas. Esta propriedade é fundamental para a aceleração de muitos algoritmos quânticos. No entanto, o "paralelismo" neste sentido é insuficiente para acelerar uma computação, porque a medição no final da computação dá apenas um valor. Para ser útil, um algoritmo quântico também deve incorporar algum outro ingrediente conceitual.
+
+Programação quântica
+
+Existem múltiplos modelos de computação para a computação quântica, distinguidos pelos elementos básicos nos quais a computação é decomposta.
+
+Rede de portas
+
+Uma rede de portas quânticas decompõe a computação numa sequência de portas quânticas de poucos qubits. Uma computação quântica pode ser descrita como uma rede de portas lógicas quânticas e medições. No entanto, qualquer medição pode ser diferida para o final da computação quântica, embora este adiamento possa ter um custo computacional, portanto a maioria dos circuitos quânticos descreve uma rede consistindo apenas de portas lógicas quânticas e nenhuma medição.
+Qualquer computação quântica (que é, no formalismo acima, qualquer matriz unitária de tamanho 
+  
+    
+      
+        
+          2
+          
+            n
+          
+        
+        ×
+        
+          2
+          
+            n
+          
+        
+      
+    
+    {\displaystyle 2^{n}\times 2^{n}}
+  
+ sobre 
+  
+    
+      
+        n
+      
+    
+    {\displaystyle n}
+  
+ qubits) pode ser representada como uma rede de portas lógicas quânticas de uma família bastante pequena de portas. Uma escolha de família de portas que permite esta construção é conhecida como conjunto de portas universal, uma vez que um computador que pode executar tais circuitos é um computador quântico universal. Um conjunto comum inclui todas as portas de um único qubit, bem como a porta CNOT acima. Isto significa que qualquer computação quântica pode ser realizada executando uma sequência de portas de um único qubit juntamente com portas CNOT. Embora este conjunto de portas seja infinito, ele pode ser substituído por um conjunto de portas finito, recorrendo ao teorema de Solovay–Kitaev. A implementação de funções booleanas usando as portas quânticas de poucos qubits é apresentada aqui.
+
+Computação quântica baseada em medição
+Um computador quântico baseado em medição decompõe a computação numa sequência de medições de estados de Bell e portas quânticas de um único qubit aplicadas a um estado inicial altamente emaranhado (um estado cluster), usando uma técnica chamada teletransporte de porta quântica.
+
+Computação quântica adiabática
+Um computador quântico adiabático, baseado no recozimento quântico, decompõe a computação numa transformação contínua e lenta de um Hamiltoniano inicial para um Hamiltoniano final, cujos estados fundamentais contêm a solução.
+
+Computação quântica neuromórfica
+A computação quântica neuromórfica (abreviada como 'n.quantum computing') é um processo não convencional de computação que usa a computação neuromórfica para realizar operações quânticas. Foi sugerido que os algoritmos quânticos, que são algoritmos que rodam num modelo realista de computação quântica, podem ser computados igualmente eficientemente com a computação quântica neuromórfica. Tanto a computação quântica tradicional quanto a computação quântica neuromórfica são abordagens de computação não convencionais baseadas na física para computações e não seguem a arquitetura de von Neumann. Ambos constroem um sistema (um circuito) que representa o problema físico em questão e depois aproveitam as respetivas propriedades físicas do sistema para buscar o "mínimo". A computação quântica neuromórfica e a computação quântica compartilham propriedades físicas semelhantes durante a computação.
+
+Computação quântica topológica
+Um computador quântico topológico decompõe a computação no trançamento de ánioms numa rede 2D.
+
+Máquina de Turing quântica
+Uma máquina de Turing quântica é o análogo quântico de uma máquina de Turing. Todos esses modelos de computação — circuitos quânticos, computação quântica unidirecional, computação quântica adiabática e computação quântica topológica — foram mostrados como equivalentes à máquina de Turing quântica; dada uma implementação perfeita de um desses computadores quânticos, ele pode simular todos os outros com uma sobrecarga não superior à polinomial. Essa equivalência pode não se manter para computadores quânticos práticos, pois a sobrecarga da simulação pode ser muito grande para ser prática.
+
+Computação quântica ruidosa de escala intermediária
+O teorema do limiar mostra como o aumento do número de qubits pode mitigar erros, mas a computação quântica totalmente tolerante a falhas continua sendo "um sonho bastante distante". De acordo com alguns pesquisadores, máquinas ruidosas de escala intermediária (NISQ) podem ter usos especializados num futuro próximo, mas o ruído nas portas quânticas limita a sua fiabilidade.
+Cientistas da Universidade de Harvard criaram com sucesso "circuitos quânticos" que corrigem erros mais eficientemente do que métodos alternativos, o que pode potencialmente remover um grande obstáculo para computadores quânticos práticos. A equipe de pesquisa de Harvard foi apoiada pelo MIT, pela QuEra Computing, pelo Caltech e pela Universidade de Princeton e financiada pelo programa Optimization with Noisy Intermediate-Scale Quantum devices (ONISQ) da DARPA.
+
+Criptografia quântica e segurança cibernética
+
+A criptografia digital permite que as comunicações permaneçam privadas, impedindo que partes não autorizadas as acessem. A encriptação convencional, a ocultação de uma mensagem com uma chave através de um algoritmo, depende de o algoritmo ser difícil de reverter. A encriptação é também a base para as assinaturas digitais e mecanismos de autenticação. A computação quântica pode ser suficientemente mais poderosa para que reversões difíceis sejam viáveis, permitindo que mensagens que dependem da encriptação convencional sejam lidas.
+A criptografia quântica substitui os algoritmos convencionais por cálculos baseados na computação quântica. Em princípio, a encriptação quântica seria impossível de decodificar mesmo com um computador quântico. Esta vantagem tem um custo significativo em termos de infraestrutura elaborada, impedindo efetivamente a descodificação legítima de mensagens por autoridades de segurança governamentais.
+A investigação em curso em criptografia quântica e criptografia pós-quântica levou a novos algoritmos para distribuição de chaves quânticas, trabalho inicial sobre geração quântica de números aleatórios e algumas demonstrações tecnológicas iniciais.
+
+Aplicações Práticas
+A computação quântica ainda está em sua infância, mas tem o potencial de revolucionar diversos campos:
+
+Criptografia e Segurança
+Quebra de Criptografia Clássica: A aplicação mais disruptiva é a capacidade do algoritmo de Shor de quebrar sistemas de criptografia de chave pública como RSA e ECC, que protegem a vasta maioria das comunicações digitais hoje, desde transações bancárias até e-mails.
+Criptografia Pós-Quântica (PQC): Em resposta a essa ameaça, pesquisadores estão desenvolvendo novos algoritmos de criptografia clássicos que se acredita serem resistentes a ataques de computadores quânticos e clássicos.
+Distribuição Quântica de Chaves (QKD): Utiliza os princípios da mecânica quântica para criar um canal de comunicação teoricamente inviolável. O protocolo BB84, por exemplo, permite que duas partes estabeleçam uma chave secreta compartilhada, onde qualquer tentativa de espionagem (medição) perturbaria o estado quântico dos fótons, alertando os usuários da presença de um intruso.
+
+Química e Ciência dos Materiais
+Design de Fármacos: A simulação precisa de moléculas complexas, como proteínas, permitirá entender melhor suas interações e projetar novos medicamentos de forma mais rápida e eficaz.
+Desenvolvimento de Novos Materiais: Poderemos projetar materiais com propriedades desejadas, como supercondutores à temperatura ambiente, baterias mais eficientes, ou catalisadores mais eficazes para processos industriais, como a fixação de nitrogênio para a produção de fertilizantes.
+Modelagem de Reações Químicas: Entender e otimizar reações químicas em um nível fundamental, com impacto na indústria química e energética.
+
+Inteligência Artificial e Otimização
+Aprendizado de Máquina Acelerado: Algoritmos de aprendizado de máquina quântico (QML) podem acelerar o treinamento de modelos, especialmente em tarefas que envolvem otimização de parâmetros em espaços de alta dimensão.
+Problemas de Otimização: Muitos dos problemas mais difíceis em logística, finanças e engenharia são problemas de otimização. A computação quântica, seja através de algoritmos como QAOA ou recozimento quântico, pode encontrar soluções melhores e mais rápidas para o problema do caixeiro-viajante, roteamento de veículos, e otimização de cadeias de suprimentos.
+Amostragem e Modelagem Generativa: Computadores quânticos podem ser excelentes em amostrar de distribuições de probabilidade complexas, o que é fundamental para treinar modelos de IA generativa avançados.
+
+Finanças
+Modelagem de Risco e Derivativos: O setor financeiro pode usar simulações quânticas de Monte Carlo para modelar o risco de portfólios financeiros de forma muito mais precisa e rápida.
+Otimização de Carteiras de Investimento: Encontrar a alocação ótima de ativos para maximizar o retorno e minimizar o risco é um problema de otimização complexo, ideal para a abordagem quântica.
+Detecção de Fraudes: Algoritmos quânticos podem ser usados para identificar padrões sutis e anomalias em grandes conjuntos de dados de transações financeiras.
+
+Desafios e Limitações
+Apesar do enorme potencial, a estrada para a computação quântica em larga escala e tolerante a falhas é longa e repleta de desafios significativos:
+
+Decoerência Quântica: Este é o maior obstáculo. Qubits são extremamente sensíveis ao seu ambiente. Qualquer interação não controlada, como flutuações de temperatura ou campos eletromagnéticos, pode destruir a delicada superposição e o emaranhamento, fazendo com que a informação quântica seja perdida. O tempo de coerência é o período durante o qual um qubit mantém suas propriedades quânticas, e estendê-lo é uma área de pesquisa intensa.
+Correção de Erros Quânticos (QEC): Devido à decoerência e ao controle imperfeito das portas, os cálculos quânticos são inerentemente propensos a erros. A QEC visa resolver isso codificando a informação de um qubit lógico (ideal) em muitos qubits físicos (reais e ruidosos). Ao monitorar os qubits físicos, é possível detectar e corrigir erros sem medir (e destruir) o estado do qubit lógico. Contudo, os esquemas de QEC atuais exigem uma sobrecarga massiva, necessitando de centenas ou até milhares de qubits físicos para proteger um único qubit lógico.
+Escalabilidade: Aumentar o número de qubits em um processador de forma a manter alta qualidade (baixa taxa de erro), alta conectividade (capacidade de emaranhar qubits distantes no chip) e controle individual preciso é um enorme desafio de engenharia.
+Software e Hardware de Controle: Desenvolver a "pilha" completa de computação, desde o software de alto nível onde os algoritmos são escritos até o firmware e a eletrônica de controle que traduzem esses algoritmos em pulsos de laser ou micro-ondas precisos para manipular os qubits, é uma tarefa monumental.
+Temperaturas Extremas: Muitas das tecnologias de qubit mais promissoras, como os supercondutores, exigem resfriamento a temperaturas mais frias que o espaço profundo, o que requer refrigeradores de diluição caros e complexos.
+Custo Elevado: A infraestrutura necessária para construir e operar um computador quântico é, atualmente, extremamente cara, limitando a pesquisa a grandes corporações e laboratórios governamentais.
+
+Estado Atual e Futuro
+Atualmente estamos na era dos computadores quânticos NISQ (Noisy Intermediate-Scale Quantum), com máquinas contendo de 50 a alguns milhares de qubits ruidosos e sem correção de erros. O foco principal da pesquisa é encontrar algoritmos que possam oferecer uma vantagem quântica em problemas específicos, mesmo com as limitações do hardware atual. As principais iniciativas incluem:
+
+IBM Quantum: Lidera o caminho com uma abordagem baseada em qubits supercondutores, disponibilizando muitos de seus processadores via nuvem. A empresa tem um roadmap público e agressivo, com o objetivo de alcançar processadores com dezenas de milhares de qubits e, eventualmente, máquinas tolerantes a falhas.
+Google Quantum AI: Famosa por sua demonstração de supremacia quântica em 2019 com o processador Sycamore, continua a desenvolver processadores supercondutores cada vez mais potentes e a pesquisar a correção de erros quânticos.
+IonQ: É a principal proponente da abordagem de armadilha de íons, oferecendo computadores quânticos comercialmente que se destacam pela alta fidelidade dos qubits.
+Rigetti Computing: Desenvolve qubits supercondutores e foca em uma abordagem híbrida clássico-quântica, integrando processadores quânticos (QPUs) com processadores clássicos (CPUs).
+China: O governo chinês tem feito investimentos massivos em todas as áreas da tecnologia quântica, com destaque para a comunicação quântica e satélites de QKD, além do desenvolvimento de seus próprios computadores quânticos baseados em supercondutores e fótons.
+Espera-se que na próxima década:
+
+Surjam os primeiros protótipos de computadores quânticos tolerantes a falhas, utilizando QEC para executar cálculos mais longos e complexos do que os possíveis hoje.
+Aplicações práticas com vantagem quântica real em química, ciência dos materiais e otimização comecem a se tornar comuns.
+A transição para a criptografia pós-quântica (PQC) seja amplamente adotada para proteger os dados contra futuras ameaças quânticas.
+A era NISQ dê lugar à era da computação quântica tolerante a falhas, abrindo caminho para a implementação de algoritmos como o de Shor em larga escala.
+
+Recozimento Quântico
+O recozimento quântico (Quantum Annealing) é um paradigma de computação quântica diferente do modelo de circuito baseado em portas. É um método de meta-heurística utilizado para encontrar a solução ótima (ou uma boa aproximação) para problemas de otimização e amostragem. O processo encontra o estado de menor energia possível de um sistema físico, que é projetado para representar o problema a ser resolvido.
+Este processo normalmente retorna soluções com baixa energia, sendo que algumas aplicações requerem o mínimo absoluto de energia (problemas de otimização) e outras necessitam de amostras de estados de baixa energia (problemas de amostragem probabilística).
+Aplica-se o recozimento quântico em problemas de otimização combinatória, onde se procura a melhor configuração entre um número vasto de combinações possíveis, como: qual a rota mais eficiente para um caminhão de entregas? Como alocar ativos em um portfólio financeiro? A física pode resolver este problema, enquadrando-os como problemas de minimização de energia, já que, de acordo com a física, tudo tende a perseguir um estado de energia mínima, como a água quente que esfria para atingir o equilíbrio térmico com o ambiente.
+Cada estado ou configuração possível do problema corresponde a um nível de energia. Em um processador de recozimento quântico, os qubits são inicialmente preparados em uma superposição simples e uniforme. Em seguida, o sistema é lentamente evoluído para uma configuração final cuja paisagem de energia reflete o problema de otimização. Durante essa evolução, o sistema utiliza o tunelamento quântico para superar barreiras de energia que poderiam prender um algoritmo clássico em um ótimo local (uma solução boa, mas não a melhor). O tunelamento permite que o sistema explore toda a paisagem de energia e aumente a probabilidade de "assentar" no mínimo global de energia, que corresponde à solução ótima.
+O tunelamento quântico é um fenômeno fundamental na física quântica que permite que partículas quânticas atravessem barreiras de potencial, mesmo que não tenham energia suficiente para superá-las de acordo com a física clássica. No contexto da computação quântica, o tunelamento é o mecanismo chave que dá ao recozimento quântico sua potencial vantagem sobre o recozimento simulado clássico.
+Seu potencial é resolver problemas de otimização combinada, bem como tarefas em machine learning e otimização de rotas. Pode-se também calcular o ponto mínimo de uma função com várias variáveis de forma eficiente.
+
+Problema da Não Linearidade
+Na aprendizagem de máquina clássica, consiste em modelagem de dados não lineares, onde algoritmos como regressão linear ou SVM (support vector machines) com kernels lineares podem ter dificuldade em modelar relacionamentos complexos entre variáveis de entrada e saída.
+No contexto do machine learning quântico (QML), a não linearidade também é um desafio e uma oportunidade. Os algoritmos quânticos operam em espaços de Hilbert de alta dimensão, e as operações quânticas são lineares. No entanto, a forma como os dados clássicos são codificados em estados quânticos (o "feature map") pode introduzir não linearidades de forma eficaz. Modelos quânticos não lineares, como os circuitos quânticos variacionais (VQC) usados em algoritmos de aprendizado de máquina, podem capturar relações não lineares complexas. Esses circuitos contêm camadas de portas quânticas parametrizadas que, quando otimizadas, podem aprender funções altamente não lineares, de maneira análoga às camadas de uma rede neural profunda.
+
+Glossário de Termos Quânticos

@@ -1,0 +1,74 @@
+A ciência de dados (em inglês:  data science) é uma área interdisciplinar (abrange "big data" e "mineração de dados"), que localiza-se em uma interface entre a estatística e a ciência da computação e utiliza o método científico; processos, algoritmos e sistemas, para extrair conhecimento e tomar decisões a partir de dados dos diversos tipos, sendo eles ruidosos, nebulosos, estruturados ou não-estruturados. Sendo assim uma área voltada para o estudo e a análise organizada de dados científicos e mercadológicos, financeiros, sociais, geográficos, históricos, biológicos, psicológicos, dentre muitos outros. Visa, desse modo, a extração de conhecimento, detecção de padrões e/ou obtenção de insights para possíveis tomadas de decisão. Ciência de dados enquanto campo existe há 30 anos, porém ganhou mais destaque nos últimos anos devido a alguns fatores como o surgimento e a popularização de grandes bancos de dados e o desenvolvimento de áreas como machine learning. Cientistas de Dados podem trabalhar no setor privado, por exemplo, transformando grandes quantidades de dados brutos em insights de negócios, auxiliando empresas em tomadas de decisões para atingir melhores resultados ou na academia e terceiro setor como pesquisadores quantitativos interdisciplinares.
+Há uma forte relação da área da ciência de dados com a IA (Inteligência Artificial), uma vez que o principal profissional que lida com o desenvolvimento, manutenção e fiscalização de inteligências artificiais e machine learning é o cientistas de dados. 
+
+Origem
+Atualmente, o volume de dados gerado por ações online, como uma simples curtida no Facebook ou até o upload de vídeos ou fotos no Instagram, é enorme. Junto com esse aumento na geração de dados também aumentou a nossa capacidade de processamento. Desde os anos 1970 a cada dois anos a nossa capacidade de processamento praticamente dobrou, e com esse grande aumento na quantidade de dados e na capacidade de processamento, um novo conceito surgiu, o Big Data. E com a necessidade de analisar e tentar extrair desse grande volume de dados informações úteis, surge a Ciência de dados, que também é considerada como uma versão mais recente do Business Intelligence. Apesar das semelhanças, as duas ciências possuem funções e abordagens diferentes. Enquanto Business Intelligence utiliza uma análise de dados "descritiva" ou "retrospectiva" para tentar responder a pergunta "o que aconteceu?", a  ciência de dados faz uso da análise preditiva e tenta descobrir "o que vai, ou pode acontecer?".
+
+Relação com a estatística
+A popularidade do termo "ciência de dados" explodiu nos ambientes de negócios e na academia, alavancado pelas vagas de emprego. No entanto, muitos acadêmicos e jornalistas críticos não veem distinção entre Ciência de Dados e Estatística. Em artigo na Forbes, por Gil Press, argumenta que a ciência de dados é uma buzzword sem uma definição clara e simplesmente substituiu "analista de negócios" no contexto dos programas de graduação. Na seção de perguntas e respostas de seu principal discurso na Reuniões Estatísticas da American Statistical Association, o notório estatístico aplicado Nate Silver disse: “Eu acho que cientista de dados é um termo sexualizado para um estatístico .... A estatística é um ramo da ciência. O cientista de dados é um pouco redundante de alguma forma e as pessoas não devem repreender o termo estatístico." Similarmente, no setor de negócios, vários pesquisadores e analistas afirmam que os cientistas de dados, por si só, estão longe de ser suficientes para conceder às empresas uma vantagem competitiva real. Considere os cientistas de dados como apenas uma das quatro maiores famílias de empregos que as empresas precisam para usar grandes dados com eficiência, a saber: analistas de dados, cientistas de dados, desenvolvedores e engenheiros de dados.
+Existe uma polêmica envolvendo a ciência de dados, no que se refere ao fato desta se confundir com a estatística. Em 2015, a American Statistical Association  fez uma declaração através de um comunicado de imprensa que procura apaziguar essa questão. Basicamente ela afirma que as ciências são complementares, e a estatística procura fomentar um relacionamento mais próximo à ciência de dados para benefício mútuo.
+
+Uso moderno
+A concepção moderna da ciência de dados como uma disciplina independente é algumas vezes atribuída a William S. Cleveland. Em um artigo de 2001, ele defendeu uma expansão da estatística além da teoria para áreas técnicas; porque isso mudaria significativamente o campo, justificava um novo nome. A "ciência de dados" tornou-se mais amplamente usada nos anos seguintes: em 2002, o Comitê de Dados para Ciência e Tecnologia lançou o Data Science Journal. Em 2003, a Columbia University lançou o The Journal of Data Science. Em 2014, a Seção de Aprendizagem Estatística e Mineração de Dados da American Statistical Association mudou seu nome para Seção de Aprendizagem Estatística e Ciência de Dados, refletindo a popularidade crescente da ciência de dados.
+
+Aplicações
+
+Buscas na internet
+Os principais mecanismos de pesquisa na internet fazem o uso da ciência de dados em conjunto com o aprendizado de máquina para encontrar o resultado mais refinado em frações de segundos. A rapidez dos motores de busca atuais só é possível graças à ciência de dados.
+
+Comparação de preços
+Com o imenso volume de dados gerado pela grande quantidade de lojas virtuais, os sites como: Buscapé, Trivago, Bondfaro dentre muitos outros, utilizam a ciência de dados para mostrar os menores preços do produto que o cliente está procurando, com suporte das API e dos feeds/RSS.
+
+E-commerce de viagens
+Muitas empresas de e-commerce de viagens como Booking, Trivago, Expedia, entre outras, utilizam a Ciência de Dados para melhorar os resultados em seus motores de busca, trazendo para o cliente não só os resultados de pesquisas sobre hotéis ou voos, como também sugerindo serviços complementares a essas viagens (reserva de carros, pacotes de passeios no destino, seguro de viagens, etc.).
+
+Logística
+A UPS, empresa do ramo de logística, desenvolveu um sistema chamado ORION, que é responsável por gerenciar as rotas de seus caminhões de entrega nos EUA. Esse sistema foi alimentado, a partir de 2008, com informações oriundas de sua frota sobre rotas, tempo de veículos parados e até se os motoristas estavam utilizando o cinto de segurança. A partir daí, foi desenvolvido um complexo algoritmo para resolver os problemas de rota dos caminhões, o que gerou um impressionante código com 1000 páginas, que transforma os dados obtidos em instruções para otimizar as rotas dos caminhões. Atualmente, esse sistema consegue otimizar as rotas em segundos e, rodando em segundo plano, está sempre atualizando a mesma para garantir a melhor rota para seus caminhões, fazendo com que a UPS economize até 50 milhões de dólares ao ano.
+
+Propaganda digital
+Praticamente todo o conteúdo de marketing digital que existe é escolhido por algoritmos que utilizam ciência de dados, assim as empresas obtêm um resultado muito melhor do que o marketing convencional, pois os anúncios são montados de acordo com o histórico do usuário. É por esse motivo que duas pessoas podem ver diferentes anúncios em uma mesma página.
+
+Reconhecimento de imagens
+Utilizando algoritmos de reconhecimento de imagens, várias aplicações são possíveis, como qr-code que permite que você escaneie uma imagem com seu smartphone para poder utilizar o Whatsapp Web, ou o recurso automático de reconhecimento facial para marcar amigos em fotos postadas em redes sociais.
+
+Reconhecimento de voz
+Ao conversar com os assistentes pessoais (Google Voice, Siri, Cortana) o sistema transforma a fala humana em uma linguagem que o sistema entende para assim executar ações através de comandos de voz.
+
+Saúde
+A Walgreens utiliza ferramentas avançadas de analytics na área de drogarias para o cuidado de pacientes, avaliando melhor as suas condições e fornecendo recomendações que fortalecem a saúde e evitam despesas médicas futuras.
+
+Serviços financeiros
+A ciência de dados auxilia na análise e compreensão dos dados armazenados sobre gastos passados, concessões de crédito entre outras variáveis, e com isso os bancos podem traçar perfis que são capazes de projetar a probabilidade de um determinado cliente se tornar inadimplente ou não.
+
+Sistemas de recomendação
+É cada vez mais comum recebermos sugestões de conteúdo nos sites e aplicativos; uma previsão baseada nos interesses do usuário, somado com os dados do perfil do usuário e com os dados do seu histórico de buscas, é possível ter melhores insights sobre os tipos sugestões que mais se adequam a cada pessoa, e é isso que ocorre quando visualizamos sugestões de amizades nas redes sociais (facebook), que auxilia nas sugestões de prováveis novos contatos; bem como as sugestões de filmes e séries nos serviços de streaming (netflix), onde são indicadas produções de acordo com o que o usuário assistiu anteriormente; e até mesmo as sugestões de produtos nos sites de comércio eletrônico (amazon), onde o cliente recebe sugestões de produtos similares aos adquiridos anteriormente ou similares aos pesquisados.
+
+Cientista de dados
+Os cientistas de dados são profissionais da "nova geração" com conhecimentos em Matemática, Estatística e T.I. e com habilidades em análises de dados complexos e soluções para possíveis problemas extraídos a partir desses dados.
+
+Mercado de trabalho
+O profissional dessa área encontra-se em primeiro lugar das melhores profissões da América, de acordo com uma lista do site Glassdoor
+. O alto número de vagas (devido a pouca quantidade de profissionais qualificados), os bons salários e a satisfação no trabalho foram os fatores que colocaram essa profissão no topo dessa lista. Segundo uma pesquisa realizada pela IBM, a demanda por esses profissionais deve subir 28% até 2020 e atualmente, 60% da procura por esses profissionais encontra-se na área de finanças.
+
+Principais linguagens utilizadas
+R (linguagem de programação)
+Julia (linguagem de programação)
+Python (linguagem de programação)
+SQL (Padrão de banco de dados estruturado)
+MongoDB (Padrão de banco de dados não-estruturado)
+
+Principais técnicas utilizadas
+Há uma variedade de tecnologias e técnicas diferentes usadas para ciência de dados que dependem da aplicação. Mais recentemente, plataformas completas e complexas foram desenvolvidas e amplamente utilizadas para ciência de dados e aprendizado de máquina.
+
+Árvores de decisão
+Rede neural
+Aprendizado profundo
+Lógica de programação indutiva
+Máquinas de vetores de suporte
+Clustering
+Redes Bayesianas
+Aprendizado por reforço
+Aprendizado por representação
+Aprendizado por similaridade e métrica
+Aprendizado por dicionário esparso
+Algoritmos genéticos

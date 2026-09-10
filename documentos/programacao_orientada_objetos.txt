@@ -1,0 +1,58 @@
+Programação orientada a objetos (POO, ou OOP segundo as suas siglas em inglês) é um paradigma de programação baseado no conceito de "objetos", que podem conter dados na forma de campos, também conhecidos como atributos, e códigos, na forma de procedimentos, também conhecidos como métodos. Uma característica de objetos é que um procedimento de objeto pode acessar, e geralmente modificar, os campos de dados do objeto com o qual eles estão associados (objetos possuem uma noção de "this" (este) ou "self" (próprio)).
+Em POO, programas de computadores são projetados por meio da composição de objetos que interagem com outros. Há uma diversidade significante de linguagens de POO, mas as mais populares são aquelas baseadas em classes, significando que objetos são instâncias de classes, que, normalmente, também determinam seu tipo.
+Muitas das linguagens mais utilizadas são multiparadigmas que suportam programação orientada a objetos em maior ou menor grau, tipicamente em combinação com programação procedural imperativa. Linguagens orientadas a objeto significativas incluem Java, C++, C#, Python, Lua, PHP, Ruby, Perl, Object Pascal, Objective-C, Dart, Swift, Scala, Common Lisp e Smalltalk.
+
+Características
+A programação orientada a objetos utiliza objetos, porém nem todas das técnicas e estruturas associadas são suportadas diretamente em linguagens que afirmam suportar a POO. As características listadas abaixo são, entretanto, comuns entre linguagens consideradas fortemente orientadas a classes e objetos (ou multiparadigma com suporte a POO), com exceções notáveis mencionadas.
+
+Compartilhada com linguagens predecessoras não-POO
+Variáveis que podem armazenar informações formatadas em um número pequeno de tipos de dados nativos como inteiros e caracteres alfanuméricos. Isto pode incluir estruturas de dados como cadeia de caracteres, listas e tabelas hash que são nativas ou resultado de combinação de variáveis utilizando ponteiros de memória.
+
+Objetos e classes
+Linguagens que suportam programação orientada a objetos (POO) geralmente utilizam herança para reutilização de código e extensibilidade na forma de "classes" ou "protótipos". Aquelas que utilizam classes têm dois conceitos principais:
+
+Classes - as definições para o formato de dados e procedimentos disponíveis para um dado tipo ou classe de objeto; também podem conter dados e procedimentos (conhecidos como métodos de classe) em si mesmas, ou seja, classes contêm os membros de dados e funções membros.
+Objetos - instâncias de classes
+Objetos às vezes correspondem a coisas encontradas no mundo real. Por exemplo, um programa de gráficos pode ter objetos como "círculo", "quadrado", "menu". Um sistema de compras online pode ter objetos como "carrinho de compras", "cliente" e "produto". Às vezes, objetos representam entidades mais abstratas, como um objeto que representa um arquivo aberto, ou um objeto que fornece o serviço de traduzir medidas do sistema de unidades dos EUA para o métrico.
+
+Cada objeto é dito ser uma instância de uma classe específica (por exemplo, um objeto com o campo de nome definido como "Maria" pode ser uma instância da classe "Funcionário"). Procedimentos em programação orientada a objetos são conhecidos como métodos; variáveis também conhecidas como campos, membros, atributos ou propriedades. Isso leva aos seguintes termos:
+
+Variáveis de classe - pertencem à classe como um todo; há apenas uma cópia de cada variável, compartilhada entre todas as instâncias da classe
+Variáveis de instância ou atributos - dados que pertencem a objetos individuais; cada objeto tem sua própria cópia de cada um
+Variáveis de membro - refere-se tanto às variáveis de classe quanto às de instância definidas por uma classe específica
+Métodos de classe - pertencem à classe como um todo e têm acesso apenas a variáveis de classe e entradas da chamada do procedimento
+Métodos de instância - pertencem a objetos individuais e têm acesso a variáveis de instância do objeto específico em que são chamados, entradas e variáveis de classe
+
+Objetos são acessados de forma semelhante a variáveis com estrutura interna complexa e, em muitas linguagens, são efetivamente ponteiros, servindo como referências reais para uma única instância desse objeto na memória, dentro de um heap ou pilha. Eles fornecem uma camada de abstração que pode ser usada para separar o código interno do externo. O código externo pode usar um objeto chamando um método de instância específico com um certo conjunto de parâmetros de entrada, ler uma variável de instância ou escrever em uma variável de instância. Objetos são criados chamando um tipo especial de método na classe conhecido como construtor. Um programa pode criar muitas instâncias da mesma classe enquanto é executado, que operam independentemente. Isso é uma maneira fácil de usar os mesmos procedimentos em diferentes conjuntos de dados.
+
+A programação orientada a objetos que usa classes é às vezes chamada de programação baseada em classes, enquanto a programação baseada em protótipos normalmente não usa classes. Como resultado, terminologia significativamente diferente, porém análoga, é usada para definir os conceitos de objeto e instância.
+
+Em algumas linguagens, classes e objetos podem ser compostos usando outros conceitos como traits e mixins.
+
+Baseada em classes x baseada em protótipos
+
+Ligação dinâmica/passagem de mensagens
+
+Encapsulamento
+Encapsulamento é o mecanismo utilizado dentro da Orientação a Objetos para restringir o acesso externo ao comportamento interno de um objeto . As entradas, os processamentos e as saídas de um objeto não influenciam os dos outros, pois os seus relacionamentos são apenas referenciados.
+
+Composição, herança e delegação
+Objetos podem conter outros objetos em suas variáveis de instância. Isto é conhecido como composição de objetos. Por exemplo, um objeto na classe Empregado pode conter (apontar para) um objeto na classe Endereço, além de suas próprias variáveis de instância como "primeiro_nome" e "cargo". A composição de objetos é usada para representar relacionamentos "possui-um": cada empregado possui um endereço, desta forma cada objeto Empregado possui um lugar para armazenar um objeto Endereço.
+Linguagens que suportam classes quase sempre suportam herança. Isto permite que classes sejam organizadas em uma hierarquia que representa relacionamentos "é-um-tipo-de". Por exemplo, a classe Empregado pode herdar da classe Pessoa. Todos os dados e métodos disponíveis à classe pai também aparecerão na classe filha com os mesmos nomes. Por exemplo, a classe Pessoa pode definir variáveis "primeiro_nome" e "último_nome" com o método "fazer_nome_completo()". Elas também estarão disponíveis na classe Empregado, que pode adicionar as variáveis "posição" e "salário". Esta técnica permite reutilização fácil dos mesmos procedimentos e definições de dados, além de potencialmente espelhar relacionamentos do mundo real de uma forma intuitiva. Em vez de utilizar tabelas de banco de dados e sub-rotinas de programação, o desenvolvedor utiliza objetos que o usuário pode estar mais familiarizado: objetos de seu domínio de aplicação.
+Subclasses podem sobrescrever os métodos definidos por superclasses. Herança múltipla é permitida em algumas linguagens, apesar disto poder complicar a resolução de sobrescrições. Algumas linguagens possuem suporte especial para mixin, assim como em qualquer linguagem com herança múltipla, uma mesclagem é simplesmente uma classe que não representa um relacionamento é-um-tipo-de. Mixins são normalmente utilizadas para adicionar os mesmos métodos para várias classes. Por exemplo, MesclagemConversãoUnicode pode fornecer um método unicode_para_ascii() quando incluído na classe LeitorDeArquivo e na classe FragmentadorDePáginaWeb, que não compartilham um pai comum.
+Classes abstratas não podem ser instanciadas em objetos, elas existem apenas para o propósito de herança em outras classes "concretas" que podem ser instanciadas. Em Java, a palavra-chave final pode ser usada para prevenir uma classe de ser "subclasseada".
+
+Polimorfismo
+O principal conceito de polimorfismo é a propriedade de duas ou mais classes derivadas de uma mesma superclasse responderem a mesma mensagem, cada uma de uma forma diferente. 
+
+Sub-Tipagem
+Sub-tipagem é quando o código de chamada pode ser agnóstico quanto a se um objeto pertence a uma classe pai ou a um de seus descendentes.
+
+História
+O seu uso popularizou-se em princípios da década de 1990. Na atualidade, existe uma grande variedade de linguagens de programação que suportam a orientação a objetos.
+Os conceitos da POO têm origem na Simula 67, uma linguagem desenhada para fazer simulações, criado por Ole-Johan Dahl e Kristen Nygaard, do Centro de Computação Norueguês em Oslo. Neste centro trabalhava-se em simulações de naves, que foram confundidas pela explosão combinatória de como as diversas qualidades de diferentes naves podiam afetar umas às outras. A ideia surgiu ao agrupar os diversos tipos de naves em diversas classes de objetos, sendo responsável cada classe de objetos por definir os seus "próprios" dados e comportamentos. Foram refinados mais tarde em Smalltalk, desenvolvido em Simula em Xerox PARC (cuja primeira versão foi escrita sobre Basic) mas desenhado para ser um sistema completamente dinâmico no qual os objetos se podiam criar e modificar "durante a caminhada" (em tempo de execução) em vez de ter um sistema baseado em programas estáticos.
+A POO foi-se convertendo no estilo de programação dominante em meados dos anos 1990, em grande parte devido à influência de C++, uma extensão da linguagem de programação C. A sua dominação foi consolidada graças ao auge das interfaces gráficas de utilizador, para as quais a POO está particularmente bem adaptada. Neste caso, fala-se também de programação dirigida por eventos.
+As características de orientação a objetos foram agregadas a muitas linguagens existentes durante esse tempo, incluindo Ada, BASIC, Lisp mais Pascal, entre outros. A adição destas características às linguagens que não foram desenhadas inicialmente para elas conduziu muitas vezes a problemas de compatibilidade e na capacidade de manutenção do código. As linguagens orientadas a objetos "puros", por seu lado, careciam das caraterísticas das quais muitos programadores haviam vindo a depender. Para saltar este obstáculo, fizeram-se muitas tentativas para criar novas linguagens baseadas em métodos orientados a objetos, mas permitindo algumas características imperativas de maneiras "seguras". A linguagem de programação Eiffel de Bertrand Meyer foi uma prematura e moderadamente acertada linguagem com esses objetivos, mas agora foi essencialmente substituída por Java, em grande parte devido à aparição da Internet e à implementação da máquina virtual Java na maioria dos navegadores web. PHP na sua versão 5 foi modificado; suporta uma orientação completa a objetos, cumprindo todas as características próprias da orientação a objetos.
+
+Resumo
+A POO é um paradigma surgido nos anos 1970, que utiliza objetos como elementos fundamentais na construção da solução. Um objeto é uma abstração de algum fato ou ente do mundo real, com atributos que representam as suas caraterísticas ou propriedades, e métodos que emulam o seu comportamento ou atividade. Todas as propriedades e métodos comuns aos objetos encapsulam-se ou agrupam-se em classes. Uma classe é um modelo, um protótipo para criar objetos; no geral, diz-se que cada objeto é uma instância ou exemplar de uma classe.

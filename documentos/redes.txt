@@ -1,0 +1,277 @@
+Em ciência da computação, engenharia de computação e telecomunicações, uma rede é um grupo de computadores e periféricos que se comunicam, conhecidos como hosts (hospedeiros), que comunicam dados a outros hosts por meio de protocolos de comunicação, facilitados por hardware de rede.
+Dentro de uma rede de computadores, os hosts são identificados por endereços de rede, que permitem ao hardware de rede localizar e identificar os hosts. Os hosts também podem ter nomes de host, que são etiquetas memoráveis para os nós de hosts, as quais podem ser mapeadas para um endereço de rede usando um arquivo de hosts ou um servidor de nomes como o Domain Name Service (DNS). O meio físico que suporta a troca de informações inclui meios cabeados, como cabos de cobre, fibras ópticas e meios sem fio por radiofrequência. A disposição dos hosts e do hardware dentro de uma arquitetura de rede é conhecida como topologia de rede.
+A primeira rede de computadores foi criada em 1940, quando George Stibitz conectou um terminal em Dartmouth à sua Calculadora de Números Complexos nos Bell Labs em Nova York. Hoje, quase todos os computadores estão conectados a uma rede de computadores, como a Internet global ou redes embarcadas (como as encontradas em muitos dispositivos eletrônicos modernos). Muitos aplicativos têm funcionalidade limitada, a menos que estejam conectados a uma rede. As redes dão suporte a aplicativos e serviços, como o acesso à World Wide Web, vídeo digital e áudio digital, servidores de aplicativos e de armazenamento, impressoras, além de aplicativos de e-mail e mensagens instantâneas.
+
+História
+
+Primeiras origens (1940 – década de 1960)
+Em 1940, George Stibitz dos Bell Labs conectou um teletipo em Dartmouth a um computador dos Bell Labs que executava sua Calculadora de Números Complexos para demonstrar o uso de computadores à longa distância. Este foi o primeiro uso remoto e em tempo real de uma máquina de computação.
+No final da década de 1950, uma rede de computadores foi construída para o sistema de radar militar dos EUA Semi-Automatic Ground Environment (SAGE) utilizando o modem Bell 101. Esse foi o primeiro modem comercial para computadores, lançado pela AT&T Corporation em 1958. O modem permitia que dados digitais fossem transmitidos por linhas telefônicas comuns não condicionadas a uma velocidade de 110 bits por segundo (bit/s). 
+Em 1959, Christopher Strachey entrou com um pedido de patente para tempo compartilhado (time-sharing) no Reino Unido, e John McCarthy iniciou o primeiro projeto para implementar o tempo compartilhado de programas de usuários no MIT. Strachey transmitiu o conceito para J. C. R. Licklider na Conferência Inaugural de Processamento de Informação da UNESCO em Paris naquele ano. McCarthy foi fundamental na criação de três dos primeiros sistemas de tempo compartilhado (o Compatible Time-Sharing System em 1961, o BBN Time-Sharing System em 1962 e o Dartmouth Time-Sharing System em 1963).
+Em 1959, Anatoly Kitov propôs ao Comitê Central do Partido Comunista da União Soviética um plano detalhado para a reorganização do controle das forças armadas e da economia soviética com base em uma rede de centros de computação. A proposta de Kitov foi rejeitada, assim como ocorreu posteriormente com o projeto da rede de gestão econômica OGAS em 1962. 
+Durante a década de 1960, Paul Baran e Donald Davies inventaram de forma independente o conceito de comutação de pacotes para a comunicação de dados entre computadores em uma rede. O trabalho de Baran abordava o roteamento adaptativo de blocos de mensagens em uma rede distribuída, mas não incluía roteadores com comutadores de software, nem a ideia de que os usuários, e não a própria rede, garantiriam a confiabilidade. 
+O projeto de rede hierárquica de Davies incluía roteadores de alta velocidade, protocolos de comunicação e a essência do princípio fim-a-fim. A rede NPL, uma rede de área local (LAN) no Laboratório Nacional de Física, foi pioneira na implementação do conceito entre 1968 e 1969 usando links de 768 kbit/s. Tanto as invenções de Baran quanto as de Davies foram contribuições seminais que influenciaram o desenvolvimento das redes de computadores.
+
+ARPANET (1969 – 1974)
+Em 1962 e 1963, J. C. R. Licklider enviou uma série de memorandos a colegas de escritório discutindo o conceito da "Rede de Computadores Intergaláctica", uma rede de computadores destinada a permitir comunicações gerais entre usuários de computadores. Isso acabou se tornando a base para a ARPANET, criada em 1969. Naquele ano, os quatro primeiros nós da ARPANET foram conectados usando circuitos de 50 kbit/s entre a Universidade da Califórnia em Los Angeles (UCLA), o Stanford Research Institute (SRI), a Universidade da Califórnia em Santa Bárbara (UCSB) e a Universidade de Utah. Projetada principalmente por Bob Kahn, o roteamento, controle de fluxo, design de software e controle de rede da infraestrutura foram desenvolvidos pela equipe do IMP que trabalhava para a Bolt Beranek & Newman (BBN). 
+No início da década de 1970, Leonard Kleinrock realizou trabalhos matemáticos para modelar o desempenho de redes de comutação de pacotes, o que deu sustentação ao desenvolvimento da ARPANET. Seu trabalho teórico sobre roteamento hierárquico no final da década de 1970 com o estudante Farouk Kamoun continua sendo crítico para a operação da Internet hoje.
+Em 1973, Peter Kirstein colocou a interconexão de redes (internetworking) em prática no University College London (UCL), conectando a ARPANET a redes acadêmicas britânicas, formando a primeira rede internacional de computadores heterogênea. No mesmo ano, Robert Metcalfe escreveu um memorando formal na Xerox PARC descrevendo a Ethernet, um sistema de redes de área local que ele criou em parceria com David Boggs. Ele foi inspirado pela rede de rádio de pacotes ALOHAnet, iniciada por Norman Abramson e Franklin Kuo na Universidade do Havaí no final dos anos 1960. Metcalfe e Boggs, juntamente com John Shoch e Edward Taft, também desenvolveram o PARC Universal Packet para interconexão de redes. Naquele ano, a rede francesa CYCLADES, dirigida por Louis Pouzin, foi a primeira a atribuir aos próprios hosts a responsabilidade pela entrega confiável de dados, em vez de deixar isso como um serviço centralizado da própria rede.
+
+A Internet (1974 – presente)
+Em 1974, Vint Cerf e Bob Kahn publicaram seu artigo seminal de 1974 sobre interconexão de redes, A Protocol for Packet Network Intercommunication. No final daquele ano, Cerf, Yogen Dalal e Carl Sunshine escreveram a primeira especificação do Transmission Control Protocol (TCP), RFC 675, cunhando o termo Internet como uma abreviação para "internetworking" (interconexão de redes). Em julho de 1976, Metcalfe e Boggs publicaram seu artigo "Ethernet: Distributed Packet Switching for Local Computer Networks" e, em dezembro de 1977, juntamente com Butler Lampson e Charles P. Thacker, receberam a patente Patente E.U.A. 4 063 220A por sua invenção.
+Em 1976, John Murphy da Datapoint Corporation criou a ARCNET, uma rede de passagem de token usada pela primeira vez para compartilhar dispositivos de armazenamento. Em 1979, Robert Metcalfe buscou tornar a Ethernet um padrão aberto. Em 1980, a Ethernet foi atualizada do protocolo original de 2,94 Mbit/s para o protocolo de 10 Mbit/s, desenvolvido por Ron Crane, Bob Garner, Roy Ogus, Hal Murray, Dave Redell e Yogen Dalal. Em 1986, a National Science Foundation (NSF) lançou a National Science Foundation Network (NSFNET) como uma rede de pesquisa de propósito geral, conectando vários locais financiados pela NSF entre si e a redes regionais de pesquisa e educação.
+Em 1995, a capacidade de velocidade de transmissão da Ethernet aumentou de 10 Mbit/s para 100 Mbit/s. Em 1998, a Ethernet já suportava velocidades de transmissão de 1 Gbit/s. Posteriormente, foram adicionadas velocidades mais altas, de até 800 Gbit/s (Desde 2025). A escalabilidade da Ethernet tem sido um fator contribuinte para seu uso contínuo. Nas décadas de 1980 e 1990, à medida que os sistemas embarcados tornavam-se cada vez mais importantes em fábricas, carros e aviões, protocolos de rede foram desenvolvidos para permitir a comunicação entre computadores embarcados. No final dos anos 1990 e nos anos 2000, a computação ubíqua e a Internet das Coisas tornaram-se populares.
+
+Uso comercial
+Em 1960, o sistema comercial de reservas de passagens aéreas semi-automatic business research environment (SABRE) entrou em operação com dois mainframes conectados. Em 1965, a Western Electric introduziu o primeiro comutador telefônico amplamente utilizado que implementava controle por computador na estrutura de comutação. Em 1972, serviços comerciais foram implantados pela primeira vez em redes de dados públicas experimentais na Europa. As redes de dados públicas na Europa, América do Norte e Japão começaram a usar X.25 no final da década de 1970 e se interconectaram com X.75. Essa infraestrutura subjacente foi usada para expandir as redes TCP/IP na década de 1980. Em 1977, a primeira rede de fibra de longa distância foi implantada pela GTE em Long Beach, Califórnia.
+
+Hardware
+
+Links de rede
+
+Os meios de transmissão usados para interligar dispositivos e formar uma rede de computadores incluem cabo elétrico, fibra óptica e comunicação óptica em espaço livre. No modelo OSI, o software para lidar com os meios é definido nas camadas 1 e 2 — a camada física e a camada de enlace de dados. Exemplos comuns de tecnologias de rede incluem:
+
+Ethernet é uma família amplamente adotada de tecnologias de rede que usam meios de cobre e fibra em redes locais (LAN). Os padrões de meios e protocolos que permitem a comunicação entre dispositivos em rede via Ethernet são definidos pelo IEEE 802.3.
+Padrões de LAN sem fio (WLAN), que utilizam ondas de rádio. Alguns padrões usam sinais infravermelhos como meio de transmissão.
+Power line communication (PLC) utiliza a fiação elétrica de um edifício para transmitir dados.
+
+Cabeado
+
+As seguintes classes de tecnologias cabeadas são usadas em redes de computadores.
+
+Cabo coaxial é amplamente utilizado para sistemas de TV a cabo, edifícios de escritórios e outros locais de trabalho para redes locais. A velocidade de transmissão varia de 200 milhões de bits por segundo a mais de 500 milhões de bits por segundo.[carece de fontes]?
+A tecnologia ITU-T G.hn utiliza a fiação doméstica existente (cabo coaxial, linhas telefônicas e linhas de energia) para criar uma rede local de alta velocidade.
+O cabeamento de Par trançado é usado para Ethernet cabeada e outros padrões. Geralmente consiste em 4 pares de cabos de cobre que podem ser utilizados tanto para transmissão de voz quanto de dados. O uso de dois fios trançados ajuda a reduzir a diafonia (crosstalk) e a indução eletromagnética. A velocidade de transmissão varia de 2 Mbit/s a 10 Gbit/s. O cabeamento de par trançado vem em duas formas: par trançado sem blindagem (UTP) e par trançado blindado (STP). Cada forma possui várias classificações de categoria, projetadas para uso em diversos cenários.
+
+Uma fibra óptica é uma fibra de vidro que transporta pulsos de luz representando dados via lasers e amplificadores ópticos. Algumas vantagens das fibras ópticas sobre os fios metálicos são a baixíssima perda de transmissão e a imunidade a interferências elétricas. Usando multiplexação por divisão de comprimento de onda densa, as fibras ópticas podem transportar simultaneamente múltiplos fluxos de dados em diferentes comprimentos de onda de luz, o que aumenta muito a taxa de envio de dados para até trilhões de bits por segundo. As fibras ópticas podem ser usadas para lances longos de cabos com taxas de dados altíssimas e são usadas em cabos de comunicação submarinos para interconectar continentes. Existem dois tipos básicos de fibras ópticas: fibra monomodo (SMF) e fibra multimodo (MMF).
+
+Sem fio
+
+As conexões de rede podem ser estabelecidas sem fio usando rádio ou outros meios eletromagnéticos de comunicação.
+
+Micro-ondas terrestres – A comunicação por micro-ondas terrestres utiliza transmissores e receptores baseados na Terra que se assemelham a antenas parabólicas. As micro-ondas terrestres estão na faixa baixa de gigahertz, o que limita todas as comunicações à linha de visada. As estações de retransmissão são espaçadas aproximadamente 40 milhas (64 km) uma da outra.
+Satélites de comunicações – Os satélites também se comunicam via micro-ondas. Os satélites estão posicionados no espaço, normalmente em órbita geoestacionária a 35,400 km (21,997 mi) acima do equador. Esses sistemas em órbita terrestre são capazes de receber e retransmitir sinais de voz, dados e TV.
+Redes celulares utilizam várias tecnologias de comunicação por rádio. Os sistemas dividem a região coberta em múltiplas áreas geográficas. Cada área é atendida por um transceptor de baixa potência.
+Tecnologias de rádio e espectro alargado – As LANs sem fio utilizam uma tecnologia de rádio de alta frequência semelhante à celular digital. As LANs sem fio usam tecnologia de espectro alargado para permitir a comunicação entre múltiplos dispositivos em uma área limitada. O IEEE 802.11 define uma variante comum de tecnologia de ondas de rádio sem fio de padrão aberto conhecida como Wi-Fi.
+Comunicação óptica em espaço livre utiliza luz visível ou invisível para comunicações. Na maioria dos casos, utiliza-se a propagação em linha de visada, o que limita o posicionamento físico dos dispositivos comunicantes.
+Extensão da Internet para dimensões interplanetárias via ondas de rádio e meios ópticos, a Internet Interplanetária.
+IP over Avian Carriers (IP sobre pombos correios) foi um Request for Comments humorístico de primeiro de abril, emitido como RFC 1149. Foi implementado na vida real em 2001.
+Os dois últimos casos apresentam um grande atraso de ida e volta (RTT), o que resulta em uma comunicação bidirecional lenta, mas não impede o envio de grandes quantidades de informação (podem ter alto throughput).
+
+Nós de rede
+
+Além de qualquer meio de transmissão físico, as redes são construídas a partir de blocos básicos de sistema adicionais, como controladores de interface de rede, repetidores, hubs, pontes, switches, roteadores, modems e firewalls. Qualquer equipamento específico frequentemente conterá múltiplos blocos e, portanto, pode desempenhar múltiplas funções.
+
+Interfaces de rede
+
+Um controlador de interface de rede (NIC ou placa de rede) é um hardware de computador que conecta o computador ao meio de rede e tem a capacidade de processar informações de rede de baixo nível. Por exemplo, a placa de rede pode ter um conector para plugar um cabo, ou uma antena para transmissão e recepção sem fio, além do circuito associado.
+Em redes Ethernet, cada placa de rede possui um endereço MAC (Media Access Control) exclusivo — geralmente armazenado na memória permanente do controlador. Para evitar conflitos de endereço entre dispositivos de rede, o Instituto de Engenheiros Eletricistas e Eletrônicos (IEEE) mantém e administra a exclusividade dos endereços MAC. O tamanho de um endereço MAC Ethernet é de seis octetos. Os três octetos mais significativos são reservados para identificar os fabricantes das placas de rede. Esses fabricantes, usando apenas seus prefixos atribuídos, atribuem de forma única os três octetos menos significativos de cada interface Ethernet que produzem.
+
+Repetidores e hubs
+
+Um repetidor é um dispositivo eletrônico que recebe um sinal de rede, limpa-o de ruídos desnecessários e o regenera. O sinal é retransmitido em um nível de potência mais alto, ou para o outro lado de uma obstrução, para que o sinal possa cobrir distâncias mais longas sem degradação. Na maioria das configurações Ethernet de par trançado, repetidores são necessários para cabos que correm mais de 100 metros. Com fibra óptica, os repetidores podem estar a dezenas ou até centenas de quilômetros de distância.
+Os repetidores trabalham na camada física do modelo OSI, mas ainda requerem um pequeno intervalo de tempo para regenerar o sinal. Isso pode causar um atraso de propagação que afeta o desempenho da rede e pode prejudicar a função adequada. Como resultado, muitas arquiteturas de rede limitam o número de repetidores usados em uma rede, por exemplo, a Regra 5-4-3 da Ethernet.
+Um repetidor Ethernet com múltiplas portas é conhecido como um hub Ethernet. Além de recondicionar e distribuir sinais de rede, um hub auxilia na detecção de colisões e no isolamento de falhas na rede. Hubs e repetidores em LANs foram amplamente substituídos por switches de rede modernos.
+
+Pontes e switches
+
+Pontes de rede (bridges) e switches de rede distinguem-se de um hub pelo fato de que eles apenas encaminham quadros para as portas envolvidas na comunicação, enquanto um hub encaminha para todas as portas. As pontes possuem apenas duas portas, mas um switch pode ser pensado como uma ponte de múltiplas portas. Switches normalmente têm inúmeras portas, facilitando uma topologia em estrela para os dispositivos e para o cascateamento de switches adicionais.
+Pontes e switches operam na camada de enlace de dados (camada 2) do modelo OSI e ligam o tráfego entre dois ou mais segmentos de rede para formar uma única rede local. Ambos são dispositivos que encaminham quadros de dados entre portas com base no endereço MAC de destino em cada quadro.
+Eles aprendem a associação das portas físicas aos endereços MAC examinando os endereços de origem dos quadros recebidos e só encaminham o quadro quando necessário. Se um endereço MAC de destino desconhecido for visado, o dispositivo transmite a solicitação para todas as portas, exceto a de origem, e descobre a localização a partir da resposta.
+Pontes e switches dividem o domínio de colisão da rede, mas mantêm um único domínio de broadcast. A segmentação de rede por meio de pontes e switches ajuda a quebrar uma rede grande e congestionada em uma agregação de redes menores e mais eficientes.
+
+Roteadores
+
+Um roteador é um dispositivo de interconexão de redes que encaminha pacotes entre redes processando as informações de endereçamento ou roteamento incluídas no pacote. As informações de roteamento são frequentemente processadas em conjunto com a tabela de roteamento. Um roteador usa sua tabela de roteamento para determinar para onde encaminhar os pacotes e não requer a transmissão de pacotes por broadcast, o que é ineficiente para redes muito grandes.
+
+Modems
+
+Modems (modulador-demodulador) são usados para conectar nós de rede via fiação não projetada originalmente para tráfego de rede digital, ou para redes sem fio. Para fazer isso, um ou mais sinais portadores são modulados pelo sinal digital para produzir um sinal analógico que pode ser ajustado para fornecer as propriedades necessárias para a transmissão. Os primeiros modems modulavam sinais de áudio enviados por uma linha telefônica de voz padrão. Modems ainda são comumente usados para linhas telefônicas, utilizando tecnologia de Linha Digital de Assinante (DSL), e sistemas de televisão a cabo usando a tecnologia DOCSIS.
+
+Firewalls
+
+Um firewall é um dispositivo de rede ou software para controlar a segurança da rede e as regras de acesso. Firewalls são inseridos em conexões entre redes internas seguras e redes externas potencialmente inseguras, como a Internet. Os firewalls são tipicamente configurados para rejeitar solicitações de acesso de fontes não reconhecidas, permitindo ações de fontes reconhecidas. O papel vital que os firewalls desempenham na segurança da rede cresce em paralelo com o aumento constante de ataques cibernéticos.
+
+Comunicação
+
+Protocolos
+
+Um protocolo de comunicação é um conjunto de regras para a troca de informações em uma rede. Os protocolos de comunicação têm várias características, como serem orientados a conexão ou sem conexão, ou usar comutação de circuitos ou comutação de pacotes.
+Em uma pilha de protocolos, frequentemente construída conforme o modelo OSI, as funções de comunicação são divididas em camadas de protocolo, onde cada camada aproveita os serviços da camada abaixo dela até que a camada mais baixa controle o hardware que envia as informações através dos meios. O uso de camadas de protocolo é onipresente no campo das redes de computadores. Um exemplo importante de uma pilha de protocolos é o HTTP, o protocolo da World Wide Web. O HTTP roda sobre o TCP sobre o IP, os protocolos da Internet, que por sua vez rodam sobre o IEEE 802.11, o protocolo Wi-Fi. Essa pilha é usada entre um roteador sem fio e um computador pessoal ao acessar a web.
+
+Pacotes
+
+A maioria das redes de computadores modernas utiliza protocolos baseados na transmissão em modo de pacote. Um pacote de rede é uma unidade formatada de dados transportada por uma rede de comutação de pacotes.
+Os pacotes consistem em dois tipos de dados: informações de controle e dados do usuário (payload). As informações de controle fornecem os dados que a rede precisa para entregar os dados do usuário, por exemplo, endereços de rede de origem e destino, códigos de detecção de erros e informações de sequenciamento. Tipicamente, as informações de controle são encontradas nos cabeçalhos e rodapés dos pacotes, com os dados de carga útil no meio.
+Com os pacotes, a largura de banda do meio de transmissão pode ser melhor compartilhada entre os usuários do que se a rede fosse comutada por circuitos. Quando um usuário não está enviando pacotes, o link pode ser preenchido com pacotes de outros usuários e, assim, o custo pode ser compartilhado, com relativamente pouca interferência, desde que o link não seja sobrecarregado. Frequentemente, a rota que um pacote precisa seguir através de uma rede não está imediatamente disponível. Nesse caso, o pacote é colocado em uma fila de espera e aguarda até que um link esteja livre.
+As tecnologias de link físico de redes de pacotes normalmente limitam o tamanho dos pacotes a uma determinada Unidade Máxima de Transmissão (MTU). Uma mensagem mais longa pode ser fragmentada antes de ser transferida e, uma vez que os pacotes chegam, eles são remontados para reconstruir a mensagem original.
+
+Protocolos comuns
+
+Conjunto de protocolos da Internet
+O conjunto de protocolos da Internet, também chamado de TCP/IP, é a base de todas as redes modernas. Ele oferece serviços sem conexão e orientados a conexão em uma rede inerentemente não confiável, percorrida por transmissão de datagramas usando o protocolo de Internet (IP). Em seu núcleo, o conjunto de protocolos define as especificações de endereçamento, identificação e roteamento para o Internet Protocol Versão 4 (IPv4) e para o IPv6, a próxima geração do protocolo com uma capacidade de endereçamento muito ampliada. O conjunto de protocolos da Internet é o conjunto definidor de protocolos para a Internet.
+
+IEEE 802
+IEEE 802 é uma família de padrões IEEE que trata de redes locais e redes metropolitanas. O conjunto completo de protocolos IEEE 802 fornece um conjunto diversificado de capacidades de rede. Os protocolos possuem um esquema de endereçamento plano. Eles operam principalmente nas camadas 1 e 2 do modelo OSI.
+Por exemplo, o MAC bridging (IEEE 802.1D) trata do roteamento de pacotes Ethernet usando um Spanning Tree Protocol. O IEEE 802.1Q descreve as VLANs e o IEEE 802.1X define um protocolo de controle de acesso à rede baseado em porta, que forma a base para os mecanismos de autenticação usados em VLANs (mas também é encontrado em WLANs) — é o que o usuário doméstico vê quando precisa inserir uma "chave de acesso sem fio".
+
+Ethernet
+Ethernet é uma família de tecnologias usadas em LANs cabeadas. É descrita por um conjunto de padrões chamados coletivamente de IEEE 802.3, publicados pelo Instituto de Engenheiros Eletricistas e Eletrônicos.
+
+LAN Sem Fio
+A LAN sem fio baseada nos padrões IEEE 802.11, também amplamente conhecida como WLAN ou WiFi, é provavelmente o membro mais conhecido da família de protocolos IEEE 802 para usuários domésticos hoje. O IEEE 802.11 compartilha muitas propriedades com a Ethernet cabeada.
+
+SONET/SDH
+Rede Óptica Síncrona (SONET) e Hierarquia Digital Síncrona (SDH) são protocolos de multiplexação padronizados que transferem múltiplos fluxos de bits digitais sobre fibra óptica usando lasers. Eles foram originalmente projetados para transportar comunicações em modo de circuito de uma variedade de fontes diferentes, principalmente para suportar a telefonia digital com comutação de circuitos. No entanto, devido à sua neutralidade de protocolo e recursos orientados ao transporte, o SONET/SDH também foi a escolha óbvia para transportar quadros Asynchronous Transfer Mode (ATM).
+
+Asynchronous Transfer Mode
+O Modo de Transferência Assíncrona (ATM) é uma técnica de comutação para redes de telecomunicações. Ele usa multiplexação por divisão de tempo assíncrona e codifica dados em pequenas células de tamanho fixo. Isso difere de outros protocolos, como o conjunto de protocolos da Internet ou a Ethernet, que usam pacotes ou quadros de tamanho variável. O ATM possui semelhanças com redes de comutação de circuitos e de pacotes. Isso o torna uma boa escolha para uma rede que deve lidar tanto com o tráfego de dados tradicional de alto rendimento quanto com conteúdo em tempo real e de baixa latência, como voz e vídeo. O ATM utiliza um modelo orientado a conexão, no qual um circuito virtual deve ser estabelecido entre dois pontos finais antes que a troca real de dados comece.
+O ATM ainda desempenha um papel na Última milha, que é a conexão entre um provedor de serviços de Internet e o usuário doméstico.
+
+Padrões celulares
+Há uma série de diferentes padrões celulares digitais, incluindo: Global System for Mobile Communications (GSM), General Packet Radio Service (GPRS), cdmaOne, CDMA2000, Evolution-Data Optimized (EV-DO), Enhanced Data Rates for GSM Evolution (EDGE), Universal Mobile Telecommunications System (UMTS), Digital Enhanced Cordless Telecommunications (DECT), Digital AMPS (IS-136/TDMA) e Integrated Digital Enhanced Network (iDEN).
+
+Roteamento
+
+Roteamento é o processo de selecionar caminhos de rede para transportar o tráfego. O roteamento é realizado para muitos tipos de redes, incluindo redes de comutação de circuitos e redes de comutação de pacotes.
+Em redes de comutação de pacotes, os protocolos de roteamento direcionam o encaminhamento de pacotes através de nós intermediários. Os nós intermediários são tipicamente dispositivos de hardware de rede, como roteadores, pontes, gateways, firewalls ou switches. Computadores de propósito geral também podem encaminhar pacotes e realizar roteamento, embora, por não possuírem hardware especializado, possam oferecer desempenho limitado. O processo de roteamento direciona o encaminhamento com base em tabelas de roteamento, que mantêm um registro das rotas para vários destinos de rede. A maioria dos algoritmos de roteamento usa apenas um caminho de rede por vez. Técnicas de roteamento de múltiplos caminhos permitem o uso de múltiplos caminhos alternativos.
+O roteamento pode ser contrastado com o bridging em sua suposição de que os endereços de rede são estruturados e que endereços semelhantes implicam proximidade dentro da rede. Endereços estruturados permitem que uma única entrada na tabela de roteamento represente a rota para um grupo de dispositivos. Em redes grandes, o endereçamento estruturado usado pelos roteadores supera o endereçamento não estruturado usado pelo bridging. Endereços IP estruturados são usados na Internet. Endereços MAC não estruturados são usados para bridging em Ethernet e redes locais similares.
+
+Arquitetura
+
+Topologia
+As localizações físicas ou geográficas dos nós e links de rede geralmente têm relativamente pouco efeito em uma rede, mas a topologia das interconexões de uma rede pode afetar significativamente seu rendimento (throughput) e confiabilidade. Com muitas tecnologias, como redes em barramento ou estrela, uma única falha pode fazer com que a rede falhe inteiramente. Em geral, quanto mais interconexões houver, mais robusta será a rede; mas mais caro será instalá-la. Portanto, a maioria dos diagramas de rede é organizada por sua topologia de rede, que é o mapa das interconexões lógicas dos hosts da rede.
+As topologias comuns são:
+
+Rede em barramento (Bus): todos os nós estão conectados a um meio comum ao longo deste meio. Este foi o layout usado na Ethernet original, chamada 10BASE5 e 10BASE2. Esta ainda é uma topologia comum na camada de enlace de dados, embora as variantes modernas da camada física usem links ponto-a-ponto, formando uma estrela ou uma árvore.
+Rede em estrela (Star): todos os nós estão conectados a um nó central especial. Este é o layout típico encontrado em uma pequena LAN Ethernet comutada, onde cada cliente se conecta a um switch de rede central, e logicamente em uma LAN sem fio, onde cada cliente sem fio se associa ao ponto de acesso sem fio central.
+Rede em anel (Ring): cada nó está conectado ao seu nó vizinho esquerdo e direito, de modo que todos os nós estejam conectados e que cada nó possa alcançar qualquer outro nó atravessando os nós para a esquerda ou direita. Redes Token Ring e a Interface de Dados Distribuída por Fibra (FDDI) utilizavam tal topologia.
+Rede em malha (Mesh): cada nó está conectado a um número arbitrário de vizinhos de tal forma que haja pelo menos uma travessia de qualquer nó para qualquer outro.
+Rede totalmente conectada: cada nó está conectado a todos os outros nós da rede.
+Rede em árvore: os nós são organizados hierarquicamente. Esta é a topologia natural para uma rede Ethernet maior com múltiplos switches e sem malha redundante.
+O layout físico dos nós em uma rede pode não refletir necessariamente a topologia da rede. Como exemplo, com a FDDI, a topologia da rede é um anel, mas a topologia física é frequentemente uma estrela, porque todas as conexões vizinhas podem ser roteadas através de um local físico central. O layout físico não é completamente irrelevante, no entanto, pois dutos e locais de equipamentos comuns podem representar pontos únicos de falha devido a problemas como incêndios, falhas de energia e inundações.
+
+Rede sobreposta
+
+Uma rede sobreposta (overlay network) é uma rede virtual construída sobre outra rede. Os nós na rede sobreposta são conectados por links virtuais ou lógicos. Cada link corresponde a um caminho, talvez através de muitos links físicos, na rede subjacente. A topologia da rede sobreposta pode (e frequentemente o faz) diferir da rede subjacente. Por exemplo, muitas redes peer-to-peer são redes sobrepostas. Elas são organizadas como nós de um sistema virtual de links que funcionam sobre a Internet.
+Redes sobrepostas têm sido usadas desde os primórdios das redes, quando os computadores eram conectados via linhas telefônicas usando modems, antes mesmo do desenvolvimento das redes de dados.
+O exemplo mais marcante de uma rede sobreposta é a própria Internet. A Internet foi inicialmente construída como uma sobreposição na rede telefônica. Mesmo hoje, cada nó da Internet pode se comunicar com virtualmente qualquer outro através de uma malha subjacente de sub-redes de topologias e tecnologias vastamente diferentes. A resolução de endereços e o roteamento são os meios que permitem o mapeamento de uma rede sobreposta IP totalmente conectada à sua rede subjacente.
+Outro exemplo de rede sobreposta é uma tabela de hash distribuída, que mapeia chaves para nós na rede. Neste caso, a rede subjacente é uma rede IP, e a rede sobreposta é uma tabela (na verdade, um mapa) indexada por chaves.
+Redes sobrepostas também foram propostas como uma forma de melhorar o roteamento da Internet, como por meio de garantias de qualidade de serviço para alcançar mídia de transmissão de maior qualidade. Propostas anteriores como IntServ, DiffServ e IP multicast não tiveram ampla aceitação, em grande parte porque exigem a modificação de todos os roteadores na rede.[carece de fontes]? Por outro lado, uma rede sobreposta pode ser implantada incrementalmente em hosts finais que executam o software do protocolo de sobreposição, sem a cooperação dos provedores de serviços de Internet. A rede sobreposta não tem controle sobre como os pacotes são roteados na rede subjacente entre dois nós de sobreposição, mas pode controlar, por exemplo, a sequência de nós de sobreposição que uma mensagem atravessa antes de chegar ao seu destino[carece de fontes]?.
+Por exemplo, a Akamai Technologies gerencia uma rede sobreposta que fornece entrega de conteúdo confiável e eficiente (um tipo de multidifusão). Pesquisas acadêmicas incluem multicast de sistema final, roteamento resiliente e estudos de qualidade de serviço, entre outros.
+
+Escala
+
+As redes podem ser caracterizadas por muitas propriedades ou recursos, como capacidade física, propósito organizacional, autorização de usuário, direitos de acesso e outros. Outro método de classificação distinto é o da extensão física ou escala geográfica.
+
+Rede em nanoescala
+Uma rede em nanoescala possui componentes principais implementados em nanoescala, incluindo portadores de mensagens, e aproveita princípios físicos que diferem dos mecanismos de comunicação em macroescala. A comunicação em nanoescala estende a comunicação a sensores e atuadores muito pequenos, como os encontrados em sistemas biológicos, e também tende a operar em ambientes que seriam muito hostis para outras técnicas de comunicação.
+
+Rede de área pessoal
+Uma rede de área pessoal (PAN) é uma rede de computadores usada para comunicação entre computadores e diferentes dispositivos de tecnologia da informação próximos a uma pessoa. Alguns exemplos de dispositivos usados em uma PAN são computadores pessoais, impressoras, aparelhos de fax, telefones, PDAs, scanners e consoles de videogame. Uma PAN pode incluir dispositivos com e sem fio. O alcance de uma PAN normalmente se estende por 10 metros. Uma PAN cabeada é geralmente construída com conexões USB e FireWire, enquanto tecnologias como Bluetooth e comunicação infravermelha tipicamente formam uma PAN sem fio.
+
+Rede local
+Uma rede local (LAN) é uma rede que conecta computadores e dispositivos em uma área geográfica limitada, como uma residência, escola, prédio de escritórios ou grupo de edifícios posicionados de forma próxima. As LANs cabeadas baseiam-se mais comumente na tecnologia Ethernet. Outras tecnologias de rede, como ITU-T G.hn, também fornecem uma maneira de criar uma LAN cabeada usando a fiação existente, como cabos coaxiais, linhas telefônicas e linhas de energia.
+Uma LAN pode ser conectada a uma rede de longa distância (WAN) usando um roteador. As características definidoras de uma LAN, em contraste com uma WAN, incluem maiores taxas de transferência de dados, alcance geográfico limitado e a falta de dependência de linhas alugadas para fornecer conectividade. As atuais tecnologias LAN Ethernet ou outras IEEE 802.3 operam em taxas de transferência de dados de até 800 Gbit/s, padronizadas pelo IEEE em 2024.
+
+Uma rede doméstica (HAN) é uma LAN residencial usada para comunicação entre dispositivos digitais tipicamente implantados no lar, geralmente um pequeno número de computadores pessoais e acessórios, como impressoras e dispositivos de computação móvel. Uma função importante é o compartilhamento de acesso à Internet, muitas vezes um serviço de banda larga através de um provedor de acesso à Internet via cabo ou Linha Digital de Assinante (DSL).
+Uma rede de área de armazenamento (SAN) é uma rede dedicada que fornece acesso ao armazenamento de dados consolidado em nível de bloco. As SANs são usadas principalmente para tornar dispositivos de armazenamento, como matrizes de discos, bibliotecas de fitas e jukeboxes ópticos, acessíveis aos servidores de modo que o armazenamento apareça como dispositivos conectados localmente ao sistema operacional. Uma SAN normalmente possui sua própria rede de dispositivos de armazenamento que geralmente não são acessíveis através da rede local por outros dispositivos. O custo e a complexidade das SANs caíram no início dos anos 2000 para níveis que permitiram uma adoção mais ampla em ambientes corporativos e de pequenas e médias empresas.[carece de fontes]?
+
+Rede de área de campus
+Uma rede de área de campus (CAN) é composta por uma interconexão de LANs dentro de uma área geográfica limitada. O equipamento de rede (switches, roteadores) e os meios de transmissão (fibra óptica, cabeamento Cat5, etc.) pertencem quase inteiramente ao locatário ou proprietário do campus (uma empresa, universidade, governo, etc.). Por exemplo, uma rede de campus universitário provavelmente interliga uma variedade de prédios do campus para conectar faculdades ou departamentos acadêmicos, a biblioteca e residências estudantis.
+
+Rede de backbone
+Uma rede de backbone (espinha dorsal) é parte de uma infraestrutura de rede de computadores que fornece um caminho para a troca de informações entre diferentes LANs ou sub-redes. Um backbone pode unir redes diversas dentro do mesmo edifício, em diferentes edifícios ou em uma área ampla. Ao projetar um backbone de rede, o desempenho da rede e a congestão da rede são fatores críticos a serem levados em conta. Normalmente, a capacidade da rede de backbone é maior do que a das redes individuais conectadas a ela.
+Por exemplo, uma grande empresa pode implementar uma rede de backbone para conectar departamentos localizados ao redor do mundo. O equipamento que une as redes departamentais constitui o backbone da rede. Outro exemplo de rede de backbone é o backbone da Internet, que é um sistema global massivo de cabos de fibra óptica e redes ópticas que transportam o grosso dos dados entre redes de longa distância (WANs), redes metropolitanas, regionais, nacionais e transoceânicas.
+
+Uma rede privada corporativa ou intranet é uma rede que uma única organização constrói para interconectar seus escritórios (ex: locais de produção, sedes, escritórios remotos, lojas) para que possam compartilhar recursos computacionais.
+
+Rede de área metropolitana
+Uma rede de área metropolitana (MAN) é uma grande rede de computadores que interconecta usuários com recursos computacionais em uma região geográfica do tamanho de uma área metropolitana.
+
+Rede de longa distância
+Uma rede de longa distância (WAN) é uma rede de computadores que cobre uma grande área geográfica, como uma cidade, país, ou que abrange até distâncias intercontinentais. Uma WAN usa um canal de comunicações que combina muitos tipos de meios, como linhas telefônicas, cabos e ondas de rádio. Uma WAN frequentemente faz uso de instalações de transmissão fornecidas por operadoras comuns, como empresas de telefonia. As tecnologias WAN geralmente funcionam nas três camadas inferiores do modelo OSI: a camada física, a camada de enlace de dados e a camada de rede.
+
+Rede de área global
+Uma rede de área global (GAN) é uma rede usada para dar suporte a usuários móveis através de um número arbitrário de LANs sem fio, áreas de cobertura de satélite, etc. O desafio fundamental nas comunicações móveis é transferir as comunicações de uma área de cobertura local para a próxima. No Projeto IEEE 802, isso envolve uma sucessão de LANs sem fio terrestres.
+
+Escopo
+Uma intranet é uma comunidade de interesse sob administração privada, geralmente por uma empresa, e é acessível apenas por usuários autorizados (ex: funcionários). As intranets não precisam estar conectadas à Internet, mas geralmente possuem uma conexão limitada. Uma extranet é uma extensão de uma intranet que permite comunicações seguras para usuários fora da intranet (ex: parceiros de negócios, clientes).
+As redes são tipicamente gerenciadas pelas organizações que as possuem. Redes corporativas privadas podem usar uma combinação de intranets e extranets. Elas também podem fornecer acesso de rede à Internet, que não possui um proprietário único e permite conectividade global virtualmente ilimitada.
+
+Intranet
+Uma intranet é um conjunto de redes que estão sob o controle de uma única entidade administrativa. Uma intranet normalmente utiliza o Protocolo de Internet e ferramentas baseadas em IP, como navegadores da web e aplicativos de transferência de arquivos. A entidade administrativa limita o uso da intranet aos seus usuários autorizados. Mais comumente, uma intranet é a LAN interna de uma organização. Uma grande intranet normalmente possui pelo menos um servidor web para fornecer aos usuários informações organizacionais.
+
+Extranet
+Uma extranet é uma rede que está sob o controle administrativo de uma única organização, mas suporta uma conexão limitada a uma rede externa específica. Por exemplo, uma organização pode fornecer acesso a alguns aspectos de sua intranet para compartilhar dados com seus parceiros de negócios ou clientes. Essas outras entidades não são necessariamente confiáveis do ponto de vista da segurança. A conexão de rede a uma extranet é frequentemente, mas nem sempre, implementada via tecnologia WAN.
+
+Internet
+
+Uma internetwork é a conexão de múltiplos tipos diferentes de redes de computadores para formar uma única rede de computadores usando protocolos de rede de camada superior e conectando-as através de roteadores.
+A Internet é o maior exemplo de interconexão de redes. É um sistema global de redes de computadores governamentais, acadêmicas, corporativas, públicas e privadas interconectadas. Baseia-se nas tecnologias de rede do conjunto de protocolos da Internet. É a sucessora da ARPANET (Advanced Research Projects Agency Network) desenvolvida pela DARPA do Departamento de Defesa dos Estados Unidos. A Internet utiliza comunicações de cobre e um backbone de redes ópticas para permitir a World Wide Web (WWW), a Internet das coisas, transferência de vídeo e uma ampla gama de serviços de informação.
+Os participantes na Internet usam uma gama diversificada de métodos de várias centenas de protocolos documentados e, muitas vezes, padronizados, compatíveis com o conjunto de protocolos da Internet e o sistema de endereçamento IP administrado pela Autoridade para Atribuição de Números da Internet e registros de endereços regionais. Provedores de serviços e grandes empresas trocam informações sobre a alcançabilidade de seus espaços de endereçamento por meio do Border Gateway Protocol (BGP), formando uma malha mundial redundante de caminhos de transmissão.
+
+Darknet
+Uma darknet é uma rede sobreposta, que normalmente funciona na Internet, acessível apenas através de software especializado. É uma rede anonimizadora onde as conexões são feitas apenas entre pares confiáveis — às vezes chamados de amigos (F2F) — usando protocolos e portas não padronizados.
+As darknets são distintas de outras redes peer-to-peer distribuídas, pois o compartilhamento é anônimo (ou seja, os endereços IP não são compartilhados publicamente) e, portanto, os usuários podem se comunicar com pouco medo de interferência governamental ou corporativa.
+
+Redes privadas virtuais
+Uma rede privada virtual (VPN) é uma rede sobreposta na qual alguns dos links entre os nós são transportados por conexões abertas ou circuitos virtuais em alguma rede maior (ex: a Internet) em vez de fios físicos. Diz-se que os protocolos da camada de enlace de dados da rede virtual são tunelados através da rede maior. Uma aplicação comum são as comunicações seguras através da Internet pública, mas uma VPN não precisa ter recursos de segurança explícitos, como autenticação ou criptografia de conteúdo. As VPNs, por exemplo, podem ser usadas para separar o tráfego de diferentes comunidades de usuários sobre uma rede subjacente com fortes recursos de segurança.
+
+Serviços
+Serviços de rede são aplicativos hospedados por servidores em uma rede de computadores para fornecer alguma funcionalidade para membros ou usuários da rede, ou para ajudar a própria rede a operar.
+A World Wide Web, o E-mail, impressão e o compartilhamento de arquivos em rede são exemplos de serviços de rede bem conhecidos. Serviços de rede como o Domain Name System (DNS) fornecem nomes para endereços IP e MAC (as pessoas lembram melhor de nomes como nm.lan do que números como 210.121.67.18), e o Dynamic Host Configuration Protocol (DHCP) para garantir que o equipamento na rede tenha um endereço IP válido.
+Os serviços baseiam-se geralmente num protocolo de serviço que define o formato e o sequenciamento de mensagens entre clientes e servidores desse serviço de rede.
+
+Desempenho
+
+Largura de banda
+A largura de banda em bit/s pode referir-se à largura de banda consumida, correspondendo ao throughput (vazão) ou goodput alcançado, ou seja, a taxa média de transferência de dados bem-sucedida através de um caminho de comunicação. O rendimento é afetado por processos como formatação de largura de banda, gerenciamento de largura de banda, limitação de largura de banda, teto de largura de banda e alocação de largura de banda (usando, por exemplo, protocolo de alocação de largura de banda e alocação dinâmica de largura de banda).
+
+Atraso de rede
+
+O atraso de rede (network delay) é uma característica de projeto e desempenho de uma rede de telecomunicações. Ele especifica a latência para que um bit de dados percorra a rede de um ponto de extremidade de comunicação a outro. O atraso pode diferir ligeiramente dependendo da localização do par específico de pontos de extremidade. Os engenheiros geralmente relatam tanto o atraso máximo quanto o médio, e dividem o atraso em vários componentes, cuja soma é o atraso total:
+
+Atraso de processamento –  tempo que um roteador leva para processar o cabeçalho do pacote.
+Atraso de fila –  tempo que o pacote passa nas filas de roteamento.
+Atraso de transmissão –  tempo necessário para empurrar os bits do pacote para o link.
+Atraso de propagação –  tempo para um sinal se propagar através do meio.
+Um certo nível mínimo de atraso é experimentado pelos sinais devido ao tempo necessário para transmitir um pacote serialmente através de um link. Este atraso é ampliado por níveis mais variáveis de atraso devido ao congestionamento da rede. Os atrasos em redes IP podem variar de menos de um microssegundo a várias centenas de milissegundos.
+
+Métricas de desempenho
+Os parâmetros que afetam o desempenho podem incluir tipicamente throughput, jitter, taxa de erros de bits e latência.
+Em redes de comutação de circuitos, o desempenho da rede é sinônimo de grau de serviço. O número de chamadas rejeitadas é uma medida de quão bem a rede está operando sob cargas de tráfego pesadas. Outros tipos de medidas de desempenho podem incluir o nível de ruído e eco.
+Em uma rede Asynchronous Transfer Mode (ATM), o desempenho pode ser medido pela taxa de linha, qualidade de serviço (QoS), rendimento de dados, tempo de conexão, estabilidade, tecnologia, técnica de modulação e melhorias de modem.
+Existem muitas maneiras de medir o desempenho de uma rede, pois cada rede é diferente em natureza e design. O desempenho também pode ser modelado em vez de medido. Por exemplo, diagramas de transição de estados são frequentemente usados para modelar o desempenho de filas em uma rede de comutação de circuitos. O planejador de rede usa esses diagramas para analisar o desempenho da rede em cada estado, garantindo que a rede seja projetada de forma otimizada.
+
+Congestionamento de rede
+O congestionamento de rede ocorre quando um link ou nó é submetido a uma carga de dados maior do que aquela para a qual foi projetado, resultando em uma deterioração de sua qualidade de serviço. Quando as redes estão congestionadas e as filas ficam muito cheias, os pacotes precisam ser descartados, e os participantes devem contar com a retransmissão para manter comunicações confiáveis. Efeitos típicos do congestionamento incluem atraso de enfileiramento, perda de pacotes ou o bloqueio de novas conexões. Uma consequência destes dois últimos é que aumentos incrementais na carga oferecida levam a apenas um pequeno aumento no throughput da rede ou a uma redução potencial no rendimento da rede.
+Protocolos de rede que usam retransmissões agressivas para compensar a perda de pacotes tendem a manter os sistemas em estado de congestionamento de rede mesmo após a carga inicial ser reduzida a um nível que normalmente não induziria congestionamento. Assim, redes que usam esses protocolos podem exibir dois estados estáveis sob o mesmo nível de carga. O estado estável com baixo rendimento é conhecido como colapso por congestionamento.
+As redes modernas usam técnicas de controle de congestionamento, prevenção de congestionamento e controle de tráfego de rede, onde os pontos de extremidade normalmente diminuem ou às vezes até param totalmente a transmissão quando a rede está congestionada para tentar evitar o colapso por congestionamento. Técnicas específicas incluem: Recuo exponencial (exponential backoff) em protocolos como o CSMA/CA do 802.11 e a Ethernet original, redução de janela no TCP e fila justa em dispositivos como roteadores.
+Outro método para evitar os efeitos negativos do congestionamento da rede é implementar esquemas de prioridade de qualidade de serviço, permitindo que o tráfego selecionado contorne o congestionamento. Esquemas de prioridade não resolvem o congestionamento por si só, mas ajudam a aliviar os efeitos do congestionamento para serviços críticos. Um terceiro método para evitar o congestionamento da rede é a alocação explícita de recursos de rede para fluxos específicos. Um exemplo disso é o uso de Oportunidades de Transmissão Livre de Contenda (CFTXOPs) no padrão de rede doméstica ITU-T G.hn.
+Para a Internet, o RFC 2914 aborda detalhadamente o assunto do controle de congestionamento.
+
+Resiliência de rede
+Resiliência de rede é "a capacidade de fornecer e manter um nível aceitável de serviço diante de falhas e desafios à operação normal."
+
+Segurança
+As redes de computadores também são usadas por hackers de segurança para implantar vírus de computador ou worms em dispositivos conectados à rede, ou para impedir que esses dispositivos acessem a rede através de um ataque de negação de serviço.
+
+Segurança de rede
+A segurança de rede consiste em provisões e políticas adotadas pelo administrador da rede para prevenir e monitorar o acesso não autorizado, uso indevido, modificação ou negação da rede de computadores e seus recursos acessíveis pela rede. A segurança de rede é usada em uma variedade de redes de computadores, tanto públicas quanto privadas, para garantir as transações e comunicações diárias entre empresas, agências governamentais e indivíduos.
+
+Vigilância de rede
+A vigilância de rede é o monitoramento de dados que estão sendo transferidos através de redes de computadores, como a Internet. O monitoramento é frequentemente feito de forma sub-reptícia e pode ser realizado por ou a mando de governos, por corporações, organizações criminosas ou indivíduos. Pode ou não ser legal e pode ou não exigir autorização de um tribunal ou de outra agência independente.
+Os programas de vigilância de computadores e de redes são generalizados hoje em dia, e quase todo o tráfego da Internet é ou poderia potencialmente ser monitorado em busca de indícios de atividades ilegais.
+A vigilância é muito útil para governos e para a aplicação da lei para manter o controle social, reconhecer e monitorar ameaças, além de prevenir ou investigar atividades criminosas. Com o advento de programas como o Total Information Awareness, tecnologias como computadores de vigilância de alta velocidade e software de biometria, e leis como a Communications Assistance for Law Enforcement Act (CALEA), os governos possuem agora uma capacidade sem precedentes de monitorar as atividades dos cidadãos.
+No entanto, muitos grupos de direitos civis e privacidade — como o Repórteres Sem Fronteiras, a Electronic Frontier Foundation e a American Civil Liberties Union — expressaram preocupação de que o aumento da vigilância dos cidadãos possa levar a uma sociedade de vigilância em massa, com liberdades políticas e pessoais limitadas. Temores como esse levaram a processos judiciais como Hepting v. AT&T. O grupo hacktivista Anonymous invadiu sites governamentais em protesto contra o que considera uma "vigilância draconiana".
+
+Criptografia de ponta a ponta
+A criptografia de ponta a ponta (E2EE) é um paradigma de comunicações digitais de proteção ininterrupta de dados que viajam entre duas partes que se comunicam. Ela envolve a parte de origem encriptando os dados para que apenas o destinatário pretendido possa descriptografá-los, sem dependência de terceiros. A criptografia de ponta a ponta impede que intermediários, como provedores de serviços de Internet ou provedores de serviços de aplicativos, leiam ou adulterem as comunicações. A criptografia de ponta a ponta geralmente protege tanto a confidencialidade quanto a integridade.
+Exemplos de criptografia de ponta a ponta incluem o HTTPS para tráfego web, PGP para E-mail, OTR para mensagens instantâneas, ZRTP para telefonia e TETRA para rádio.
+Os sistemas de comunicação baseados em servidores típicos não incluem criptografia de ponta a ponta. Esses sistemas só podem garantir a proteção das comunicações entre clientes e servidores, mas não entre as próprias partes que se comunicam. Exemplos de sistemas que não utilizam E2EE são o Google Talk, Yahoo Messenger, Facebook e Dropbox.
+O paradigma da criptografia de ponta a ponta não aborda diretamente os riscos nos próprios pontos de extremidade da comunicação, como a exploração técnica de clientes,  geradores denúmeros aleatórios de baixa qualidade ou a custódia de chaves (key escrow). A E2EE também não aborda a análise de tráfego, que se relaciona com elementos como as identidades dos pontos de extremidade e os horários e quantidades de mensagens enviadas.
+
+SSL/TLS
+
+A introdução e o rápido crescimento do comércio eletrônico na World Wide Web em meados da década de 1990 tornaram óbvio que era necessária alguma forma de autenticação e criptografia. A Netscape deu o primeiro passo em direção a um novo padrão. Na época, o navegador web dominante era o Netscape Navigator. A Netscape criou um padrão chamado Secure Socket Layer (SSL). O SSL exige um servidor com um certificado. Quando um cliente solicita acesso a um servidor protegido por SSL, o servidor envia uma cópia do certificado para o cliente. O cliente SSL verifica esse certificado (todos os navegadores web vêm pré-carregados com uma lista exaustiva de certificados raiz) e, se o certificado for validado, o servidor é autenticado e o cliente negocia uma Cifra de chave simétrica para uso na sessão. A sessão passa a ocorrer em um túnel criptografado muito seguro entre o servidor SSL e o cliente SSL.
