@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Processamento e busca de textos — Trabalho A1</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<a class="pular" href="#parte1">Pular para a busca</a>
+
+<header class="folha cabecalho">
+  <div class="cabecalho-texto">
+    <p class="etiqueta">Trabalho Prático A1 · Análise e Otimização de Sistemas · UVA</p>
+    <h1>Processamento<br>e busca de textos</h1>
+    <p class="lead">
+      Uma Trie, um índice invertido e o Knuth–Morris–Pratt, escritos do zero em
+      Python. Digite abaixo: cada estrutura responde e informa quanto custou a
+      resposta. É onde a diferença entre O(1) e O(N) deixa de ser teoria.
+    </p>
+  </div>
+
+  <dl class="corpus" id="corpus">
+    <div><dt>documentos</dt><dd data-campo="documentos">—</dd></div>
+    <div><dt>palavras indexadas</dt><dd data-campo="palavras">—</dd></div>
+    <div><dt>termos distintos</dt><dd data-campo="termos">—</dd></div>
+    <div><dt>palavras na Trie</dt><dd data-campo="lexico">—</dd></div>
+  </dl>
+</header>
+
+<nav class="abas folha" aria-label="Partes do trabalho">
+  <button class="aba ativa" data-painel="parte1" aria-current="true">
+    <span class="algarismo">I</span> Autocomplete
+  </button>
+  <button class="aba" data-painel="parte2">
+    <span class="algarismo">II</span> Busca nos documentos
+  </button>
+  <button class="aba" data-painel="metricas">
+    <span class="algarismo">✳</span> Métricas
+  </button>
+</nav>
+
+<!-- ==================================================================== -->
+<!--  PARTE I                                                             -->
+<!-- ==================================================================== -->
+<main>
+<section class="folha painel ativo" id="parte1">
+  <div class="margem"><span class="rotulo-margem">Parte I</span></div>
+
+  <div class="conteudo">
+    <h2>Autocomplete com Trie</h2>
+    <p class="nota">
+      A consulta desce o prefixo caractere a caractere e coleta a subárvore que
+      sobra: <b>O(m + p)</b>, com <i>m</i> = tamanho do prefixo e <i>p</i> = nós
+      abaixo dele. O tamanho do léxico não entra na conta — por isso o tempo
+      quase não se move quando o vocabulário cresce.
+    </p>
+
+    <form class="consulta" id="forma-parte1" autocomplete="off">
+      <label class="etiqueta" for="entrada-parte1">prefixo</label>
+      <input id="entrada-parte1" type="search" placeholder="comp" spellcheck="false"
+             aria-describedby="medidor-parte1">
+      <div class="acoes">
+        <button type="button" data-acao="verificar">Verificar palavra</button>
+        <button type="button" data-acao="inserir">Inserir no léxico</button>
+      </div>
+    </form>
+
+    <div class="medidor" id="medidor-parte1" role="status" aria-live="polite">
+      <strong class="leitura">—</strong>
+      <span class="classe">O(m + p)</span>
+      <span class="via">Trie · léxico em memória</span>
+      <div class="historico" aria-hidden="true"></div>
+    </div>
+
+    <p class="aviso" id="aviso-parte1" role="status"></p>
+    <div id="saida-parte1" class="saida">
+      <p class="vazio">Digite um prefixo para ver a Trie responder.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<!--  PARTE II                                                            -->
+<!-- ==================================================================== -->
+<section class="folha painel" id="parte2" hidden>
+  <div class="margem"><span class="rotulo-margem">Parte II</span></div>
+
+  <div class="conteudo">
+    <h2>Busca nos documentos</h2>
+
+    <div class="modos" role="radiogroup" aria-label="Modalidade de consulta">
+      <button class="modo ativo" data-modo="palavra" role="radio" aria-checked="true">Palavra</button>
+      <button class="modo" data-modo="prefixo" role="radio" aria-checked="false">Prefixo</button>
+      <button class="modo" data-modo="sequencia" role="radio" aria-checked="false">Sequência · KMP</button>
+    </div>
+
+    <p class="nota" id="nota-parte2"></p>
+
+    <form class="consulta" id="forma-parte2" autocomplete="off">
+      <label class="etiqueta" for="entrada-parte2">consulta</label>
+      <input id="entrada-parte2" type="search" placeholder="algoritmo" spellcheck="false"
+             aria-describedby="medidor-parte2">
+      <div class="acoes">
+        <button type="submit">Buscar</button>
+      </div>
+    </form>
+
+    <div class="medidor" id="medidor-parte2" role="status" aria-live="polite">
+      <strong class="leitura">—</strong>
+      <span class="classe"></span>
+      <span class="via"></span>
+      <div class="historico" aria-hidden="true"></div>
+    </div>
+
+    <p class="aviso" id="aviso-parte2" role="status"></p>
+    <div id="saida-parte2" class="saida">
+      <p class="vazio">Escolha uma modalidade e faça a primeira consulta.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================================== -->
+<!--  MÉTRICAS                                                            -->
+<!-- ==================================================================== -->
+<section class="folha painel" id="metricas" hidden>
+  <div class="margem"><span class="rotulo-margem">Seção 3.9</span></div>
+
+  <div class="conteudo">
+    <h2>Métricas do sistema</h2>
+    <p class="nota">
+      Os mesmos números que <code>python main.py</code> imprime na opção 5, mais
+      o histórico das consultas feitas nesta sessão do servidor.
+    </p>
+    <button type="button" class="recarregar" id="recarregar-metricas">Atualizar</button>
+    <div id="saida-metricas" class="saida"></div>
+  </div>
+</section>
+</main>
+
+<footer class="folha rodape">
+  <div class="margem"><span class="rotulo-margem">Grupo</span></div>
+  <div class="conteudo">
+    <ul class="integrantes">
+      <li>Marcos Felipe Ferreira Pires</li>
+      <li>Luana Cristina de Azevedo Celestino</li>
+      <li>Pedro Henrique Graciliano Taka</li>
+      <li>Giovanni Cardoso Avallone Belo</li>
+    </ul>
+    <p class="credito">
+      Universidade Veiga de Almeida · Corpus extraído da Wikipédia em português
+      sob licença CC BY-SA 4.0 · Implementação em Python, apenas biblioteca padrão.
+    </p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

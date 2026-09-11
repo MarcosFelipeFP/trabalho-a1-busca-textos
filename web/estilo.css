@@ -1,0 +1,610 @@
+/* =========================================================================
+   estilo.css
+   Papel e tinta: fundo de papel cinza, tinta azul-preta, uma única cor de
+   marca-texto reservada para o que o algoritmo encontrou.
+
+   A fonte principal é monoespaçada de propósito. Todo este trabalho indexa
+   caracteres por posição -- prefixos compartilhados, deslocamentos do KMP --
+   e só uma grade de largura fixa deixa essas colunas se alinharem na tela.
+   ========================================================================= */
+
+:root {
+  color-scheme: light;
+
+  --goteira: clamp(20px, 5vw, 56px);   /* margem lateral da folha */
+
+  --papel:      #e9eae4;
+  --papel-alto: #f7f8f4;
+  --tinta:      #14181f;
+  --tinta-fraca:#5e6459;
+  --traco:      #c9ccc2;
+  --marca:      #ddef5e;   /* marca-texto: só para trechos encontrados */
+  --lento:      #a93b18;   /* leituras na casa dos milissegundos */
+
+  --mono: "Cascadia Mono", "Cascadia Code", "JetBrains Mono", ui-monospace,
+          "SF Mono", "Segoe UI Mono", Consolas, "DejaVu Sans Mono", monospace;
+  --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+          "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+b, strong { font-weight: 600; }
+i, em { font-style: italic; }
+code { font-family: var(--mono); font-size: .95em; }
+
+:focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--marca);
+}
+
+.pular {
+  position: absolute;
+  left: -9999px;
+}
+.pular:focus {
+  left: 12px;
+  top: 12px;
+  z-index: 9;
+  background: var(--papel-alto);
+  padding: 8px 12px;
+  border: 1px solid var(--tinta);
+}
+
+/* --------------------------------------------------------------- estrutura */
+
+.folha {
+  max-width: 1080px;
+  margin-inline: auto;
+  padding-inline: var(--goteira);
+}
+
+.painel,
+.rodape {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 0 34px;
+}
+
+.painel { padding-block: 36px 48px; }
+
+/* `display: grid` acima venceria a regra do navegador para [hidden]; sem esta
+   linha o painel escondido continuaria na tela. */
+.painel[hidden] { display: none; }
+
+.rotulo-margem {
+  position: sticky;
+  top: 22px;
+  display: block;
+  text-align: right;
+  padding-top: 5px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: var(--tinta-fraca);
+}
+
+.etiqueta {
+  margin: 0;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: var(--tinta-fraca);
+}
+
+/* --------------------------------------------------------------- cabeçalho */
+
+.cabecalho { padding-block: clamp(40px, 7vw, 76px) 0; }
+
+.cabecalho h1 {
+  margin: 16px 0 0;
+  font-size: clamp(34px, 6.4vw, 58px);
+  font-weight: 600;
+  line-height: .98;
+  letter-spacing: -.035em;
+}
+
+.lead {
+  margin: 20px 0 0;
+  max-width: 56ch;
+  font-family: var(--sans);
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--tinta-fraca);
+}
+
+/* Painel de leitura do corpus: o tamanho daquilo que se vai consultar. */
+.corpus {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 42px 0 0;
+  border-top: 1px solid var(--tinta);
+}
+
+.corpus > div {
+  padding: 14px 16px 16px 0;
+  border-right: 1px solid var(--traco);
+}
+.corpus > div:last-child { border-right: 0; }
+.corpus > div + div { padding-left: 16px; }
+
+.corpus dt {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--tinta-fraca);
+}
+.corpus dd {
+  margin: 6px 0 0;
+  font-size: clamp(19px, 2.6vw, 25px);
+  font-weight: 600;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------------- abas */
+
+/* O traço embaixo das abas é desenhado por um pseudo-elemento recuado pela
+   goteira, para terminar exatamente onde terminam as réguas do conteúdo --
+   um `border-bottom` na própria .folha avançaria por cima da margem. */
+.abas {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 34px;
+}
+.abas::after {
+  content: "";
+  position: absolute;
+  left: var(--goteira);
+  right: var(--goteira);
+  bottom: 0;
+  border-bottom: 1px solid var(--tinta);
+}
+
+.aba {
+  position: relative;   /* fica acima do traço das abas */
+  z-index: 1;
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 11px 15px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--tinta-fraca);
+  cursor: pointer;
+}
+.aba:hover { color: var(--tinta); }
+.aba.ativa {
+  color: var(--tinta);
+  border-bottom-color: var(--tinta);
+}
+
+.algarismo {
+  margin-right: .6ch;
+  font-size: 11px;
+  letter-spacing: .08em;
+  opacity: .55;
+}
+
+/* ------------------------------------------------------------------ painel */
+
+.painel h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -.015em;
+}
+
+.nota {
+  margin: 12px 0 0;
+  max-width: 62ch;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--tinta-fraca);
+}
+.nota b { color: var(--tinta); }
+
+/* ---------------------------------------------------------------- controles */
+
+button {
+  font: inherit;
+  font-size: 12.5px;
+  letter-spacing: .03em;
+  background: var(--papel-alto);
+  color: var(--tinta);
+  border: 1px solid var(--traco);
+  border-radius: 2px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+button:hover { border-color: var(--tinta); }
+button[type="submit"] {
+  background: var(--tinta);
+  color: var(--papel-alto);
+  border-color: var(--tinta);
+}
+button[type="submit"]:hover { background: #000; }
+
+.modos {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin: 20px 0 0;
+  border: 1px solid var(--traco);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.modo {
+  border: 0;
+  border-right: 1px solid var(--traco);
+  border-radius: 0;
+  background: transparent;
+  color: var(--tinta-fraca);
+  padding: 9px 16px;
+}
+.modo:last-child { border-right: 0; }
+.modo.ativo {
+  background: var(--tinta);
+  color: var(--papel-alto);
+}
+
+.consulta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 16px;
+  align-items: end;
+  margin-top: 26px;
+}
+.consulta .etiqueta { grid-column: 1 / -1; }
+
+.consulta input {
+  width: 100%;
+  font: inherit;
+  font-size: 19px;
+  background: transparent;
+  color: var(--tinta);
+  border: 0;
+  border-bottom: 1.5px solid var(--tinta);
+  padding: 8px 2px;
+}
+.consulta input::placeholder { color: var(--traco); }
+/* O "x" nativo do campo de busca vem em azul do sistema e destoa da paleta. */
+.consulta input::-webkit-search-cancel-button { appearance: none; }
+.consulta input:focus {
+  outline: none;
+  box-shadow: 0 2px 0 var(--marca);
+}
+
+.acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.recarregar { margin-top: 20px; }
+
+/* ----------------------------------------------------------------- medidor
+   A leitura de custo. Aparece igual nas duas partes porque a comparação entre
+   elas é o assunto do trabalho: microssegundos de índice contra milissegundos
+   de varredura. */
+
+.medidor {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 24px 0 6px;
+  padding: 11px 0 13px;
+  border-top: 1px solid var(--tinta);
+  border-bottom: 1px solid var(--traco);
+}
+
+.medidor .leitura {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -.025em;
+  font-variant-numeric: tabular-nums;
+}
+.medidor.lenta .leitura { color: var(--lento); }
+
+.medidor .classe {
+  padding: 2px 7px;
+  border: 1px solid var(--traco);
+  border-radius: 2px;
+  font-size: 11.5px;
+}
+.medidor .via {
+  font-size: 12px;
+  color: var(--tinta-fraca);
+}
+
+/* Histórico: as últimas leituras em escala logarítmica, para que um salto de
+   microssegundos para milissegundos apareça como salto de altura. */
+.medidor .historico {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+  margin-left: auto;
+}
+.medidor .historico i {
+  display: block;
+  width: 6px;
+  min-height: 2px;
+  background: var(--tinta);
+  opacity: .3;
+}
+.medidor .historico i.lenta { background: var(--lento); opacity: .75; }
+.medidor .historico i:last-child { opacity: .9; }
+
+/* ------------------------------------------------------------------ saídas */
+
+.saida { margin-top: 20px; }
+.saida > * { animation: surgir .18s ease-out both; }
+
+@keyframes surgir {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.vazio, .aviso {
+  margin: 14px 0 0;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  color: var(--tinta-fraca);
+}
+.aviso:empty { display: none; }
+.aviso.falha { color: var(--lento); }
+
+.subtitulo {
+  margin: 26px 0 10px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: var(--tinta-fraca);
+}
+.saida > .subtitulo:first-child { margin-top: 0; }
+
+/* --------------------------------------------------------------------- feixe
+   A assinatura da interface. A Trie guarda o prefixo comum uma única vez e
+   ramifica dali para baixo; a lista desenha exatamente isso -- o prefixo em
+   tinta cheia só na primeira linha, o traço vertical marcando onde o caminho
+   compartilhado termina, e os sufixos abrindo à direita. */
+
+.feixe {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 46vh;
+  overflow: auto;
+  font-size: 14.5px;
+  /* O traço vertical fica no fundo, e não em cada <li>, para não se quebrar
+     entre as linhas: é um caminho contínuo, como o da Trie. `local` faz ele
+     acompanhar a rolagem da lista. */
+  background-image: linear-gradient(rgba(20, 24, 31, .35), rgba(20, 24, 31, .35));
+  background-repeat: no-repeat;
+  background-size: 1px 100%;
+  background-position: calc(var(--haste, 0ch) + .45ch) 0;
+  background-attachment: local;
+  scrollbar-width: thin;
+  scrollbar-color: var(--traco) transparent;
+}
+
+.feixe li {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 2px 0;
+}
+.feixe li:hover { background: var(--papel-alto); }
+
+.eco {
+  flex: 0 0 auto;
+  width: var(--haste, 0ch);
+  white-space: pre;
+  opacity: .22;
+}
+.feixe li:first-child .eco { opacity: 1; font-weight: 600; }
+
+.sufixo { padding-left: 1ch; }
+
+.contagem {
+  margin-left: auto;
+  padding-left: 2ch;
+  font-size: 12px;
+  color: var(--tinta-fraca);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- postagens */
+
+.postagens { list-style: none; margin: 0; padding: 0; }
+
+.postagem {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(70px, 1fr) 6ch 6ch;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--traco);
+  font-size: 13.5px;
+}
+.postagem:first-child { border-top: 1px solid var(--traco); }
+
+.arquivo { overflow-wrap: anywhere; }
+
+/* Barra fina de propósito: as pontuações BM25 do corpus ficam todas na mesma
+   faixa, e uma barra grossa transformaria essa semelhança em um borrão. */
+.barra {
+  display: block;
+  height: 4px;
+  background: var(--traco);
+}
+.barra i {
+  display: block;
+  height: 100%;
+  background: var(--tinta);
+}
+
+.numero, .vezes {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+}
+.vezes { color: var(--tinta-fraca); }
+
+/* ------------------------------------------------------------------ trechos */
+
+.trecho {
+  padding: 14px 0 16px;
+  border-bottom: 1px solid var(--traco);
+}
+.trecho:first-child { border-top: 1px solid var(--tinta); }
+
+.trecho-cabeca {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+}
+.trecho-cabeca span { color: var(--tinta-fraca); font-size: 12px; }
+
+.trecho p {
+  margin: 10px 0 0;
+  padding-left: 14px;
+  border-left: 1px solid var(--traco);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--tinta-fraca);
+  overflow-wrap: anywhere;
+}
+
+mark {
+  background: var(--marca);
+  color: var(--tinta);
+  padding: 0 1px;
+}
+
+/* ------------------------------------------------------------------ quadros */
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 28px 40px;
+}
+
+.quadro { margin: 0; border-top: 1px solid var(--tinta); }
+.quadro > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--traco);
+  font-size: 13px;
+}
+.quadro dt { color: var(--tinta-fraca); }
+.quadro dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Em tela estreita a tabela rola sozinha, dentro da própria caixa, em vez de
+   empurrar a página inteira para o lado. */
+.rolagem {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--traco) transparent;
+}
+
+.tabela {
+  width: 100%;
+  min-width: 380px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tabela th {
+  text-align: left;
+  padding: 6px 10px 6px 0;
+  border-bottom: 1px solid var(--tinta);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-weight: 400;
+  color: var(--tinta-fraca);
+}
+.tabela td {
+  padding: 6px 10px 6px 0;
+  border-bottom: 1px solid var(--traco);
+  font-variant-numeric: tabular-nums;
+}
+.tabela td:not(:first-child), .tabela th:not(:first-child) { text-align: right; padding-right: 0; }
+
+/* ------------------------------------------------------------------- rodapé */
+
+.rodape {
+  padding-block: 38px 56px;
+  border-top: 1px solid var(--tinta);
+  margin-top: 10px;
+}
+
+.integrantes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 6px 30px;
+  font-size: 13.5px;
+}
+
+.credito {
+  margin: 22px 0 0;
+  max-width: 62ch;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--tinta-fraca);
+}
+
+/* ------------------------------------------------------------- responsivo */
+
+@media (max-width: 900px) {
+  .painel, .rodape { grid-template-columns: minmax(0, 1fr); }
+  .margem { margin-bottom: 12px; }
+  .rotulo-margem { position: static; text-align: left; padding-top: 0; }
+  .corpus { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .corpus > div:nth-child(2) { border-right: 0; }
+  .corpus > div:nth-child(odd) { padding-left: 0; }
+  .corpus > div:nth-child(3),
+  .corpus > div:nth-child(4) { border-top: 1px solid var(--traco); }
+}
+
+@media (max-width: 620px) {
+  .consulta { grid-template-columns: minmax(0, 1fr); }
+  .postagem { grid-template-columns: minmax(0, 1fr) 6ch 6ch; }
+  .postagem .barra { grid-column: 1 / -1; order: 1; }
+  .medidor .historico { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}

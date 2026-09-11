@@ -19,6 +19,7 @@ motor de busca, conforme a restrição do enunciado.
 - [O que o sistema faz](#o-que-o-sistema-faz)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Como usar](#como-usar)
+- [Interface web](#interface-web)
 - [Exemplos de sessão](#exemplos-de-sessão)
 - [Experimentos de complexidade](#experimentos-de-complexidade)
 - [Testes](#testes)
@@ -35,7 +36,8 @@ Requer **Python 3.8 ou superior**. Nada mais.
 git clone <url-do-repositorio>
 cd <pasta-do-repositorio>
 
-python main.py
+python main.py       # no terminal
+python servidor.py   # no navegador
 ```
 
 O repositório já vem com os 24 documentos de teste em `documentos/` e o léxico
@@ -79,7 +81,9 @@ Nenhum nome de arquivo aparece no código: basta soltar um `.txt` novo na pasta
 ```
 .
 ├── documentos/              24 arquivos .txt usados nos testes
+├── web/                     página da interface web (HTML, CSS e JS)
 ├── main.py                  interface de linha de comando (Partes I e II)
+├── servidor.py              interface web: serve web/ e expõe as consultas em JSON
 ├── trie.py                  Trie e Trie comprimida (PATRICIA)
 ├── stemmer_rslp.py          stemmer RSLP para português
 ├── preprocessamento.py      minúsculas, pontuação, tokenização, stopwords
@@ -88,7 +92,7 @@ Nenhum nome de arquivo aparece no código: basta soltar um `.txt` novo na pasta
 ├── mecanismo.py             integração de tudo: varredura, indexação, consultas
 ├── estatisticas.py          cronometragem e métricas
 ├── benchmark.py             experimentos de análise de complexidade
-├── testes.py                76 testes automatizados
+├── testes.py                88 testes automatizados
 ├── gerar_lexico.py          regera palavras.txt a partir do corpus
 ├── preparar_corpus.py       rebaixa os documentos da Wikipédia
 ├── palavras.txt             léxico da Parte I (~10.500 palavras)
@@ -140,6 +144,47 @@ Para rebaixar a base de documentos original:
 python preparar_corpus.py            # baixa apenas o que faltar
 python preparar_corpus.py --forcar   # rebaixa tudo
 ```
+
+---
+
+## Interface web
+
+Para experimentar os algoritmos no navegador, com a lista de sugestões se
+atualizando a cada tecla digitada:
+
+```bash
+python servidor.py
+```
+
+O programa constrói as estruturas, sobe um servidor em `http://localhost:8000`
+e abre o navegador. `Ctrl+C` encerra.
+
+```bash
+python servidor.py --porta 9000       # outra porta
+python servidor.py --sem-navegador    # não abre o navegador sozinho
+python servidor.py --sem-stemming     # desliga o RSLP, para comparação
+python servidor.py --help             # lista todas as opções
+```
+
+A página tem três telas:
+
+| Tela | O que dá para fazer |
+|---|---|
+| **I — Autocomplete** | buscar por prefixo no léxico, verificar se uma palavra existe e inserir palavras novas em tempo de execução |
+| **II — Busca nos documentos** | as três modalidades da Parte II: palavra exata com ranqueamento BM25, prefixo (Trie + índice) e sequência de caracteres com KMP |
+| **Métricas** | as sete métricas obrigatórias da seção 3.9, a comparação de memória entre as duas Tries, a dispersão da tabela hash e o histórico das consultas da sessão |
+
+Toda consulta mostra o tempo que custou, medido pelo mesmo cronômetro da versão
+de terminal, e um histograma das últimas leituras em escala logarítmica. É ali
+que a diferença entre as modalidades aparece sem precisar de explicação: a
+busca indexada responde em **dezenas de microssegundos**, a varredura com KMP
+leva **dezenas de milissegundos** — três ordens de grandeza, medidas na mesma
+tela.
+
+O servidor usa apenas `http.server`, da biblioteca padrão, e a página não
+carrega nenhuma biblioteca externa: continua valendo a regra de não usar
+dependências. Nenhum algoritmo roda no navegador — a Trie, o índice invertido e
+o KMP continuam no Python, e a página só desenha o que eles devolvem.
 
 ---
 
@@ -253,10 +298,11 @@ python testes.py        # resumo
 python testes.py -v     # detalhado
 ```
 
-76 testes cobrindo os exemplos do enunciado, casos de borda e testes de
+88 testes cobrindo os exemplos do enunciado, casos de borda e testes de
 propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
 em 2.000 casos, e a Trie comprimida contra a tradicional em 40 vocabulários
-gerados aleatoriamente.
+gerados aleatoriamente. Os doze últimos sobem o servidor web em uma porta
+livre e conferem cada rota por HTTP.
 
 ---
 
@@ -295,11 +341,9 @@ permite reproduzir a base.
 
 ## Integrantes do grupo
 
-<!-- Preencher com os nomes e matrículas dos integrantes -->
-
 | Nome | Matrícula |
 |---|---|
-|  |  |
-|  |  |
-|  |  |
-|  |  |
+| Marcos Felipe Ferreira Pires |  |
+| Luana Cristina de Azevedo Celestino |  |
+| Pedro Henrique Graciliano Taka |  |
+| Giovanni Cardoso Avallone Belo |  |

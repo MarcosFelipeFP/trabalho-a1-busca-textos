@@ -20,16 +20,23 @@ Uso:
     python testes.py -v
 """
 
+import http.client
+import json
 import random
 import shutil
 import tempfile
+import threading
 import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 from indice_invertido import IndiceInvertido, TabelaHash
 from kmp import buscar_ingenuo, buscar_kmp, tabela_falha
 from mecanismo import MecanismoBusca
 from preprocessamento import Preprocessador, remover_pontuacao, tokenizar
+from servidor import Aplicacao, criar_servidor
 from stemmer_rslp import RSLP
 from trie import Trie, TrieComprimida, normalizar
 
@@ -520,6 +527,173 @@ class TesteMecanismoPontaAPonta(unittest.TestCase):
     def test_trie_comprimida_economiza_nos(self):
         e = self.mecanismo.estatisticas
         self.assertLess(e.nos_na_trie_comprimida, e.nos_na_trie)
+
+
+# ==========================================================================
+#  INTERFACE WEB
+# ==========================================================================
+
+class TesteServidorWeb(unittest.TestCase):
+    """
+    Sobe o servidor de verdade em uma porta livre e conversa com ele por HTTP.
+
+    Não é teste de interface: a página é conferida no navegador. O que se
+    verifica aqui é o contrato entre as duas pontas -- que cada rota devolve o
+    que a página espera, que uma consulta vazia é recusada e que nenhum pedido
+    consegue ler arquivo de fora da pasta `web/`.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.raiz = Path(tempfile.mkdtemp(prefix="testes_web_a1_"))
+
+        # O léxico fica FORA da pasta de documentos: o mecanismo indexa todo
+        # .txt que encontrar, e um léxico solto ali viraria um documento.
+        cls.pasta = cls.raiz / "documentos"
+        cls.pasta.mkdir()
+        (cls.pasta / "grafos.txt").write_text(
+            "Grafos modelam relações entre objetos. Um grafo dirigido tem "
+            "arestas com sentido. A busca em largura percorre o grafo por "
+            "níveis.",
+            encoding="utf-8",
+        )
+        lexico = cls.raiz / "lexico.txt"
+        lexico.write_text(
+            "# lexico de teste\ncomputador\ncomputação\ncompilador\ngrafo\n",
+            encoding="utf-8",
+        )
+
+        cls.aplicacao = Aplicacao(pasta=cls.pasta, lexico=lexico)
+        # Porta 0: o sistema escolhe uma livre, então dois testes simultâneos
+        # nunca disputam o mesmo número.
+        cls.servidor = criar_servidor(cls.aplicacao, porta=0, silencioso=True)
+        cls.porta = cls.servidor.server_address[1]
+        cls.thread = threading.Thread(target=cls.servidor.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.servidor.shutdown()
+        cls.servidor.server_close()
+        cls.thread.join(timeout=5)
+        shutil.rmtree(cls.raiz, ignore_errors=True)
+
+    # ------------------------------------------------------------- auxílio
+
+    def obter(self, caminho, **parametros):
+        """GET em uma rota, devolvendo o JSON já decodificado."""
+        if parametros:
+            caminho += "?" + urllib.parse.urlencode(parametros)
+        endereco = f"http://127.0.0.1:{self.porta}{caminho}"
+        with urllib.request.urlopen(endereco, timeout=10) as resposta:
+            return json.loads(resposta.read().decode("utf-8"))
+
+    def codigo_de(self, caminho):
+        """Código HTTP de uma rota que se espera recusada."""
+        endereco = f"http://127.0.0.1:{self.porta}{caminho}"
+        try:
+            urllib.request.urlopen(endereco, timeout=10)
+        except urllib.error.HTTPError as falha:
+            return falha.code
+        return 200
+
+    # -------------------------------------------------------------- rotas
+
+    # Os testes desta classe compartilham um servidor só, e um deles insere uma
+    # palavra nova. Por isso as contagens são verificadas como "pelo menos" ou
+    # em relação ao estado do momento -- nunca como um número fixo que a ordem
+    # de execução poderia mudar.
+
+    def test_estado_traz_os_dois_lados(self):
+        estado = self.obter("/api/estado")
+        self.assertGreaterEqual(estado["parte1"]["palavras"], 4)
+        self.assertEqual(estado["parte2"]["documentos"], 1)
+        self.assertGreater(estado["parte2"]["termos"], 0)
+
+    def test_prefixo_do_lexico(self):
+        resposta = self.obter("/api/parte1/prefixo", q="comp")
+        self.assertGreaterEqual(resposta["total"], 3)
+        for palavra in ("compilador", "computador", "computação"):
+            self.assertIn(palavra, resposta["palavras"])
+        self.assertGreater(resposta["tempo"], 0)
+
+    def test_limite_trunca_e_avisa(self):
+        resposta = self.obter("/api/parte1/prefixo", q="comp", limite=1)
+        self.assertEqual(len(resposta["palavras"]), 1)
+        self.assertTrue(resposta["truncado"])
+
+    def test_palavra_do_lexico_distingue_prefixo_de_palavra(self):
+        """'comp' é caminho na Trie, mas não é palavra; 'grafo' é as duas coisas."""
+        caminho = self.obter("/api/parte1/palavra", q="comp")
+        self.assertFalse(caminho["existe"])
+        self.assertGreaterEqual(caminho["continuacoes"], 3)
+
+        palavra = self.obter("/api/parte1/palavra", q="grafo")
+        self.assertTrue(palavra["existe"])
+        self.assertEqual(palavra["formas"], ["grafo"])
+
+    def test_insercao_em_tempo_de_execucao(self):
+        antes = self.obter("/api/estado")["parte1"]["palavras"]
+        endereco = f"http://127.0.0.1:{self.porta}/api/parte1/inserir"
+        requisicao = urllib.request.Request(
+            endereco,
+            data=json.dumps({"palavra": "computaria"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(requisicao, timeout=10) as resposta:
+            dados = json.loads(resposta.read().decode("utf-8"))
+
+        self.assertTrue(dados["nova"])
+        self.assertEqual(dados["palavras"], antes + 1)
+        self.assertIn("computaria", self.obter("/api/parte1/prefixo", q="comp")["palavras"])
+
+    def test_busca_por_palavra_devolve_ranqueamento(self):
+        resposta = self.obter("/api/parte2/palavra", q="grafo")
+        self.assertEqual(len(resposta["documentos"]), 1)
+        documento, pontuacao = resposta["documentos"][0]
+        self.assertEqual(documento, "grafos.txt")
+        self.assertGreater(pontuacao, 0)
+
+    def test_busca_por_sequencia_conta_comparacoes(self):
+        resposta = self.obter("/api/parte2/sequencia", q="busca em largura")
+        self.assertEqual(resposta["total_ocorrencias"], 1)
+        self.assertGreater(resposta["comparacoes"], 0)
+        self.assertIn("busca em largura", resposta["resultados"][0]["contextos"][0])
+
+    def test_estatisticas_trazem_as_metricas_obrigatorias(self):
+        estatisticas = self.obter("/api/estatisticas")
+        self.assertGreater(estatisticas["corpus"]["documentos"], 0)
+        self.assertGreater(estatisticas["corpus"]["postagens"], 0)
+        self.assertIn("total", estatisticas["construcao"])
+        self.assertIn("fator de carga", estatisticas["hash"])
+
+    # --------------------------------------------------------- recusas
+
+    def test_consulta_vazia_e_recusada(self):
+        self.assertEqual(self.codigo_de("/api/parte2/palavra"), 400)
+
+    def test_rota_inexistente_e_404(self):
+        self.assertEqual(self.codigo_de("/api/nao/existe"), 404)
+
+    def test_pagina_e_servida(self):
+        endereco = f"http://127.0.0.1:{self.porta}/"
+        with urllib.request.urlopen(endereco, timeout=10) as resposta:
+            corpo = resposta.read().decode("utf-8")
+        self.assertEqual(resposta.status, 200)
+        self.assertIn("<title>", corpo)
+
+    def test_nao_serve_arquivo_fora_da_pasta_web(self):
+        """
+        `urllib` normalizaria o caminho antes de enviar, escondendo o ataque;
+        por isso o pedido é montado na mão, com os `..` intactos.
+        """
+        conexao = http.client.HTTPConnection("127.0.0.1", self.porta, timeout=10)
+        conexao.request("GET", "/../palavras.txt")
+        resposta = conexao.getresponse()
+        resposta.read()
+        conexao.close()
+        self.assertEqual(resposta.status, 403)
 
 
 if __name__ == "__main__":
