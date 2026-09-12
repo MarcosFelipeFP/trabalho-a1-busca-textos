@@ -756,6 +756,19 @@ b, strong { font-weight: 650; }
 .arvore .folha { font-size: 10.5px; fill: var(--tinta-media); }
 .arvore .corte { font-size: 10px; fill: var(--tinta-fraca); font-style: italic; }
 
+/* Auréola da cor da placa atrás das etiquetas. Um nó pode terminar uma palavra
+   e continuar em outras — "computacional" segue para "computacionais" —, e aí
+   o nome da palavra cai em cima da aresta que sai dali. Com o contorno pintado
+   antes do preenchimento, a etiqueta abre espaço no traço em vez de brigar com
+   ele. */
+.arvore .folha,
+.arvore .corte {
+  paint-order: stroke fill;
+  stroke: var(--placa);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
+
 /* ========================================================================
    RESULTADOS DA PARTE II
    ======================================================================== */

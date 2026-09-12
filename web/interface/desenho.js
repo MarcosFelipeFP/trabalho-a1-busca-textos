@@ -473,6 +473,11 @@ window.UI = window.UI || {};
     }
 
     // --- caminhos ---
+    // As etiquetas saem em uma passada separada, no fim. O SVG pinta na ordem
+    // do documento, e a aresta de um nó mais fundo passaria por cima do nome
+    // escrito num nó anterior; desenhadas por último, e com auréola da cor da
+    // placa, elas abrem espaço no traço em vez de brigar com ele.
+    const etiquetas = [];
     let maiorX = inicioSubarvore;
     for (const registro of nos) {
       const x = inicioSubarvore + registro.profundidade * passoX;
@@ -492,7 +497,7 @@ window.UI = window.UI || {};
       }
 
       if (registro.corte) {
-        partes.push(`<text class="corte" x="${x - passoX / 2}" y="${y + 3.5}">⋯ mais ${numero(registro.abaixo)} ${plural(registro.abaixo, 'palavra', 'palavras')}</text>`);
+        etiquetas.push(`<text class="corte" x="${x - passoX / 2}" y="${y + 3.5}">⋯ mais ${numero(registro.abaixo)} ${plural(registro.abaixo, 'palavra', 'palavras')}</text>`);
         continue;
       }
 
@@ -504,9 +509,16 @@ window.UI = window.UI || {};
 
       if (ehPalavra) {
         const forma = Array.from(registro.no.formas).sort(window.A1.ordemDeTexto)[0];
-        partes.push(`<text class="folha" x="${x + 9}" y="${y + 3.5}">${escapar(forma)}</text>`);
+        // Um nó pode terminar uma palavra E continuar em outras ("computacional"
+        // segue para "computacionais"). Nesse caso a etiqueta sobe, para não
+        // cair em cima da aresta que sai dali.
+        const continua = registro.filhos.length > 0;
+        etiquetas.push(`<text class="folha" x="${x + (continua ? 6 : 9)}"
+          y="${(continua ? y - 8 : y + 3.5).toFixed(1)}">${escapar(forma)}</text>`);
       }
     }
+
+    partes.push(...etiquetas);
 
     const alturaTotal = proximaLinha * passoY + deslocamentoY + 14;
     if (escondidas) {
