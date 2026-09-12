@@ -36,3 +36,6 @@ $RECYCLE.BIN/
 *.log
 resultados/
 saida/
+
+# --- Versao empacotada para pendrive (gerada por gerar_pendrive.py) ---
+pendrive/

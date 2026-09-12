@@ -43,6 +43,10 @@ python servidor.py   # no navegador
 O repositório já vem com os 24 documentos de teste em `documentos/` e o léxico
 em `palavras.txt`, então o programa roda direto após o clone.
 
+Sem Python instalado, abra **`web/index.html`** com dois cliques: a interface
+inteira funciona offline, no próprio navegador. É essa a versão que vai no
+pendrive — veja [Interface web](#interface-web).
+
 ---
 
 ## O que o sistema faz
@@ -81,7 +85,12 @@ Nenhum nome de arquivo aparece no código: basta soltar um `.txt` novo na pasta
 ```
 .
 ├── documentos/              24 arquivos .txt usados nos testes
-├── web/                     página da interface web (HTML, CSS e JS)
+├── web/                     a interface, que abre com ou sem servidor
+│   ├── index.html           a página
+│   ├── estilo.css           a folha de estilo
+│   ├── algoritmos/          os módulos Python portados para JavaScript
+│   ├── dados/               corpus, léxico e stopwords empacotados
+│   └── interface/           motor, desenho, fita do KMP, laboratório e controle
 ├── main.py                  interface de linha de comando (Partes I e II)
 ├── servidor.py              interface web: serve web/ e expõe as consultas em JSON
 ├── trie.py                  Trie e Trie comprimida (PATRICIA)
@@ -92,7 +101,10 @@ Nenhum nome de arquivo aparece no código: basta soltar um `.txt` novo na pasta
 ├── mecanismo.py             integração de tudo: varredura, indexação, consultas
 ├── estatisticas.py          cronometragem e métricas
 ├── benchmark.py             experimentos de análise de complexidade
-├── testes.py                88 testes automatizados
+├── testes.py                testes automatizados
+├── verificar_web.py         confere o motor JavaScript contra o Python
+├── gerar_dados_web.py       empacota o corpus para a versão offline
+├── gerar_pendrive.py        reduz a interface a um arquivo .html só
 ├── gerar_lexico.py          regera palavras.txt a partir do corpus
 ├── preparar_corpus.py       rebaixa os documentos da Wikipédia
 ├── palavras.txt             léxico da Parte I (~10.500 palavras)
@@ -149,15 +161,18 @@ python preparar_corpus.py --forcar   # rebaixa tudo
 
 ## Interface web
 
-Para experimentar os algoritmos no navegador, com a lista de sugestões se
-atualizando a cada tecla digitada:
+A mesma coisa que o terminal faz, com a estrutura desenhada na tela e o custo
+de cada consulta medido à vista. Há dois jeitos de abrir, e eles servem a
+situações diferentes.
+
+### Com o Python, para ver o servidor respondendo
 
 ```bash
 python servidor.py
 ```
 
-O programa constrói as estruturas, sobe um servidor em `http://localhost:8000`
-e abre o navegador. `Ctrl+C` encerra.
+Constrói as estruturas, sobe um servidor em `http://localhost:8000` e abre o
+navegador. `Ctrl+C` encerra.
 
 ```bash
 python servidor.py --porta 9000       # outra porta
@@ -166,25 +181,88 @@ python servidor.py --sem-stemming     # desliga o RSLP, para comparação
 python servidor.py --help             # lista todas as opções
 ```
 
-A página tem três telas:
+### Sem nada instalado, para levar no pendrive
+
+Abra **`web/index.html`** com dois cliques. Não precisa de servidor, de Python,
+nem de internet: a pasta `web/` é autossuficiente.
+
+Para reduzir tudo a um arquivo só — mais difícil de chegar quebrado no
+computador da apresentação:
+
+```bash
+python gerar_pendrive.py
+```
+
+Sai `pendrive/Bancada - Trabalho A1.html`, com cerca de 1 MB: o HTML, o CSS, os
+algoritmos e os 24 documentos dentro do mesmo arquivo. Copie para o pendrive e
+clique duas vezes em qualquer máquina.
+
+### Como a versão offline funciona
+
+Uma página aberta por `file://` não tem origem própria, e o navegador recusa
+qualquer `fetch` para arquivos vizinhos — não dá para ler `documentos/` do
+disco como o servidor faz. Duas peças resolvem isso:
+
+| Peça | O que faz |
+|---|---|
+| `gerar_dados_web.py` | varre a pasta de documentos e grava corpus, léxico e stopwords como atribuições JavaScript em `web/dados/` |
+| `web/algoritmos/` | a Trie, o RSLP, o KMP e o índice invertido portados de `.py` para `.js`, arquivo a arquivo |
+
+Quando a página abre sem servidor, os algoritmos rodam no navegador; quando
+abre pelo `servidor.py`, as consultas vão para o Python. O botão **motor**, no
+canto superior direito, alterna entre os dois durante a apresentação — a mesma
+consulta, as duas implementações, lado a lado.
+
+Duas implementações do mesmo algoritmo é uma oportunidade de divergência
+silenciosa, e é por isso que existe:
+
+```bash
+python verificar_web.py
+```
+
+Ele roda as duas sobre o mesmo corpus e exige resultado idêntico em nove
+frentes — normalização, tokenização, stemming, Trie, Trie comprimida, índice
+invertido, BM25, KMP e tabela hash —, mais de cem mil casos comparados um a
+um. Precisa do Node.js, e só ele: a página no navegador não usa Node.
+
+### As cinco telas
 
 | Tela | O que dá para fazer |
 |---|---|
-| **I — Autocomplete** | buscar por prefixo no léxico, verificar se uma palavra existe e inserir palavras novas em tempo de execução |
-| **II — Busca nos documentos** | as três modalidades da Parte II: palavra exata com ranqueamento BM25, prefixo (Trie + índice) e sequência de caracteres com KMP |
-| **Métricas** | as sete métricas obrigatórias da seção 3.9, a comparação de memória entre as duas Tries, a dispersão da tabela hash e o histórico das consultas da sessão |
+| **1 · Autocomplete** | buscar por prefixo no léxico, com a subárvore da Trie desenhada ao lado; verificar se uma palavra existe e inserir palavras novas em tempo de execução |
+| **2 · Busca** | as três modalidades da Parte II: palavra com BM25, prefixo (em ordem alfabética e por relevância) e sequência com KMP, esta com o algoritmo passo a passo sobre a fita de caracteres |
+| **3 · Laboratório** | os sete experimentos do `benchmark.py`, rodando na máquina em que a página abriu, com os gráficos desenhados na hora |
+| **4 · Métricas** | as sete métricas obrigatórias da seção 3.9, a memória das duas Tries, a dispersão da tabela hash e o histórico das consultas da sessão |
+| **5 · Documentos** | o corpus indexado, com o texto de cada arquivo e as ocorrências destacadas |
 
-Toda consulta mostra o tempo que custou, medido pelo mesmo cronômetro da versão
-de terminal, e um histograma das últimas leituras em escala logarítmica. É ali
-que a diferença entre as modalidades aparece sem precisar de explicação: a
-busca indexada responde em **dezenas de microssegundos**, a varredura com KMP
-leva **dezenas de milissegundos** — três ordens de grandeza, medidas na mesma
-tela.
+Atalhos: `1` a `5` trocam de tela, `/` vai para a busca, `T` alterna claro e
+escuro, `P` aumenta o corpo do texto para projeção, `?` lista todos.
 
-O servidor usa apenas `http.server`, da biblioteca padrão, e a página não
-carrega nenhuma biblioteca externa: continua valendo a regra de não usar
-dependências. Nenhum algoritmo roda no navegador — a Trie, o índice invertido e
-o KMP continuam no Python, e a página só desenha o que eles devolvem.
+### A régua de custo
+
+No rodapé, uma escala logarítmica de 1 µs a 1 s atravessa todas as telas. Cada
+consulta da sessão deixa uma marca nela, colorida pelo caminho que percorreu —
+âmbar para o índice invertido, ciano para a Trie, brasa para a varredura com
+KMP.
+
+Escala logarítmica porque a distância entre o que se quer comparar é de três
+ordens de grandeza: em escala linear, todas as consultas indexadas ficariam
+empilhadas contra o zero. Depois de alguns minutos de demonstração, a régua
+mostra dois aglomerados bem separados, e essa imagem é o resultado do trabalho.
+
+O botão **comparar as duas vias**, na tela de busca, força o contraste: roda a
+mesma consulta pelo índice e pelo KMP, uma atrás da outra, e põe as duas marcas
+na régua. A diferença medida fica na casa das **mil vezes**.
+
+Uma ressalva de método: o navegador arredonda `performance.now` por segurança,
+em geral para 100 µs. Uma consulta de 40 µs medida uma vez apareceria como zero
+— por isso cada leitura é a média de muitas execuções, e a interface informa
+quantas entraram na conta. É o mesmo recurso que o `benchmark.py` já usa no
+terminal, pelo mesmo motivo.
+
+Nenhuma biblioteca externa é carregada, nem no Python nem no navegador: os
+gráficos, o desenho da Trie e a fita do KMP são SVG escrito à mão. Em um
+pendrive, sem rede, não haveria CDN de onde baixar nada.
 
 ---
 
