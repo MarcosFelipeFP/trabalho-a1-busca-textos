@@ -43,9 +43,9 @@ python servidor.py   # no navegador
 O repositório já vem com os 24 documentos de teste em `documentos/` e o léxico
 em `palavras.txt`, então o programa roda direto após o clone.
 
-Sem Python instalado, abra **`web/index.html`** com dois cliques: a interface
-inteira funciona offline, no próprio navegador. É essa a versão que vai no
-pendrive — veja [Interface web](#interface-web).
+Sem Python instalado, abra **`interface/dist/index.html`** com dois cliques: a
+interface inteira funciona offline, no próprio navegador. É essa a versão que
+vai no pendrive ou no Google Drive — veja [Interface web](#interface-web).
 
 ---
 
@@ -61,8 +61,13 @@ português e responde a três operações:
 | `inserir(palavra)` | acrescenta uma palavra ao léxico | O(m) |
 | `buscar(palavra)` | informa se a palavra existe | O(m) |
 | `buscar_prefixo(prefixo)` | lista todas as palavras que começam com o prefixo | O(m + p) |
+| `sugerir(prefixo, k)` | as *k* palavras mais frequentes, por busca best-first | não depende de *p* |
+| `buscar_aproximado(palavra)` | "você quis dizer?" por distância de edição | O(n·m), *n* = nós após a poda |
 
-Com *m* = tamanho da palavra e *p* = número de nós abaixo do prefixo.
+Com *m* = tamanho da palavra e *p* = número de nós abaixo do prefixo. As duas
+últimas operações são extensões: cada nó mantém a contagem e a maior
+frequência da própria subárvore, e a distância de edição (com transposição) é
+calculada sobre a Trie, uma linha da matriz por nó.
 
 ### Parte II — Mecanismo de busca em documentos
 
@@ -70,7 +75,10 @@ Varre automaticamente todos os `.txt` de uma pasta, pré-processa o texto,
 monta o vocabulário na Trie e constrói um índice invertido. Oferece três
 modalidades de consulta:
 
-1. **Palavra exata** — consulta o índice invertido via hash, O(1) em média.
+1. **Palavra** — consulta o índice invertido via hash, O(1) em média. Aceita
+   vários termos (`rede neural`): os documentos com todos eles vêm primeiro,
+   por interseção a partir da menor lista, e termos sem resultado ganham
+   sugestão de correção.
 2. **Prefixo** — a Trie recupera os termos e o índice diz onde cada um aparece.
 3. **Sequência de caracteres** — KMP direto sobre o conteúdo original dos
    arquivos, encontrando inclusive fragmentos que a tokenização descarta.
@@ -85,14 +93,13 @@ Nenhum nome de arquivo aparece no código: basta soltar um `.txt` novo na pasta
 ```
 .
 ├── documentos/              24 arquivos .txt usados nos testes
-├── web/                     a interface, que abre com ou sem servidor
-│   ├── index.html           a página
-│   ├── estilo.css           a folha de estilo
-│   ├── algoritmos/          os módulos Python portados para JavaScript
-│   ├── dados/               corpus, léxico e stopwords empacotados
-│   └── interface/           motor, desenho, fita do KMP, laboratório e controle
+├── interface/               a interface web (React + Vite), que abre com ou sem servidor
+│   ├── dist/index.html      a interface compilada: um arquivo só, com tudo dentro
+│   ├── src/algoritmos/      os módulos Python portados para JavaScript
+│   ├── src/dados/           corpus, léxico e stopwords em JSON
+│   └── src/busca/           a página de busca: resultados, trechos e leitor
 ├── main.py                  interface de linha de comando (Partes I e II)
-├── servidor.py              interface web: serve web/ e expõe as consultas em JSON
+├── servidor.py              serve a interface e expõe as consultas em JSON
 ├── trie.py                  Trie e Trie comprimida (PATRICIA)
 ├── stemmer_rslp.py          stemmer RSLP para português
 ├── preprocessamento.py      minúsculas, pontuação, tokenização, stopwords
@@ -103,8 +110,8 @@ Nenhum nome de arquivo aparece no código: basta soltar um `.txt` novo na pasta
 ├── benchmark.py             experimentos de análise de complexidade
 ├── testes.py                testes automatizados
 ├── verificar_web.py         confere o motor JavaScript contra o Python
-├── gerar_dados_web.py       empacota o corpus para a versão offline
-├── gerar_pendrive.py        reduz a interface a um arquivo .html só
+├── gerar_dados_web.py       empacota o corpus em JSON para a interface
+├── gerar_pendrive.py        copia a interface de um arquivo só para o pendrive
 ├── gerar_lexico.py          regera palavras.txt a partir do corpus
 ├── preparar_corpus.py       rebaixa os documentos da Wikipédia
 ├── palavras.txt             léxico da Parte I (~10.500 palavras)
@@ -161,108 +168,84 @@ python preparar_corpus.py --forcar   # rebaixa tudo
 
 ## Interface web
 
-A mesma coisa que o terminal faz, com a estrutura desenhada na tela e o custo
-de cada consulta medido à vista. Há dois jeitos de abrir, e eles servem a
-situações diferentes.
+A mesma coisa que o terminal faz, com as estruturas desenhadas na tela e o
+custo de cada consulta medido à vista. Escrita em React e TypeScript, com
+Vite; os algoritmos rodam no próprio navegador.
 
-### Com o Python, para ver o servidor respondendo
+### Na apresentação, sem instalar nada
 
-```bash
-python servidor.py
-```
-
-Constrói as estruturas, sobe um servidor em `http://localhost:8000` e abre o
-navegador. `Ctrl+C` encerra.
-
-```bash
-python servidor.py --porta 9000       # outra porta
-python servidor.py --sem-navegador    # não abre o navegador sozinho
-python servidor.py --sem-stemming     # desliga o RSLP, para comparação
-python servidor.py --help             # lista todas as opções
-```
-
-### Sem nada instalado, para levar no pendrive
-
-Abra **`web/index.html`** com dois cliques. Não precisa de servidor, de Python,
-nem de internet: a pasta `web/` é autossuficiente.
-
-Para reduzir tudo a um arquivo só — mais difícil de chegar quebrado no
-computador da apresentação:
+Abra **`interface/dist/index.html`** com dois cliques. É um arquivo só, com o
+HTML, o CSS, as fontes, os algoritmos e os 24 documentos dentro dele: funciona
+sem internet, sem Python e sem servidor. Para levar no pendrive ou no Google
+Drive, com um nome legível e um LEIA-ME ao lado:
 
 ```bash
 python gerar_pendrive.py
 ```
 
-Sai `pendrive/Bancada - Trabalho A1.html`, com cerca de 1 MB: o HTML, o CSS, os
-algoritmos e os 24 documentos dentro do mesmo arquivo. Copie para o pendrive e
-clique duas vezes em qualquer máquina.
+Sai `pendrive/Busca em textos - Trabalho A1.html` (cerca de 1,6 MB). Vindo do
+Drive, baixe o arquivo antes de abrir: a pré-visualização do Drive não executa
+páginas.
 
-### Como a versão offline funciona
+### Com o Python respondendo
 
-Uma página aberta por `file://` não tem origem própria, e o navegador recusa
-qualquer `fetch` para arquivos vizinhos — não dá para ler `documentos/` do
-disco como o servidor faz. Duas peças resolvem isso:
+```bash
+python servidor.py
+```
 
-| Peça | O que faz |
-|---|---|
-| `gerar_dados_web.py` | varre a pasta de documentos e grava corpus, léxico e stopwords como atribuições JavaScript em `web/dados/` |
-| `web/algoritmos/` | a Trie, o RSLP, o KMP e o índice invertido portados de `.py` para `.js`, arquivo a arquivo |
+Constrói as estruturas em Python, serve a mesma página em
+`http://localhost:8000` e abre o navegador. No rodapé da página aparece a
+opção **Python**: as consultas passam a ser respondidas pelos módulos `.py`,
+com o mesmo formato de resposta.
 
-Quando a página abre sem servidor, os algoritmos rodam no navegador; quando
-abre pelo `servidor.py`, as consultas vão para o Python. O botão **motor**, no
-canto superior direito, alterna entre os dois durante a apresentação — a mesma
-consulta, as duas implementações, lado a lado.
+### Como é a página
 
-Duas implementações do mesmo algoritmo é uma oportunidade de divergência
+Uma página só, de busca, em tema claro:
+
+- **enquanto se digita**, a Trie sugere as palavras mais frequentes dos
+  documentos que começam com o que foi digitado (Parte I);
+- **no Enter**, a caixa sobe e os documentos aparecem ordenados pelo BM25, cada
+  um com um trecho em que as palavras encontradas vêm realçadas (Parte II);
+- as abas **Palavra**, **Prefixo** e **Sequência** trocam a modalidade: índice
+  invertido, Trie + índice ou varredura do texto com KMP;
+- clicar num resultado abre o texto inteiro, com os realces;
+- uma linha discreta acima dos resultados informa quantos documentos voltaram
+  e quanto tempo a consulta levou.
+
+### Recompilar a interface
+
+Só é preciso ao mudar o código da interface ou os documentos. Requer Node.js:
+
+```bash
+python gerar_dados_web.py     # corpus, léxico e stopwords -> interface/src/dados/
+cd interface
+npm install                   # uma vez
+npm run build                 # gera interface/dist/index.html
+```
+
+`npm run dev` sobe a versão de desenvolvimento, que conversa com o
+`servidor.py` se ele estiver no ar.
+
+### Dois motores, uma resposta
+
+Duas implementações do mesmo algoritmo são uma oportunidade de divergência
 silenciosa, e é por isso que existe:
 
 ```bash
 python verificar_web.py
 ```
 
-Ele roda as duas sobre o mesmo corpus e exige resultado idêntico em nove
-frentes — normalização, tokenização, stemming, Trie, Trie comprimida, índice
-invertido, BM25, KMP e tabela hash —, mais de cem mil casos comparados um a
-um. Precisa do Node.js, e só ele: a página no navegador não usa Node.
+Ele roda o Python e o JavaScript sobre o mesmo corpus e exige resultado
+idêntico em onze frentes — normalização, tokenização, stemming, Trie, Trie
+comprimida, autocomplete por relevância, busca aproximada, índice invertido,
+consultas com BM25 e vários termos, KMP e tabela hash —, mais de 120 mil casos
+comparados um a um.
 
-### As cinco telas
-
-| Tela | O que dá para fazer |
-|---|---|
-| **1 · Autocomplete** | buscar por prefixo no léxico, com a subárvore da Trie desenhada ao lado; verificar se uma palavra existe e inserir palavras novas em tempo de execução |
-| **2 · Busca** | as três modalidades da Parte II: palavra com BM25, prefixo (em ordem alfabética e por relevância) e sequência com KMP, esta com o algoritmo passo a passo sobre a fita de caracteres |
-| **3 · Laboratório** | os sete experimentos do `benchmark.py`, rodando na máquina em que a página abriu, com os gráficos desenhados na hora |
-| **4 · Métricas** | as sete métricas obrigatórias da seção 3.9, a memória das duas Tries, a dispersão da tabela hash e o histórico das consultas da sessão |
-| **5 · Documentos** | o corpus indexado, com o texto de cada arquivo e as ocorrências destacadas |
-
-Atalhos: `1` a `5` trocam de tela, `/` vai para a busca, `T` alterna claro e
-escuro, `P` aumenta o corpo do texto para projeção, `?` lista todos.
-
-### A régua de custo
-
-No rodapé, uma escala logarítmica de 1 µs a 1 s atravessa todas as telas. Cada
-consulta da sessão deixa uma marca nela, colorida pelo caminho que percorreu —
-âmbar para o índice invertido, ciano para a Trie, brasa para a varredura com
-KMP.
-
-Escala logarítmica porque a distância entre o que se quer comparar é de três
-ordens de grandeza: em escala linear, todas as consultas indexadas ficariam
-empilhadas contra o zero. Depois de alguns minutos de demonstração, a régua
-mostra dois aglomerados bem separados, e essa imagem é o resultado do trabalho.
-
-O botão **comparar as duas vias**, na tela de busca, força o contraste: roda a
-mesma consulta pelo índice e pelo KMP, uma atrás da outra, e põe as duas marcas
-na régua. A diferença medida fica na casa das **mil vezes**.
-
-Uma ressalva de método: o navegador arredonda `performance.now` por segurança,
-em geral para 100 µs. Uma consulta de 40 µs medida uma vez apareceria como zero
-— por isso cada leitura é a média de muitas execuções, e a interface informa
-quantas entraram na conta. É o mesmo recurso que o `benchmark.py` já usa no
-terminal, pelo mesmo motivo.
-
-Nenhuma biblioteca externa é carregada, nem no Python nem no navegador: os
-gráficos, o desenho da Trie e a fita do KMP são SVG escrito à mão. Em um
-pendrive, sem rede, não haveria CDN de onde baixar nada.
+Uma ressalva de método: o navegador arredonda o relógio por segurança (em
+`file://`, para cerca de 100 µs). Por isso cada consulta barata é repetida em
+lotes até acumular alguns milissegundos, e a interface informa quantas
+execuções entraram na média. Antes da primeira consulta, os algoritmos são
+aquecidos para que o compilador JIT não seja medido junto.
 
 ---
 
@@ -354,16 +337,18 @@ medida na prática.
 python benchmark.py
 ```
 
-Sete experimentos que confrontam o custo assintótico previsto com o tempo
+Nove experimentos que confrontam o custo assintótico previsto com o tempo
 medido:
 
 1. Busca por prefixo: Trie contra varredura sequencial
-2. Trie tradicional contra Trie comprimida (PATRICIA)
-3. KMP contra força bruta, no pior caso e em texto natural
-4. Tabela hash: fator de carga, colisões e comprimento de cadeia
-5. Escalabilidade da indexação
-6. Ranqueamento: BM25 contra TF-IDF
-7. Efeito do stemming RSLP na cobertura das consultas
+2. Autocomplete top-k: busca best-first contra varredura da subárvore
+3. Trie tradicional contra Trie comprimida (PATRICIA)
+4. KMP contra força bruta, no pior caso e em texto natural
+5. Tabela hash: fator de carga, colisões e comprimento de cadeia
+6. Escalabilidade da indexação
+7. Ranqueamento: BM25 contra TF-IDF
+8. Efeito do stemming RSLP na cobertura das consultas
+9. Busca aproximada: Trie contra comparação palavra a palavra
 
 Os resultados estão discutidos no [RELATORIO.md](RELATORIO.md).
 
@@ -376,11 +361,12 @@ python testes.py        # resumo
 python testes.py -v     # detalhado
 ```
 
-88 testes cobrindo os exemplos do enunciado, casos de borda e testes de
+117 testes cobrindo os exemplos do enunciado, casos de borda e testes de
 propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
-em 2.000 casos, e a Trie comprimida contra a tradicional em 40 vocabulários
-gerados aleatoriamente. Os doze últimos sobem o servidor web em uma porta
-livre e conferem cada rota por HTTP.
+em 2.000 casos, a Trie comprimida contra a tradicional em 40 vocabulários
+aleatórios e a busca aproximada contra a distância de edição calculada palavra
+a palavra. Os últimos sobem o servidor web em uma porta livre e conferem cada
+rota por HTTP.
 
 ---
 
