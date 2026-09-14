@@ -186,6 +186,22 @@ class Preprocessador:
         texto = remover_pontuacao(texto)
         return tokenizar(texto)
 
+    def termos_da_consulta(self, texto):
+        """
+        Separa a consulta em termos pesquisáveis e palavras ignoradas.
+
+        Devolve `(termos, ignorados)`. Uma consulta com várias palavras precisa
+        descartar as stopwords do mesmo jeito que a indexação descartou: em
+        "estrutura de dados", o "de" não está no índice, e exigir que os
+        documentos contenham TODOS os termos zeraria qualquer resultado. As
+        ignoradas voltam para a interface poder dizer o que ficou de fora.
+        """
+        brutos = self.processar_consulta(texto)
+        termos = remover_stopwords(brutos, self.stopwords, self.tamanho_minimo)
+        mantidos = set(termos)
+        ignorados = [token for token in brutos if token not in mantidos]
+        return termos, ignorados
+
     def descrever(self):
         """Resumo da configuração, exibido nas estatísticas do sistema."""
         return {

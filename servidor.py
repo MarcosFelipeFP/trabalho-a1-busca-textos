@@ -40,7 +40,19 @@ from trie import Trie
 
 __all__ = ["Aplicacao", "criar_servidor", "main"]
 
-RAIZ_WEB = Path(__file__).parent / "web"
+# A interface compilada: um index.html só, com tudo embutido (ver interface/).
+RAIZ_WEB = Path(__file__).parent / "interface" / "dist"
+
+PAGINA_SEM_INTERFACE = """<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Interface não compilada</title></head>
+<body style="font-family:system-ui,sans-serif;max-width:40rem;margin:4rem auto;line-height:1.6">
+<h1>A interface ainda não foi compilada</h1>
+<p>As rotas <code>/api/</code> já estão respondendo. Para a página, rode uma vez:</p>
+<pre>cd interface
+npm install
+npm run build</pre>
+<p>e recarregue esta página.</p>
+</body></html>"""
 
 # Limites de resposta. Existem para a interface: devolver os milhares de termos
 # que começam com "a" não ajudaria ninguém a ler a tela, e o custo de
@@ -140,17 +152,31 @@ class Aplicacao:
         }
 
     def buscar_no_lexico(self, palavra):
-        """Parte I, seção 2.3: a palavra existe no léxico? Custo O(m)."""
+        """
+        Parte I, seção 2.3: a palavra existe no léxico? Custo O(m).
+
+        Quando não existe, a resposta traz também as palavras parecidas, pela
+        busca aproximada na mesma Trie -- cronometrada à parte, porque não faz
+        parte do custo da busca exata.
+        """
         with Cronometro() as relogio:
             existe = self.trie.buscar(palavra)
             formas = sorted(self.trie.formas_de(palavra))
             abaixo = self.trie.contar_prefixo(palavra)
+
+        aproximadas = []
+        with Cronometro() as relogio_aproximacao:
+            if not existe:
+                aproximadas = [par for par in self.trie.buscar_aproximado(palavra)
+                               if par[1] > 0]
         return {
             "palavra": palavra,
             "existe": existe,
             "formas": formas,
             "continuacoes": max(0, abaixo - (1 if existe else 0)),
+            "aproximadas": aproximadas,
             "tempo": relogio.decorrido,
+            "tempo_aproximacao": relogio_aproximacao.decorrido,
         }
 
     def inserir_no_lexico(self, palavra):
@@ -178,7 +204,7 @@ class Aplicacao:
 
 class Manipulador(BaseHTTPRequestHandler):
     """
-    Atende a duas coisas: os arquivos estáticos de `web/` e as rotas `/api/`.
+    Atende a duas coisas: a interface compilada (`interface/dist/`) e as rotas `/api/`.
 
     As rotas devolvem exatamente os dicionários que `MecanismoBusca` já produz
     para o terminal. A interface é uma segunda apresentação dos mesmos dados,
@@ -210,7 +236,7 @@ class Manipulador(BaseHTTPRequestHandler):
 
     def _arquivo(self, caminho_relativo):
         """
-        Serve um arquivo de `web/`, recusando qualquer caminho que escape da
+        Serve um arquivo de `interface/dist/`, recusando qualquer caminho que escape da
         pasta -- sem isso, um pedido por `../../palavras.txt` sairia do lugar
         previsto.
         """
@@ -218,7 +244,7 @@ class Manipulador(BaseHTTPRequestHandler):
         alvo = (raiz / caminho_relativo.lstrip("/")).resolve()
 
         if raiz != alvo and raiz not in alvo.parents:
-            return self._erro(403, "caminho fora da pasta web/")
+            return self._erro(403, "caminho fora da pasta da interface")
         if not alvo.is_file():
             return self._erro(404, f"arquivo nao encontrado: {caminho_relativo}")
 
@@ -237,6 +263,8 @@ class Manipulador(BaseHTTPRequestHandler):
 
         if rota.startswith("/api/"):
             return self._api(rota, parametros)
+        if rota in ("/", "/index.html") and not (RAIZ_WEB / "index.html").is_file():
+            return self._enviar(200, PAGINA_SEM_INTERFACE.encode("utf-8"), "text/html; charset=utf-8")
         if rota == "/":
             return self._arquivo("index.html")
         return self._arquivo(rota)
@@ -418,9 +446,9 @@ def main():
     configurar_saida()
     argumentos = analisar_argumentos()
 
-    if not RAIZ_WEB.is_dir():
-        print(f"[erro] pasta '{RAIZ_WEB.name}/' não encontrada ao lado de servidor.py.")
-        return 1
+    if not (RAIZ_WEB / "index.html").is_file():
+        print("[aviso] interface/dist/index.html não existe: as rotas /api/ funcionam,")
+        print("        mas a página pede para compilar (cd interface && npm run build).")
 
     print("Construindo as estruturas...")
     aplicacao = Aplicacao(

@@ -38,7 +38,7 @@ from mecanismo import MecanismoBusca
 from preprocessamento import Preprocessador, remover_pontuacao, tokenizar
 from servidor import Aplicacao, criar_servidor
 from stemmer_rslp import RSLP
-from trie import Trie, TrieComprimida, normalizar
+from trie import Trie, TrieComprimida, distancia_edicao, normalizar
 
 # Palavras da seção 2.2 do enunciado.
 EXEMPLO_ENUNCIADO = [
@@ -128,6 +128,203 @@ class TesteTrie(unittest.TestCase):
         self.assertEqual(len(vazia), 0)
         self.assertEqual(vazia.buscar_prefixo("a"), [])
         self.assertFalse(vazia.buscar("a"))
+        self.assertEqual(vazia.contar_prefixo(""), 0)
+        self.assertEqual(vazia.sugerir("a"), [])
+
+
+class TesteAgregadosDaTrie(unittest.TestCase):
+    """
+    Os dois números que cada nó mantém sobre a própria subárvore.
+
+    São eles que permitem contar um prefixo em O(m) e devolver as k palavras
+    mais relevantes sem varrer a subárvore. Como são mantidos na inserção, e
+    não recalculados na consulta, um erro de manutenção só apareceria muito
+    depois -- daí a bateria abaixo, que compara sempre contra a contagem por
+    força bruta.
+    """
+
+    def setUp(self):
+        self.trie = Trie(EXEMPLO_ENUNCIADO)
+
+    def test_contagem_da_raiz_e_o_total(self):
+        self.assertEqual(self.trie.raiz.palavras_abaixo, len(self.trie))
+
+    def test_contagem_confere_com_a_forca_bruta(self):
+        for prefixo in ["", "c", "co", "comp", "computa", "prog", "pro", "z"]:
+            esperado = sum(1 for palavra in EXEMPLO_ENUNCIADO
+                           if normalizar(palavra).startswith(normalizar(prefixo)))
+            self.assertEqual(self.trie.contar_prefixo(prefixo), esperado,
+                             f"contagem errada para '{prefixo}'")
+
+    def test_contagem_acompanha_insercoes(self):
+        antes = self.trie.contar_prefixo("comp")
+        self.trie.inserir("compressao")
+        self.assertEqual(self.trie.contar_prefixo("comp"), antes + 1)
+
+        # Reinserir não pode contar de novo.
+        self.trie.inserir("compressao")
+        self.assertEqual(self.trie.contar_prefixo("comp"), antes + 1)
+
+    def test_palavra_que_e_prefixo_de_outra(self):
+        """O caso clássico de fronteira: 'comp' passa a ser palavra E caminho."""
+        trie = Trie()
+        trie.inserir("comp")
+        trie.inserir("computador")
+        self.assertEqual(trie.contar_prefixo("comp"), 2)
+        self.assertEqual(trie.contar_prefixo("compu"), 1)
+        self.assertEqual(trie.buscar_prefixo("comp"), ["comp", "computador"])
+
+    def test_sugerir_ordena_por_peso(self):
+        trie = Trie()
+        trie.inserir("computador", peso=10)
+        trie.inserir("computação", peso=90)
+        trie.inserir("compilador", peso=3)
+        self.assertEqual(
+            trie.sugerir("comp", limite=3),
+            [("computação", 90), ("computador", 10), ("compilador", 3)],
+        )
+
+    def test_sugerir_respeita_o_limite(self):
+        trie = Trie()
+        for posicao, palavra in enumerate(EXEMPLO_ENUNCIADO):
+            trie.inserir(palavra, peso=posicao + 1)
+        self.assertEqual(len(trie.sugerir("comp", limite=2)), 2)
+
+    def test_sugerir_desempata_pela_ordem_alfabetica(self):
+        """Sem peso informado todas valem 1, e a saída tem de ser alfabética."""
+        trie = Trie(EXEMPLO_ENUNCIADO)
+        sugeridas = [palavra for palavra, _peso in trie.sugerir("comp", limite=5)]
+        self.assertEqual(sugeridas, trie.buscar_prefixo("comp"))
+
+    def test_sugerir_concorda_com_a_ordenacao_completa(self):
+        """
+        A busca best-first tem de devolver exatamente o topo da lista ordenada
+        por (peso decrescente, palavra) -- é o que justifica podar a subárvore.
+        """
+        random.seed(11)
+        for _ in range(30):
+            dados = {}
+            for _ in range(random.randint(1, 60)):
+                palavra = "".join(random.choice("abcç")
+                                  for _ in range(random.randint(1, 7)))
+                dados[normalizar(palavra)] = (palavra, random.randint(1, 50))
+
+            trie = Trie()
+            for palavra, peso in dados.values():
+                trie.inserir(palavra, peso=peso)
+
+            for prefixo in ["", "a", "b", "c", "ab", "cc", "zz"]:
+                esperado = sorted(
+                    (par for par in dados.values()
+                     if normalizar(par[0]).startswith(normalizar(prefixo))),
+                    key=lambda par: (-par[1], normalizar(par[0])),
+                )[:5]
+                self.assertEqual(trie.sugerir(prefixo, limite=5), esperado,
+                                 f"prefixo '{prefixo}' divergiu")
+
+    def test_sugerir_visita_menos_nos_que_a_varredura(self):
+        """
+        O ganho que motivou o algoritmo: com prefixo curto e subárvore grande,
+        o best-first abre uma fração dos nós que a coleta alfabética abre.
+        """
+        trie = Trie()
+        for numero in range(600):
+            trie.inserir(f"a{numero:04d}", peso=numero)
+
+        trie.nos_visitados = 0
+        trie.buscar_prefixo("a")
+        varredura = trie.nos_visitados
+
+        trie.sugerir("a", limite=5)
+        self.assertLess(trie.nos_visitados, varredura / 10)
+
+
+class TesteBuscaAproximada(unittest.TestCase):
+    """
+    O "você quis dizer?": distância de edição calculada sobre a própria Trie.
+
+    A busca poda ramos inteiros e compartilha linhas da matriz entre palavras
+    com o mesmo prefixo -- dois atalhos que só valem se a resposta continuar
+    exatamente a da definição. Por isso a bateria compara sempre contra
+    `distancia_edicao`, a matriz completa palavra a palavra.
+    """
+
+    def test_transposicao_vale_uma_edicao(self):
+        self.assertEqual(distancia_edicao("algortimo", "algoritmo"), 1)
+        self.assertEqual(distancia_edicao("hahs", "hash"), 1)
+
+    def test_distancias_classicas(self):
+        self.assertEqual(distancia_edicao("", "abc"), 3)
+        self.assertEqual(distancia_edicao("kitten", "sitting"), 3)
+        self.assertEqual(distancia_edicao("dados", "dados"), 0)
+
+    def test_corrige_erro_de_digitacao(self):
+        trie = Trie(EXEMPLO_ENUNCIADO)
+        palavra, distancia, _peso = trie.buscar_aproximado("compliador")[0]
+        self.assertEqual((palavra, distancia), ("compilador", 1))
+
+    def test_devolve_a_grafia_acentuada(self):
+        trie = Trie(EXEMPLO_ENUNCIADO)
+        encontradas = [p for p, _d, _w in trie.buscar_aproximado("programacao")]
+        self.assertEqual(encontradas[0], "programação")
+
+    def test_mais_perto_primeiro_e_empate_pelo_peso(self):
+        trie = Trie()
+        trie.inserir("rede", peso=5)
+        trie.inserir("redes", peso=50)
+        trie.inserir("rei", peso=90)
+        self.assertEqual(trie.buscar_aproximado("redr", distancia_maxima=2, limite=None),
+                         [("rede", 1, 5), ("rei", 2, 90), ("redes", 2, 50)])
+
+    def test_tolerancia_automatica_pelo_tamanho(self):
+        trie = Trie(["rede", "roda"])
+        # "rede" -> "roda" são duas trocas: fora do limite de uma palavra curta.
+        self.assertEqual([p for p, _d, _w in trie.buscar_aproximado("rede")], ["rede"])
+        self.assertEqual(len(trie.buscar_aproximado("rede", distancia_maxima=2)), 2)
+
+    def test_entrada_vazia(self):
+        self.assertEqual(Trie(EXEMPLO_ENUNCIADO).buscar_aproximado("   "), [])
+        self.assertEqual(Trie().buscar_aproximado("algo"), [])
+
+    def test_concorda_com_a_forca_bruta(self):
+        random.seed(23)
+        for _ in range(60):
+            pesos = {}
+            for _ in range(random.randint(1, 50)):
+                palavra = "".join(random.choice("abcãç")
+                                  for _ in range(random.randint(1, 7)))
+                pesos[palavra] = random.randint(1, 20)
+
+            trie = Trie()
+            for palavra, peso in pesos.items():
+                trie.inserir(palavra, peso=peso)
+
+            # Grafias que colidem na mesma chave somam uma entrada só na Trie,
+            # com o maior peso; a força bruta precisa enxergar o mesmo.
+            por_chave = {}
+            for palavra, peso in pesos.items():
+                chave = normalizar(palavra)
+                forma, maior = por_chave.get(chave, (palavra, 0))
+                por_chave[chave] = (min(forma, palavra), max(maior, peso))
+
+            for _ in range(5):
+                consulta = "".join(random.choice("abcd")
+                                   for _ in range(random.randint(1, 6)))
+                for limite in (0, 1, 2):
+                    esperado = sorted(
+                        ((forma, distancia_edicao(chave, normalizar(consulta)), peso)
+                         for chave, (forma, peso) in por_chave.items()
+                         if distancia_edicao(chave, normalizar(consulta)) <= limite),
+                        key=lambda trio: (trio[1], -trio[2], normalizar(trio[0])),
+                    )
+                    self.assertEqual(
+                        trie.buscar_aproximado(consulta, limite, limite=None), esperado,
+                        f"consulta '{consulta}' com distância {limite} divergiu")
+
+    def test_poda_visita_uma_fracao_da_arvore(self):
+        trie = Trie(f"palavra{numero:04d}" for numero in range(800))
+        trie.buscar_aproximado("xilofone", distancia_maxima=2)
+        self.assertLess(trie.nos_visitados, trie.total_nos() / 10)
 
 
 class TesteTrieComprimida(unittest.TestCase):
@@ -178,6 +375,32 @@ class TesteTrieComprimida(unittest.TestCase):
                     comprimida.buscar_prefixo(prefixo),
                     f"prefixo '{prefixo}' divergiu em {sorted(palavras)}",
                 )
+                # A contagem agregada é o caso mais delicado da estrutura: a
+                # divisão de arestas cria um nó no meio do caminho, que precisa
+                # herdar a contagem do filho antes de somar a palavra nova.
+                self.assertEqual(
+                    tradicional.contar_prefixo(prefixo),
+                    comprimida.contar_prefixo(prefixo),
+                    f"contagem do prefixo '{prefixo}' divergiu em {sorted(palavras)}",
+                )
+
+    def test_contagem_sobrevive_a_divisao_de_aresta(self):
+        """
+        Inserir "computador" e depois "compilador" parte a aresta "comp...".
+        O nó criado no meio tem de sair com a contagem certa dos dois lados.
+        """
+        comprimida = TrieComprimida()
+        comprimida.inserir("computador")
+        self.assertEqual(comprimida.contar_prefixo("comp"), 1)
+
+        comprimida.inserir("compilador")
+        self.assertEqual(comprimida.contar_prefixo("comp"), 2)
+        self.assertEqual(comprimida.contar_prefixo("compu"), 1)
+        self.assertEqual(comprimida.contar_prefixo("compi"), 1)
+
+        comprimida.inserir("comp")     # a palavra cai exatamente na bifurcação
+        self.assertEqual(comprimida.contar_prefixo("comp"), 3)
+        self.assertEqual(comprimida.contar_prefixo(""), 3)
 
 
 class TesteStemmerRSLP(unittest.TestCase):
@@ -487,11 +710,88 @@ class TesteMecanismoPontaAPonta(unittest.TestCase):
     def test_stopwords_fora_do_indice(self):
         self.assertEqual(self.mecanismo.buscar_palavra("de")["documentos"], [])
 
+    def test_consulta_com_varios_termos(self):
+        """
+        "busca" está em algoritmos.txt e banco_dados.txt; "dados", nos três.
+        Quem tem as duas palavras vem antes de quem tem só uma.
+        """
+        resposta = self.mecanismo.buscar_palavra("busca dados")
+        self.assertEqual(len(resposta["termos"]), 2)
+        self.assertEqual(resposta["todos"], ["algoritmos.txt", "banco_dados.txt"])
+
+        ordem = [documento for documento, _nota in resposta["documentos"]]
+        self.assertEqual(ordem[-1], "redes.txt")
+        self.assertEqual(resposta["cobertura"]["redes.txt"], 1)
+        self.assertEqual(resposta["cobertura"]["banco_dados.txt"], 2)
+
+    def test_stopword_da_consulta_e_ignorada(self):
+        """Sem descartar o "de", nenhum documento teria TODOS os termos."""
+        resposta = self.mecanismo.buscar_palavra("estruturas de dados")
+        self.assertEqual(resposta["ignorados"], ["de"])
+        self.assertIn("algoritmos.txt", resposta["todos"])
+
+    def test_termo_repetido_conta_uma_vez(self):
+        """Singular e plural têm o mesmo radical: é um termo só."""
+        resposta = self.mecanismo.buscar_palavra("algoritmo algoritmos")
+        self.assertEqual(len(resposta["termos"]), 1)
+
+    def test_voce_quis_dizer(self):
+        resposta = self.mecanismo.buscar_palavra("algortimo")
+        self.assertEqual(resposta["documentos"], [])
+        palavra, distancia, frequencia = resposta["aproximadas"]["algortimo"][0]
+        self.assertEqual((palavra, distancia), ("algoritmo", 1))
+        self.assertEqual(frequencia, self.mecanismo.frequencia["algoritmo"])
+        self.assertEqual(resposta["correcao"], "algoritmo")
+
+    def test_correcao_preserva_os_outros_termos(self):
+        resposta = self.mecanismo.buscar_palavra("busca de algortimo")
+        self.assertEqual(resposta["correcao"], "busca de algoritmo")
+        # A parte que existe continua respondendo enquanto isso.
+        self.assertTrue(resposta["documentos"])
+        self.assertEqual(resposta["todos"], [])
+
+    def test_sem_sugestao_quando_nada_parece(self):
+        resposta = self.mecanismo.buscar_palavra("xyzkw")
+        self.assertEqual(resposta["aproximadas"], {"xyzkw": []})
+        self.assertIsNone(resposta["correcao"])
+
     def test_prefixo_integra_trie_e_indice(self):
         resposta = self.mecanismo.buscar_prefixo("algor")
         self.assertTrue(resposta["termos"])
         for termo in resposta["termos"]:
             self.assertIn("algoritmos.txt", resposta["por_termo"][termo])
+
+    def test_sugestoes_vem_por_frequencia(self):
+        """
+        O autocomplete por relevância usa a frequência real do corpus. No texto
+        de teste, "algoritmos" (3 ocorrências) precede "algoritmo" (1).
+        """
+        resposta = self.mecanismo.buscar_prefixo("algor")
+        sugestoes = resposta["sugestoes"]
+        self.assertTrue(sugestoes)
+
+        pesos = [peso for _palavra, peso in sugestoes]
+        self.assertEqual(pesos, sorted(pesos, reverse=True))
+        self.assertEqual(sugestoes[0][0], "algoritmos")
+
+        # O peso tem de ser a contagem de verdade, não um número qualquer.
+        for palavra, peso in sugestoes:
+            self.assertEqual(peso, self.mecanismo.frequencia[palavra])
+
+    def test_contagem_do_prefixo_bate_com_a_lista(self):
+        """Sem limite, o total agregado e o tamanho da lista têm de coincidir."""
+        for prefixo in ["a", "alg", "dad", "re", "z"]:
+            resposta = self.mecanismo.buscar_prefixo(prefixo, limite=None)
+            self.assertEqual(resposta["total_disponivel"], len(resposta["termos"]),
+                             f"divergiram no prefixo '{prefixo}'")
+
+    def test_conteudo_minusculo_espelha_o_original(self):
+        """O cache que a busca por sequência usa não pode sair do lugar."""
+        self.assertEqual(sorted(self.mecanismo.conteudo_minusculo),
+                         sorted(self.mecanismo.conteudo))
+        for documento, texto in self.mecanismo.conteudo.items():
+            self.assertEqual(self.mecanismo.conteudo_minusculo[documento],
+                             texto.lower())
 
     def test_kmp_acha_no_conteudo_original(self):
         """A busca por sequência alcança trechos que a tokenização descarta."""
@@ -631,6 +931,12 @@ class TesteServidorWeb(unittest.TestCase):
         palavra = self.obter("/api/parte1/palavra", q="grafo")
         self.assertTrue(palavra["existe"])
         self.assertEqual(palavra["formas"], ["grafo"])
+        self.assertEqual(palavra["aproximadas"], [])
+
+    def test_palavra_ausente_traz_parecidas(self):
+        resposta = self.obter("/api/parte1/palavra", q="compiladro")
+        self.assertFalse(resposta["existe"])
+        self.assertEqual(resposta["aproximadas"][0][:2], ["compilador", 1])
 
     def test_insercao_em_tempo_de_execucao(self):
         antes = self.obter("/api/estado")["parte1"]["palavras"]

@@ -160,6 +160,12 @@ def executar_parte1(caminho_lexico):
                 sugestoes = trie.buscar_prefixo(palavra, limite=5)
                 if sugestoes:
                     print(f"Começam assim: {', '.join(sugestoes)}")
+                # Fora do cronômetro: a busca aproximada é um serviço a mais,
+                # e não o custo O(m) da busca exata que o enunciado pede.
+                parecidas = [p for p, distancia, _ in trie.buscar_aproximado(palavra)
+                             if distancia > 0]
+                if parecidas:
+                    print(f"Você quis dizer: {', '.join(parecidas)}?")
             informar_tempo(relogio.decorrido)
 
         elif opcao == "2":
@@ -214,27 +220,62 @@ def exibir_busca_palavra(mecanismo):
 
     resposta = mecanismo.buscar_palavra(palavra)
     documentos = resposta["documentos"]
+    termos = resposta["termos"]
+
+    if resposta["ignorados"]:
+        print(f"\n  Ignoradas (stopwords): {', '.join(resposta['ignorados'])}")
 
     if not documentos:
         print(f"\n'{palavra}' não foi encontrada em nenhum documento.")
+        mostrar_correcao(resposta)
         informar_tempo(resposta["tempo"])
         return
 
-    print(f"\nEncontrada em {len(documentos)} arquivo(s):")
+    if len(termos) > 1:
+        print("\nTermos da consulta:")
+        for termo in termos:
+            print(f"  {termo['termo']:<20} radical '{termo['radical']}' "
+                  f"-> {termo['documentos']} arquivo(s)")
+        print(f"\nArquivos com todos os termos: {len(resposta['todos'])} "
+              f"(com algum deles: {len(documentos)})")
+    else:
+        print(f"\nEncontrada em {len(documentos)} arquivo(s):")
+
     for documento, pontuacao in documentos:
         frequencia = resposta["frequencias"][documento]
-        print(f"  - {documento:<42} {frequencia:>4} ocorrência(s)   BM25 {pontuacao:.3f}")
+        marca = ""
+        if len(termos) > 1:
+            marca = f"   [{resposta['cobertura'][documento]}/{len(termos)} termos]"
+        print(f"  - {documento:<42} {frequencia:>4} ocorrência(s)   "
+              f"BM25 {pontuacao:.3f}{marca}")
 
     # Mostra o ganho do stemming quando ele existe: é a demonstração concreta
     # de por que o item opcional da seção 3.3 foi implementado.
-    exatos = len(resposta["exatos"])
-    if exatos and exatos < len(documentos):
-        print(f"\n  Sem stemming a forma exata '{resposta['termo']}' apareceria em "
-              f"{exatos} arquivo(s).")
-        print(f"  O radical '{resposta['radical']}' (RSLP) alcança {len(documentos)}, "
-              f"reunindo as variantes da palavra.")
+    if len(termos) == 1:
+        exatos = termos[0]["exatos"]
+        if exatos and exatos < len(documentos):
+            print(f"\n  Sem stemming a forma exata '{resposta['termo']}' apareceria em "
+                  f"{exatos} arquivo(s).")
+            print(f"  O radical '{resposta['radical']}' (RSLP) alcança {len(documentos)}, "
+                  f"reunindo as variantes da palavra.")
 
+    mostrar_correcao(resposta)
     informar_tempo(resposta["tempo"])
+
+
+def mostrar_correcao(resposta):
+    """
+    O "você quis dizer?": sugestões por distância de edição para os termos que
+    não levaram a documento nenhum, buscadas na Trie do vocabulário.
+    """
+    for termo, sugestoes in resposta["aproximadas"].items():
+        if sugestoes:
+            lista = ", ".join(
+                f"{palavra} ({distancia} {'edições' if distancia > 1 else 'edição'})"
+                for palavra, distancia, _peso in sugestoes[:3])
+            print(f"\n  Nada para '{termo}'. Parecidas: {lista}")
+    if resposta["correcao"]:
+        print(f"  Você quis dizer: {resposta['correcao']}?")
 
 
 def exibir_busca_prefixo(mecanismo):
@@ -258,6 +299,14 @@ def exibir_busca_prefixo(mecanismo):
 
     if resposta["truncado"]:
         print(f"  ... exibindo {len(termos)} de {resposta['total_disponivel']} termos")
+
+    # A lista acima é a alfabética que o enunciado pede. Esta é a que um
+    # autocomplete usaria: as mais frequentes no corpus primeiro, recuperadas
+    # pela busca best-first da Trie, sem varrer a subárvore do prefixo.
+    if resposta["sugestoes"]:
+        print("\nMais relevantes (por frequência no corpus):")
+        for posicao, (palavra, ocorrencias) in enumerate(resposta["sugestoes"][:5], 1):
+            print(f"  {posicao}. {palavra:<26} {ocorrencias:>5} ocorrência(s)")
 
     print(f"\nDocumentos que contêm algum desses termos: {len(resposta['documentos'])}")
     for documento, pontuacao in resposta["ranking"][:8]:

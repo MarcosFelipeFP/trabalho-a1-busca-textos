@@ -34,7 +34,7 @@ import time
 from indice_invertido import TabelaHash
 from kmp import buscar_ingenuo, buscar_kmp
 from mecanismo import MecanismoBusca
-from trie import Trie, TrieComprimida, normalizar
+from trie import Trie, TrieComprimida, distancia_edicao, normalizar
 
 LARGURA = 74
 REPETICOES = 25
@@ -190,7 +190,108 @@ def experimento_trie_vs_sequencial(vocabulario):
 
 
 # ==========================================================================
-#  EXPERIMENTO 2 - TRIE TRADICIONAL CONTRA COMPRIMIDA
+#  EXPERIMENTO 2 - AUTOCOMPLETE TOP-K: VARREDURA CONTRA BUSCA BEST-FIRST
+# ==========================================================================
+
+def experimento_autocomplete(mecanismo):
+    """
+    Compara as duas formas de responder "as k melhores palavras deste prefixo".
+
+    Previsão teórica:
+        varredura    O(m + p)             -- visita a subárvore inteira do
+                                            prefixo para depois escolher as k
+        best-first   O(m + k·h·σ·log(...)) -- não depende de p
+
+    A grandeza observada é o NÚMERO DE NÓS VISITADOS, e não o tempo. Tempo em
+    microssegundos oscila com o escalonador; nós visitados é determinístico e
+    é exatamente a quantidade que a análise assintótica prevê. O tempo aparece
+    ao lado como confirmação.
+
+    A previsão que interessa é qualitativa: conforme o prefixo encurta, p
+    explode e a coluna da varredura acompanha, enquanto a do best-first fica
+    praticamente parada -- ela só depende de k, que é fixo.
+    """
+    titulo("EXPERIMENTO 2 - Autocomplete top-k: varredura contra best-first")
+
+    trie = mecanismo.trie
+    k = 10
+    prefixos = ["computac", "comput", "compu", "comp", "com", "co", "c"]
+
+    print(f"\n  As {k} palavras mais frequentes do corpus que começam com cada")
+    print("  prefixo, obtidas de duas formas sobre a MESMA Trie.")
+    print(f"  Mediana de {REPETICOES} repetições por medição.")
+
+    subtitulo("(a) Trabalho realizado para devolver as mesmas k palavras")
+    print(f"  {'prefixo':>10}{'palavras':>11}{'nós (varredura)':>18}"
+          f"{'nós (best-first)':>18}{'economia':>11}")
+    print("  " + "-" * (LARGURA - 4))
+
+    for prefixo in prefixos:
+        disponiveis = trie.contar_prefixo(prefixo)
+
+        # Varredura: para escolher as k melhores é preciso ver todas, então a
+        # coleta vai sem limite -- é esse o custo que o best-first evita.
+        trie.buscar_prefixo(prefixo)
+        nos_varredura = trie.nos_visitados
+
+        trie.sugerir(prefixo, limite=k)
+        nos_best_first = trie.nos_visitados
+
+        economia = (1 - nos_best_first / nos_varredura) if nos_varredura else 0.0
+        print(f"  {prefixo:>10}{disponiveis:>11,}{nos_varredura:>18,}"
+              f"{nos_best_first:>18,}{economia:>10.1%}")
+
+    subtitulo("(b) Tempo das duas estratégias")
+    print(f"  {'prefixo':>10}{'palavras':>11}{'varredura':>16}"
+          f"{'best-first':>16}{'ganho':>10}")
+    print("  " + "-" * (LARGURA - 4))
+
+    for prefixo in prefixos:
+        disponiveis = trie.contar_prefixo(prefixo)
+
+        def com_varredura():
+            # Ordenar por frequência exige a lista inteira antes de cortar.
+            palavras = trie.buscar_prefixo(prefixo)
+            ordenadas = sorted(palavras,
+                               key=lambda p: -mecanismo.frequencia.get(p, 0))
+            return ordenadas[:k]
+
+        def com_best_first():
+            return trie.sugerir(prefixo, limite=k)
+
+        tempo_varredura = medir(com_varredura, lotes=20)
+        tempo_best = medir(com_best_first, lotes=20)
+        ganho = tempo_varredura / tempo_best if tempo_best else 0
+
+        print(f"  {prefixo:>10}{disponiveis:>11,}{us(tempo_varredura):>16}"
+              f"{us(tempo_best):>16}{ganho:>9.1f}x")
+
+    subtitulo("(c) O que cada estratégia devolve para 'comp'")
+    alfabeticas = trie.buscar_prefixo("comp", limite=5)
+    relevantes = trie.sugerir("comp", limite=5)
+
+    print(f"  {'ordem alfabética':<30}{'por frequência no corpus':<30}")
+    print("  " + "-" * (LARGURA - 4))
+    for posicao in range(5):
+        esquerda = alfabeticas[posicao] if posicao < len(alfabeticas) else ""
+        if posicao < len(relevantes):
+            palavra, peso = relevantes[posicao]
+            direita = f"{palavra} ({peso}x)"
+        else:
+            direita = ""
+        print(f"  {esquerda:<30}{direita:<30}")
+
+    print("\n  A tabela (a) é a demonstração: o prefixo encurta, a subárvore")
+    print("  cresce em ordens de grandeza e a varredura cresce junto, enquanto")
+    print("  o best-first mal se mexe -- ele para assim que as k palavras saem,")
+    print("  e a poda por `melhor_peso` garante que nenhuma subárvore descartada")
+    print("  poderia conter algo melhor. A tabela (c) mostra por que isso vale a")
+    print("  pena: a coluna da direita é a que um usuário reconheceria como")
+    print("  autocomplete.")
+
+
+# ==========================================================================
+#  EXPERIMENTO 3 - TRIE TRADICIONAL CONTRA COMPRIMIDA
 # ==========================================================================
 
 def experimento_trie_comprimida(vocabulario):
@@ -201,7 +302,7 @@ def experimento_trie_comprimida(vocabulario):
     tradicional gasta um nó por caractere, mesmo em cadeias sem bifurcação; a
     comprimida colapsa cada cadeia dessas em um nó só.
     """
-    titulo("EXPERIMENTO 2 - Trie tradicional contra Trie comprimida (PATRICIA)")
+    titulo("EXPERIMENTO 3 - Trie tradicional contra Trie comprimida (PATRICIA)")
 
     palavras = sorted(vocabulario)
 
@@ -242,7 +343,7 @@ def experimento_trie_comprimida(vocabulario):
 
 
 # ==========================================================================
-#  EXPERIMENTO 3 - KMP CONTRA BUSCA INGÊNUA
+#  EXPERIMENTO 4 - KMP CONTRA BUSCA INGÊNUA
 # ==========================================================================
 
 def experimento_kmp(mecanismo):
@@ -254,7 +355,7 @@ def experimento_kmp(mecanismo):
     costumam ocorrer no primeiro ou segundo caractere -- e é justamente por
     isso que a busca ingênua sobrevive na prática apesar do pior caso ruim.
     """
-    titulo("EXPERIMENTO 3 - Casamento de cadeias: KMP contra força bruta")
+    titulo("EXPERIMENTO 4 - Casamento de cadeias: KMP contra força bruta")
 
     subtitulo("Pior caso construído: texto 'aaa...a', padrão 'aaa...ab'")
     print(f"  {'n':>10}{'m':>6}{'KMP (comp.)':>16}{'ingênuo (comp.)':>18}{'razão':>10}")
@@ -291,7 +392,7 @@ def experimento_kmp(mecanismo):
 
 
 # ==========================================================================
-#  EXPERIMENTO 4 - TABELA HASH: COLISÕES NA PRÁTICA
+#  EXPERIMENTO 5 - TABELA HASH: COLISÕES NA PRÁTICA
 # ==========================================================================
 
 def experimento_hash(mecanismo):
@@ -302,7 +403,7 @@ def experimento_hash(mecanismo):
     Serve para transformar em número o que a seção 3.6 do enunciado pede para
     explicar: por que a busca é O(1) em média e o que são as colisões.
     """
-    titulo("EXPERIMENTO 4 - Tabela hash: fator de carga e colisões")
+    titulo("EXPERIMENTO 5 - Tabela hash: fator de carga e colisões")
 
     termos = list(mecanismo.indice.por_radical)
     print(f"\n  Termos indexados: {len(termos):,}\n")
@@ -348,7 +449,7 @@ def experimento_hash(mecanismo):
 
 
 # ==========================================================================
-#  EXPERIMENTO 5 - ESCALABILIDADE DA INDEXAÇÃO
+#  EXPERIMENTO 6 - ESCALABILIDADE DA INDEXAÇÃO
 # ==========================================================================
 
 def experimento_escalabilidade(pasta):
@@ -358,7 +459,7 @@ def experimento_escalabilidade(pasta):
     Previsão: O(N) no total de tokens. Se a previsão valer, o tempo por mil
     tokens deve permanecer aproximadamente constante conforme o corpus cresce.
     """
-    titulo("EXPERIMENTO 5 - Escalabilidade da indexação")
+    titulo("EXPERIMENTO 6 - Escalabilidade da indexação")
 
     completo = MecanismoBusca(pasta, guardar_conteudo=False)
     arquivos = completo.listar_arquivos()
@@ -394,7 +495,7 @@ def experimento_escalabilidade(pasta):
 
 
 # ==========================================================================
-#  EXPERIMENTO 6 - RANQUEAMENTO: BM25 CONTRA TF-IDF
+#  EXPERIMENTO 7 - RANQUEAMENTO: BM25 CONTRA TF-IDF
 # ==========================================================================
 
 def experimento_ranqueamento(mecanismo):
@@ -405,7 +506,7 @@ def experimento_ranqueamento(mecanismo):
     por tamanho, o TF-IDF tende a premiá-los apenas por acumularem mais
     ocorrências.
     """
-    titulo("EXPERIMENTO 6 - Ranqueamento: BM25 contra TF-IDF")
+    titulo("EXPERIMENTO 7 - Ranqueamento: BM25 contra TF-IDF")
 
     indice = mecanismo.indice
     print(f"\n  Tamanho médio dos documentos: {indice.tamanho_medio():.0f} tokens\n")
@@ -442,7 +543,7 @@ def experimento_ranqueamento(mecanismo):
 
 
 # ==========================================================================
-#  EXPERIMENTO 7 - EFEITO DO STEMMING
+#  EXPERIMENTO 8 - EFEITO DO STEMMING
 # ==========================================================================
 
 def experimento_stemming(mecanismo):
@@ -452,7 +553,7 @@ def experimento_stemming(mecanismo):
     Duas grandezas interessam: quanto o vocabulário encolhe (menos chaves, menos
     memória) e quantos documentos a mais uma consulta alcança (mais recall).
     """
-    titulo("EXPERIMENTO 7 - Efeito do stemming RSLP")
+    titulo("EXPERIMENTO 8 - Efeito do stemming RSLP")
 
     indice = mecanismo.indice
     exatos = indice.total_termos(usar_radical=False)
@@ -471,13 +572,86 @@ def experimento_stemming(mecanismo):
     for consulta in ["algoritmo", "rede", "dado", "programa", "computador",
                      "sistema", "documento", "informação"]:
         resposta = mecanismo.buscar_palavra(consulta)
-        sem = len(resposta["exatos"])
+        sem = resposta["termos"][0]["exatos"] if resposta["termos"] else 0
         com = len(resposta["documentos"])
         ganho = f"+{com - sem}" if com > sem else "0"
         print(f"  {consulta:<20}{sem:>16}{com:>16}{ganho:>12}")
 
     print("\n  O ganho é o número de arquivos que a consulta só encontra porque")
     print("  o radical reúne singular, plural e formas derivadas da palavra.")
+
+
+# ==========================================================================
+#  EXPERIMENTO 9 - BUSCA APROXIMADA: TRIE CONTRA PALAVRA A PALAVRA
+# ==========================================================================
+
+def experimento_busca_aproximada(mecanismo):
+    """
+    Compara o "você quis dizer?" feito sobre a Trie com a comparação da consulta
+    contra cada palavra do vocabulário, uma por uma.
+
+    Previsão teórica:
+        palavra a palavra   O(V · m · ℓ)  -- uma matriz m×ℓ por palavra
+        Trie                O(n · m)      -- uma linha por nó visitado
+
+    A grandeza observada é o número de CÉLULAS da matriz de programação
+    dinâmica efetivamente calculadas, que não depende de relógio nem de
+    máquina. A força bruta recebe o filtro óbvio -- palavras cujo tamanho
+    difere da consulta em mais que o limite não podem estar dentro dele e nem
+    são comparadas --, para a comparação ser justa. A Trie ganha mesmo assim,
+    por dois motivos: palavras com prefixo comum dividem as mesmas linhas, e
+    ramos cujo mínimo já passou do limite são podados inteiros.
+    """
+    titulo("EXPERIMENTO 9 - Busca aproximada: Trie contra palavra a palavra")
+
+    trie = mecanismo.trie
+    chaves = sorted({normalizar(palavra) for palavra in mecanismo.vocabulario})
+    consultas = ["algortimo", "estrutra", "compilaodr", "neurl", "hahs"]
+
+    print(f"\n  Vocabulário: {len(chaves):,} chaves, {trie.total_nos():,} nós na Trie.")
+    print("  Distância máxima: 2 edições (1 para palavras de até 4 letras).")
+
+    subtitulo("(a) Células da matriz calculadas por consulta")
+    print(f"  {'consulta':<13}{'achadas':>8}{'nós visitados':>15}"
+          f"{'células (Trie)':>16}{'palavra a palavra':>19}{'razão':>8}")
+    print("  " + "-" * (LARGURA - 4))
+
+    medidas = []
+    for consulta in consultas:
+        chave = normalizar(consulta)
+        distancia = 1 if len(chave) <= 4 else 2
+
+        achadas = trie.buscar_aproximado(consulta, distancia, limite=None)
+        celulas_trie = trie.nos_visitados * len(chave)
+        comparadas = [c for c in chaves if abs(len(c) - len(chave)) <= distancia]
+        celulas_bruta = sum(len(c) * len(chave) for c in comparadas)
+
+        # Confere que as duas vias concordam antes de comparar os custos.
+        pela_forca = sum(1 for c in comparadas if distancia_edicao(c, chave) <= distancia)
+        assert pela_forca == len(achadas), f"divergência em '{consulta}'"
+
+        medidas.append((consulta, chave, distancia, comparadas))
+        print(f"  {consulta:<13}{len(achadas):>8}{trie.nos_visitados:>15,}"
+              f"{celulas_trie:>16,}{celulas_bruta:>19,}"
+              f"{celulas_bruta / celulas_trie:>7.0f}x")
+
+    subtitulo("(b) Tempo das duas estratégias")
+    print(f"  {'consulta':<13}{'Trie':>16}{'palavra a palavra':>20}{'ganho':>10}")
+    print("  " + "-" * (LARGURA - 4))
+
+    for consulta, chave, distancia, comparadas in medidas:
+        tempo_trie = medir(lambda: trie.buscar_aproximado(consulta, distancia, limite=None),
+                           repeticoes=9)
+        tempo_bruta = medir(
+            lambda: [c for c in comparadas if distancia_edicao(c, chave) <= distancia],
+            repeticoes=3)
+        print(f"  {consulta:<13}{us(tempo_trie):>16}{us(tempo_bruta):>20}"
+              f"{tempo_bruta / tempo_trie:>9.1f}x")
+
+    print("\n  A coluna de nós visitados é a poda em ação: de mais de trinta mil")
+    print("  nós, a busca abre poucos milhares -- os caminhos que ainda estão a até")
+    print("  duas edições de algum prefixo da consulta. É por isso que o \"você")
+    print("  quis dizer?\" cabe no tempo de uma consulta interativa.")
 
 
 # ==========================================================================
@@ -511,12 +685,14 @@ def main():
           f"{e.termos_distintos:,} termos distintos.")
 
     experimento_trie_vs_sequencial(mecanismo.vocabulario)
+    experimento_autocomplete(mecanismo)
     experimento_trie_comprimida(mecanismo.vocabulario)
     experimento_kmp(mecanismo)
     experimento_hash(mecanismo)
     experimento_escalabilidade(argumentos.pasta)
     experimento_ranqueamento(mecanismo)
     experimento_stemming(mecanismo)
+    experimento_busca_aproximada(mecanismo)
 
     titulo("FIM DOS EXPERIMENTOS")
     return 0
