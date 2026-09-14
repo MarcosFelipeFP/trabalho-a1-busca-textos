@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Duas fontes, embutidas no arquivo final (sem internet na sala):
+     Hanken Grotesk  a interface: caixa de busca, títulos, rótulos
+     Literata        o texto dos documentos, nos trechos e no leitor
+   Só o subconjunto latino entra, que cobre o português inteiro.
+   --------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Hanken Grotesk";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("@fontes/hanken-grotesk/files/hanken-grotesk-latin-wght-normal.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Literata";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("@fontes/literata/files/literata-latin-opsz-normal.woff2") format("woff2-variations");
+}
+
+/* ---------------------------------------------------------------------------
+   Paleta clara e quase monocromática. A única cor é o marca-texto: ela marca
+   o que a busca encontrou, e nada mais.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-fundo: #ffffff;
+  --color-nevoa: #f4f5f7;
+  --color-linha: #e6e8ec;
+  --color-tinta: #16181d;
+  --color-grafite: #4a505a;
+  --color-cinza: #8b919b;
+  --color-marca: #ffe68a;
+
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-serif: "Literata", Georgia, "Times New Roman", serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--color-fundo);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-marca);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-tinta);
+  outline-offset: 2px;
+}
+
+/* O campo de busca mostra o foco pela sombra da cápsula, não por contorno. */
+input:focus-visible {
+  outline: none;
+}
+
+/* O realce das palavras encontradas: um traço de marca-texto, não uma caixa. */
+mark {
+  background: linear-gradient(to bottom, transparent 12%, var(--color-marca) 12%, var(--color-marca) 88%, transparent 88%);
+  color: inherit;
+  padding: 0 0.12em;
+  margin: 0 -0.04em;
+  border-radius: 0.2em;
+}
+
+.numeros {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

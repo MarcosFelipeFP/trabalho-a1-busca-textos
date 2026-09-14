@@ -39,3 +39,9 @@ saida/
 
 # --- Versao empacotada para pendrive (gerada por gerar_pendrive.py) ---
 pendrive/
+
+# --- Interface (Vite) ---
+# As dependencias sao baixadas com `npm install`; o build fica versionado para
+# o servidor.py e o pendrive funcionarem sem Node instalado.
+interface/node_modules/
+!interface/dist/
