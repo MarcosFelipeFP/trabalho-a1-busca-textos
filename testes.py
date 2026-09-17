@@ -20,7 +20,9 @@ Uso:
     python testes.py -v
 """
 
+import contextlib
 import http.client
+import io
 import json
 import random
 import shutil
@@ -31,9 +33,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+from unittest import mock
 
 from indice_invertido import IndiceInvertido, TabelaHash
 from kmp import buscar_ingenuo, buscar_kmp, tabela_falha
+from main import PALAVRAS_POR_PAGINA, executar_parte1, executar_parte2
 from mecanismo import MecanismoBusca
 from preprocessamento import Preprocessador, remover_pontuacao, tokenizar
 from servidor import Aplicacao, criar_servidor
@@ -827,6 +831,114 @@ class TesteMecanismoPontaAPonta(unittest.TestCase):
     def test_trie_comprimida_economiza_nos(self):
         e = self.mecanismo.estatisticas
         self.assertLess(e.nos_na_trie_comprimida, e.nos_na_trie)
+
+
+# ==========================================================================
+#  INTERFACE DE TERMINAL
+# ==========================================================================
+
+class TesteInterfaceTerminal(unittest.TestCase):
+    """
+    Conduz os menus do main.py com respostas simuladas e confere o que é
+    impresso: é essa a saída que o usuário vê.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.pasta = Path(tempfile.mkdtemp(prefix="testes_a1_menu_"))
+        documentos = cls.pasta / "documentos"
+        documentos.mkdir()
+        (documentos / "algoritmos.txt").write_text(
+            "Algoritmos de busca são fundamentais. Estruturas de dados "
+            "complementam os algoritmos de ordenação.",
+            encoding="utf-8",
+        )
+        (documentos / "redes.txt").write_text(
+            "Redes de computadores transmitem dados entre máquinas.",
+            encoding="utf-8",
+        )
+        (documentos / "banco_dados.txt").write_text(
+            "Banco de dados relacional organiza dados em tabelas.",
+            encoding="utf-8",
+        )
+        cls.documentos = documentos
+
+        cls.lexico_do_enunciado = cls.pasta / "enunciado.txt"
+        cls.lexico_do_enunciado.write_text("\n".join(EXEMPLO_ENUNCIADO), encoding="utf-8")
+
+        # Mais palavras do que cabem em duas páginas, para exercitar a paginação.
+        cls.palavras_longas = ["prefixo" + a + b for a in "abc" for b in "abcdefghijklmnopqrstuvwxyz"]
+        cls.lexico_longo = cls.pasta / "longo.txt"
+        cls.lexico_longo.write_text("\n".join(cls.palavras_longas), encoding="utf-8")
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.pasta, ignore_errors=True)
+
+    def conduzir(self, funcao, respostas, *argumentos):
+        """Executa um menu respondendo `respostas` na ordem; devolve a saída."""
+        fila = iter(respostas)
+
+        def responder(_mensagem=""):
+            try:
+                return next(fila)
+            except StopIteration:
+                raise EOFError from None
+
+        saida = io.StringIO()
+        with mock.patch("builtins.input", responder), contextlib.redirect_stdout(saida):
+            funcao(*argumentos)
+        return saida.getvalue()
+
+    @staticmethod
+    def palavras_listadas(saida):
+        """As linhas da primeira lista 'Palavras encontradas', sem o recuo."""
+        bloco = saida.split("Palavras encontradas:\n", 1)[1].split("\nTempo da consulta", 1)[0]
+        return [linha.strip() for linha in bloco.splitlines() if linha.strip()]
+
+    def test_prefixo_da_parte1_reproduz_o_enunciado(self):
+        """Seção 2.2: 'comp' devolve as cinco palavras, nesta ordem."""
+        saida = self.conduzir(executar_parte1, ["2", "comp", "4"],
+                              self.lexico_do_enunciado)
+        self.assertEqual(self.palavras_listadas(saida), [
+            "compilador", "complexidade", "computação", "computacional", "computador",
+        ])
+
+    def test_prefixo_longo_mostra_todas_as_palavras_em_paginas(self):
+        """Seção 2.3 pede TODAS as palavras: Enter percorre a lista até o fim."""
+        saida = self.conduzir(executar_parte1, ["2", "prefixo", "", "", "4"],
+                              self.lexico_longo)
+        self.assertEqual(self.palavras_listadas(saida), self.palavras_longas)
+
+    def test_paginacao_pode_ser_encerrada(self):
+        saida = self.conduzir(executar_parte1, ["2", "prefixo", "0", "4"],
+                              self.lexico_longo)
+        self.assertEqual(self.palavras_listadas(saida),
+                         self.palavras_longas[:PALAVRAS_POR_PAGINA])
+
+    def test_prefixo_da_parte2_informa_os_documentos_de_cada_termo(self):
+        """
+        Seção 3.7.2: a Trie devolve os termos e o índice diz em que documentos
+        cada um aparece -- os nomes, e não só a quantidade.
+        """
+        saida = self.conduzir(executar_parte2, ["2", "dad", "6"], self.documentos, True)
+        bloco = saida.split("Palavras encontradas:\n", 1)[1].split("\n\n", 1)[0]
+        self.assertEqual(bloco.splitlines(), [
+            "  dados                      ->  3 documento(s)",
+            "      algoritmos.txt, banco_dados.txt, redes.txt",
+        ])
+
+    def test_estatisticas_separam_tokenizacao_de_stopwords(self):
+        """Seção 3.9, item 2: o total após a tokenização vem antes do filtro."""
+        mecanismo = MecanismoBusca(self.documentos)
+        mecanismo.construir()
+        e = mecanismo.estatisticas
+        self.assertGreater(e.total_palavras_brutas, e.total_palavras)
+
+        saida = self.conduzir(executar_parte2, ["5", "6"], self.documentos, True)
+        self.assertIn(f"Total de palavras: {e.total_palavras_brutas}\n", saida)
+        self.assertRegex(saida, rf"Palavras após a tokenização\s+: {e.total_palavras_brutas}\n")
+        self.assertRegex(saida, rf"Palavras após remover stopwords\s+: {e.total_palavras} ")
 
 
 # ==========================================================================
