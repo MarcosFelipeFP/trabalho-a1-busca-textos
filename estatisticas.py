@@ -83,7 +83,7 @@ class Estatisticas:
     Reúne as sete métricas obrigatórias da seção 3.9 do enunciado.
 
         1. documentos processados
-        2. total de palavras após a tokenização
+        2. total de palavras após a tokenização (`total_palavras_brutas`)
         3. termos distintos
         4. palavras armazenadas na Trie
         5. tempo de construção da Trie
@@ -96,8 +96,8 @@ class Estatisticas:
 
     def __init__(self):
         self.documentos = 0
-        self.total_palavras = 0          # tokens após a tokenização
-        self.total_palavras_brutas = 0   # tokens antes da remoção de stopwords
+        self.total_palavras = 0          # tokens que restam após remover stopwords
+        self.total_palavras_brutas = 0   # tokens logo após a tokenização
         self.termos_distintos = 0
         self.palavras_na_trie = 0
         self.nos_na_trie = 0

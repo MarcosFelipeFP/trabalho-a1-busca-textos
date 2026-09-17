@@ -16,6 +16,7 @@ Uso:
 
 import argparse
 import sys
+import textwrap
 from pathlib import Path
 
 from estatisticas import Cronometro, formatar_duracao
@@ -23,6 +24,12 @@ from mecanismo import MecanismoBusca
 from trie import Trie
 
 LARGURA = 60
+
+# A busca por prefixo devolve TODAS as palavras que começam com o prefixo
+# (seção 2.3 do enunciado). Como um prefixo de uma letra alcança mais de mil
+# delas, a lista é exibida em páginas destes tamanhos, sem cortar nada.
+PALAVRAS_POR_PAGINA = 40
+TERMOS_POR_PAGINA = 10
 
 # Usadas quando não há léxico nem corpus: são as palavras da seção 2.2 do
 # enunciado, o suficiente para o programa demonstrar o autocomplete.
@@ -78,6 +85,27 @@ def perguntar(mensagem):
     except (EOFError, KeyboardInterrupt):
         print()
         return None
+
+
+def exibir_em_paginas(itens, exibir_item, por_pagina, unidade):
+    """
+    Exibe todos os `itens`, `por_pagina` de cada vez.
+
+    Enter mostra a página seguinte; qualquer outra resposta encerra a lista.
+    A consulta já foi feita e cronometrada antes: a paginação é apenas
+    apresentação, e por isso não entra no tempo informado ao usuário.
+    """
+    total = len(itens)
+    for inicio in range(0, total, por_pagina):
+        for item in itens[inicio:inicio + por_pagina]:
+            exibir_item(item)
+
+        exibidos = min(inicio + por_pagina, total)
+        if exibidos < total:
+            resposta = perguntar(f"  -- {exibidos} de {total} {unidade}. "
+                                 f"Enter mostra mais; 0 encerra a lista: ")
+            if resposta != "":
+                return
 
 
 def informar_tempo(segundos, rotulo="Tempo da consulta"):
@@ -173,18 +201,14 @@ def executar_parte1(caminho_lexico):
             if not prefixo:
                 continue
             with Cronometro() as relogio:
-                encontradas = trie.buscar_prefixo(prefixo, limite=40)
-                total = trie.contar_prefixo(prefixo)
+                encontradas = trie.buscar_prefixo(prefixo)
 
             if not encontradas:
                 print(f"\nNenhuma palavra começa com '{prefixo}'.")
             else:
                 print("\nPalavras encontradas:")
-                for palavra in encontradas:
-                    print(f"  {palavra}")
-                if total > len(encontradas):
-                    print(f"  ... e mais {total - len(encontradas)} "
-                          f"(exibindo {len(encontradas)} de {total})")
+                exibir_em_paginas(encontradas, lambda palavra: print(f"  {palavra}"),
+                                  PALAVRAS_POR_PAGINA, "palavras")
             informar_tempo(relogio.decorrido)
 
         elif opcao == "3":
@@ -279,12 +303,17 @@ def mostrar_correcao(resposta):
 
 
 def exibir_busca_prefixo(mecanismo):
-    """Consulta por prefixo: Trie seguida do índice invertido (seção 3.7.2)."""
+    """
+    Consulta por prefixo (seção 3.7.2): a Trie recupera os termos do
+    vocabulário e, para cada um, o índice invertido informa os documentos em
+    que ele aparece -- a integração "Trie -> termos; índice/hash -> documentos"
+    pedida no enunciado.
+    """
     prefixo = perguntar("Digite o prefixo: ")
     if not prefixo:
         return
 
-    resposta = mecanismo.buscar_prefixo(prefixo, limite=25)
+    resposta = mecanismo.buscar_prefixo(prefixo, limite=None)
     termos = resposta["termos"]
 
     if not termos:
@@ -292,13 +321,16 @@ def exibir_busca_prefixo(mecanismo):
         informar_tempo(resposta["tempo"])
         return
 
-    print("\nPalavras encontradas:")
-    for termo in termos:
+    def exibir_termo(termo):
         documentos = resposta["por_termo"][termo]
         print(f"  {termo:<26} -> {len(documentos):>2} documento(s)")
+        # Os nomes quebram em linhas de até 72 colunas, sem partir nenhum nome.
+        for linha in textwrap.wrap(", ".join(documentos), width=66,
+                                   break_long_words=False, break_on_hyphens=False):
+            print(f"      {linha}")
 
-    if resposta["truncado"]:
-        print(f"  ... exibindo {len(termos)} de {resposta['total_disponivel']} termos")
+    print("\nPalavras encontradas:")
+    exibir_em_paginas(termos, exibir_termo, TERMOS_POR_PAGINA, "termos")
 
     # A lista acima é a alfabética que o enunciado pede. Esta é a que um
     # autocomplete usaria: as mais frequentes no corpus primeiro, recuperadas
@@ -308,8 +340,11 @@ def exibir_busca_prefixo(mecanismo):
         for posicao, (palavra, ocorrencias) in enumerate(resposta["sugestoes"][:5], 1):
             print(f"  {posicao}. {palavra:<26} {ocorrencias:>5} ocorrência(s)")
 
+    ranking = resposta["ranking"]
     print(f"\nDocumentos que contêm algum desses termos: {len(resposta['documentos'])}")
-    for documento, pontuacao in resposta["ranking"][:8]:
+    if len(ranking) > 8:
+        print("Os 8 mais relevantes pelo BM25:")
+    for documento, pontuacao in ranking[:8]:
         print(f"  - {documento:<42} BM25 {pontuacao:.3f}")
 
     informar_tempo(resposta["tempo"])
@@ -359,8 +394,8 @@ def exibir_estatisticas(mecanismo):
 
     secao("ESTATÍSTICAS DO SISTEMA")
     print(f"  Documentos processados              : {e.documentos:,}")
-    print(f"  Palavras após a tokenização         : {e.total_palavras:,}")
-    print(f"  Palavras antes das stopwords        : {e.total_palavras_brutas:,} "
+    print(f"  Palavras após a tokenização         : {e.total_palavras_brutas:,}")
+    print(f"  Palavras após remover stopwords     : {e.total_palavras:,} "
           f"(redução de {e.taxa_reducao_stopwords() * 100:.1f}%)")
     print(f"  Termos distintos (vocabulário)      : {e.termos_distintos:,}")
     print(f"  Palavras armazenadas na Trie        : {e.palavras_na_trie:,}")
@@ -419,7 +454,7 @@ def executar_parte2(pasta, usar_stemming):
     while True:
         cabecalho("SISTEMA DE BUSCA EM DOCUMENTOS")
         print(f"Documentos processados: {e.documentos:,}")
-        print(f"Total de palavras: {e.total_palavras:,}")
+        print(f"Total de palavras: {e.total_palavras_brutas:,}")
         print(f"Termos distintos: {e.termos_distintos:,}")
         print()
         print("1 - Buscar palavra")
