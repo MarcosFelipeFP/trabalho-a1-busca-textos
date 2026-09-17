@@ -27,10 +27,12 @@ $RECYCLE.BIN/
 *.swo
 *~
 
-# --- Enunciado do trabalho (material do professor) ---
+# --- Documentos: o enunciado (material do professor) e os .docx ficam fora ---
 *.docx
 *.doc
 *.pdf
+# O relatorio tecnico entregue vai versionado, em PDF.
+!Relatório Técnico (ABNT) - Trabalho A1 - versão reduzida.pdf
 
 # --- Saidas geradas em tempo de execucao ---
 *.log

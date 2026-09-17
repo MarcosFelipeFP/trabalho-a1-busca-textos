@@ -117,7 +117,7 @@ Nenhum nome de arquivo aparece no código: basta soltar um `.txt` novo na pasta
 ├── palavras.txt             léxico da Parte I (~10.500 palavras)
 ├── stopwords.txt            stopwords do português
 ├── README.md                este arquivo
-└── RELATORIO.md             relatório técnico
+└── Relatório Técnico (ABNT) - Trabalho A1 - versão reduzida.pdf    relatório técnico (ABNT)
 ```
 
 ---
@@ -257,7 +257,7 @@ aquecidos para que o compilador JIT não seja medido junto.
 ============================================================
                    AUTOCOMPLETE COM TRIE
 ============================================================
-Palavras cadastradas: 10.474
+Palavras cadastradas: 10,474
 
 1 - Buscar palavra
 2 - Buscar por prefixo
@@ -272,16 +272,46 @@ Palavras encontradas:
   compacta
   compacto
   companhia
+  compaq
+  compara
   comparação
-  compartilhamento
-  compatibilidade
-  compilador
-  complexidade
-  computação
-  computador
+  ...
+  competição
+  -- 40 de 151 palavras. Enter mostra mais; 0 encerra a lista: 0
+
+Tempo da consulta: 176.1 us
+```
+
+A lista traz todas as palavras que começam com o prefixo, em páginas de 40.
+
+### Busca por prefixo nos documentos: a Trie acha os termos, o índice diz onde estão
+
+```
+Escolha uma opção: 2
+Digite o prefixo: compil
+
+Palavras encontradas:
+  compila                    ->  4 documento(s)
+      compiladores.txt, estruturas_de_dados.txt,
+      linguagens_programacao.txt, sistemas_operacionais.txt
+  compilação                 ->  2 documento(s)
+      compiladores.txt, linguagens_programacao.txt
+  ...
+  -- 10 de 13 termos. Enter mostra mais; 0 encerra a lista: 0
+
+Mais relevantes (por frequência no corpus):
+  1. compilador                    29 ocorrência(s)
+  2. compilação                    12 ocorrência(s)
+  3. compiladores                  12 ocorrência(s)
   ...
 
-Tempo da consulta: 442.5 us
+Documentos que contêm algum desses termos: 4
+  - compiladores.txt                           BM25 9.321
+  - linguagens_programacao.txt                 BM25 8.678
+  - estruturas_de_dados.txt                    BM25 2.044
+  - sistemas_operacionais.txt                  BM25 1.783
+
+Tempo da consulta: 114.8 us
 ```
 
 ### Busca por palavra, com ranqueamento BM25
@@ -350,7 +380,8 @@ medido:
 8. Efeito do stemming RSLP na cobertura das consultas
 9. Busca aproximada: Trie contra comparação palavra a palavra
 
-Os resultados estão discutidos no [RELATORIO.md](RELATORIO.md).
+Os resultados estão discutidos no
+[relatório técnico](Relat%C3%B3rio%20T%C3%A9cnico%20%28ABNT%29%20-%20Trabalho%20A1%20-%20vers%C3%A3o%20reduzida.pdf).
 
 ---
 
@@ -361,12 +392,13 @@ python testes.py        # resumo
 python testes.py -v     # detalhado
 ```
 
-117 testes cobrindo os exemplos do enunciado, casos de borda e testes de
+122 testes cobrindo os exemplos do enunciado, casos de borda e testes de
 propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
 em 2.000 casos, a Trie comprimida contra a tradicional em 40 vocabulários
 aleatórios e a busca aproximada contra a distância de edição calculada palavra
-a palavra. Os últimos sobem o servidor web em uma porta livre e conferem cada
-rota por HTTP.
+a palavra. Outros conduzem os menus do terminal com respostas simuladas e
+conferem a saída impressa, e os últimos sobem o servidor web em uma porta livre
+e conferem cada rota por HTTP.
 
 ---
 
