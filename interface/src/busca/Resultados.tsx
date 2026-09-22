@@ -80,7 +80,7 @@ export function Resultados({
         documento: item.documento,
         detalhe: plural(item.ocorrencias, 'ocorrência', 'ocorrências'),
       })),
-      resumo: `${plural(r.total_ocorrencias, 'ocorrência', 'ocorrências')} em ${plural(r.resultados.length, 'documento', 'documentos')} · ${tempo(r.tempo)} lendo o texto com KMP`,
+      resumo: `${plural(r.total_ocorrencias, 'ocorrência', 'ocorrências')} em ${plural(r.resultados.length, 'documento', 'documentos')} · ${tempo(r.tempo)} lendo o texto com KMP · ${numero(r.comparacoes)} comparações de caractere`,
     };
   }, [resultado, preprocessador]);
 
