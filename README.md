@@ -79,7 +79,8 @@ modalidades de consulta:
    vários termos (`rede neural`): os documentos com todos eles vêm primeiro,
    por interseção a partir da menor lista, e termos sem resultado ganham
    sugestão de correção.
-2. **Prefixo** — a Trie recupera os termos e o índice diz onde cada um aparece.
+2. **Prefixo** — a Trie recupera os termos, e o índice da forma exata diz em
+   que documentos cada um aparece.
 3. **Sequência de caracteres** — KMP direto sobre o conteúdo original dos
    arquivos, encontrando inclusive fragmentos que a tokenização descarta.
 
@@ -148,8 +149,9 @@ python main.py --help                 # lista todas as opções
 
 ### Usar seus próprios documentos
 
-Coloque arquivos `.txt` codificados em UTF-8 dentro de `documentos/` e rode o
-programa. Eles serão descobertos, processados e indexados automaticamente.
+Coloque arquivos `.txt` dentro de `documentos/`, em UTF-8 ou no ANSI que o
+Bloco de Notas oferece, e rode o programa. Eles serão descobertos, processados
+e indexados automaticamente.
 
 Para regerar o léxico da Parte I a partir dos novos documentos:
 
@@ -240,10 +242,10 @@ python verificar_web.py
 ```
 
 Ele roda o Python e o JavaScript sobre o mesmo corpus e exige resultado
-idêntico em onze frentes — normalização, tokenização, stemming, Trie, Trie
+idêntico em doze frentes — normalização, tokenização, stemming, Trie, Trie
 comprimida, autocomplete por relevância, busca aproximada, índice invertido,
-consultas com BM25 e vários termos, KMP e tabela hash —, mais de 120 mil casos
-comparados um a um.
+consultas com BM25 e vários termos, consultas por prefixo, KMP e tabela hash —,
+mais de 120 mil casos comparados um a um.
 
 Uma ressalva de método: o navegador arredonda o relógio por segurança (em
 `file://`, para cerca de 100 µs). Por isso cada consulta barata é repetida em
@@ -261,7 +263,7 @@ aquecidos para que o compilador JIT não seja medido junto.
 ============================================================
                    AUTOCOMPLETE COM TRIE
 ============================================================
-Palavras cadastradas: 10,474
+Palavras cadastradas: 10.474
 
 1 - Buscar palavra
 2 - Buscar por prefixo
@@ -269,6 +271,7 @@ Palavras cadastradas: 10,474
 4 - Sair
 
 Escolha uma opção: 2
+(Para voltar ao menu, tecle Enter sem digitar nada.)
 Digite o prefixo: comp
 
 Palavras encontradas:
@@ -283,23 +286,33 @@ Palavras encontradas:
   competição
   -- 40 de 151 palavras. Enter mostra mais; 0 encerra a lista: 0
 
-Tempo da consulta: 176.1 us
+Tempo da consulta: 317,6 µs
+Digite o prefixo:
 ```
 
 A lista traz todas as palavras que começam com o prefixo, em páginas de 40.
+As perguntas têm o texto dos exemplos do enunciado, e cada opção continua
+ativa depois da resposta: o programa pede o próximo prefixo, e o Enter sem
+nada digitado volta ao menu.
 
 ### Busca por prefixo nos documentos: a Trie acha os termos, o índice diz onde estão
 
 ```
 Escolha uma opção: 2
+(Para voltar ao menu, tecle Enter sem digitar nada.)
 Digite o prefixo: compil
 
 Palavras encontradas:
-  compila                    ->  4 documento(s)
-      compiladores.txt, estruturas_de_dados.txt,
-      linguagens_programacao.txt, sistemas_operacionais.txt
+  compila                    ->  2 documento(s)
+      compiladores.txt, linguagens_programacao.txt
   compilação                 ->  2 documento(s)
       compiladores.txt, linguagens_programacao.txt
+  compilações                ->  1 documento(s)
+      compiladores.txt
+  ...
+  compilador                 ->  4 documento(s)
+      compiladores.txt, estruturas_de_dados.txt,
+      linguagens_programacao.txt, sistemas_operacionais.txt
   ...
   -- 10 de 13 termos. Enter mostra mais; 0 encerra a lista: 0
 
@@ -310,38 +323,43 @@ Mais relevantes (por frequência no corpus):
   ...
 
 Documentos que contêm algum desses termos: 4
-  - compiladores.txt                           BM25 9.321
-  - linguagens_programacao.txt                 BM25 8.678
-  - estruturas_de_dados.txt                    BM25 2.044
-  - sistemas_operacionais.txt                  BM25 1.783
+  - compiladores.txt                           BM25 42,446
+  - linguagens_programacao.txt                 BM25 32,238
+  - estruturas_de_dados.txt                    BM25 2,044
+  - sistemas_operacionais.txt                  BM25 1,783
 
-Tempo da consulta: 114.8 us
+Tempo da consulta: 124,0 µs
 ```
+
+Cada termo vem com os documentos em que aquela palavra aparece, consultados no
+índice da forma exata: `compila` está em 2 arquivos e `compilador` em 4.
 
 ### Busca por palavra, com ranqueamento BM25
 
 ```
 Escolha uma opção: 1
+(Para voltar ao menu, tecle Enter sem digitar nada.)
 Digite a palavra: algoritmo
 
 Encontrada em 19 arquivo(s):
-  - algoritmos.txt                               79 ocorrência(s)   BM25 0.614
-  - complexidade_computacional.txt               51 ocorrência(s)   BM25 0.601
-  - computacao_quantica.txt                      61 ocorrência(s)   BM25 0.594
-  - aprendizado_de_maquina.txt                   31 ocorrência(s)   BM25 0.593
-  - criptografia.txt                             53 ocorrência(s)   BM25 0.591
+  - algoritmos.txt                               79 ocorrência(s)   BM25 0,614
+  - complexidade_computacional.txt               51 ocorrência(s)   BM25 0,601
+  - computacao_quantica.txt                      61 ocorrência(s)   BM25 0,594
+  - aprendizado_de_maquina.txt                   31 ocorrência(s)   BM25 0,593
+  - criptografia.txt                             53 ocorrência(s)   BM25 0,591
   ...
 
   Sem stemming a forma exata 'algoritmo' apareceria em 14 arquivo(s).
   O radical 'algoritm' (RSLP) alcança 19, reunindo as variantes da palavra.
 
-Tempo da consulta: 46.5 us
+Tempo da consulta: 57,1 µs
 ```
 
 ### Busca por sequência com KMP
 
 ```
 Escolha uma opção: 3
+(Para voltar ao menu, tecle Enter sem digitar nada.)
 Digite a sequência: chave pública
 
 31 ocorrência(s) em 2 arquivo(s):
@@ -355,13 +373,14 @@ Digite a sequência: chave pública
 
   Comparações de caractere feitas pelo KMP: 697.716
 
-Tempo da consulta: 73.829 ms
+Tempo da consulta: 54,8 ms
 ```
 
-O contraste entre os dois últimos exemplos é o ponto central do trabalho:
-**46 µs** para a consulta indexada contra **74 ms** para a varredura do corpus
-inteiro — cerca de 1.600 vezes mais lenta. É a diferença entre O(1) e O(N),
-medida na prática.
+O contraste entre os dois últimos exemplos é o ponto central do trabalho: a
+consulta indexada leva microssegundos, e a varredura do corpus inteiro,
+dezenas de milissegundos. Nas medianas do relatório (Tabela 3), são
+**27,6 µs** contra **59,7 ms**, cerca de 2.200 vezes. É a diferença entre O(1)
+e O(N), medida na prática.
 
 ---
 
@@ -396,11 +415,12 @@ python testes.py        # resumo
 python testes.py -v     # detalhado
 ```
 
-127 testes cobrindo os exemplos do enunciado, casos de borda e testes de
+138 testes cobrindo os exemplos do enunciado, casos de borda e testes de
 propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
 em 2.000 casos, a Trie comprimida contra a tradicional em 40 vocabulários
-aleatórios e a busca aproximada contra a distância de edição calculada palavra
-a palavra. Outros conduzem os menus do terminal com respostas simuladas e
+aleatórios, a busca aproximada contra a distância de edição calculada palavra
+a palavra e a lista de documentos de cada termo do prefixo contra os tokens de
+cada arquivo. Outros conduzem os menus do terminal com respostas simuladas e
 conferem a saída impressa, e os últimos sobem o servidor web em uma porta livre
 e conferem cada rota por HTTP.
 
@@ -418,17 +438,19 @@ e conferem cada rota por HTTP.
 | Okapi BM25 | Robertson et al. *Okapi at TREC-3*, 1994; Robertson & Zaragoza, FnTIR 3(4):333–389, 2009 |
 | Hash com encadeamento | Knuth, D. E. *The Art of Computer Programming*, vol. 3, cap. 6.4 |
 
-Todas as estruturas foram implementadas do zero. As únicas bibliotecas usadas
-são `re`, `unicodedata`, `math`, `time`, `pathlib`, `argparse`, `random`,
-`statistics`, `json`, `urllib` e `unittest` — todas da biblioteca padrão do
-Python e todas dentro do que o enunciado autoriza.
+Todas as estruturas foram implementadas do zero, e tudo vem da biblioteca
+padrão do Python, dentro do que o enunciado autoriza. O programa usa `re`,
+`unicodedata`, `heapq`, `math`, `time`, `textwrap`, `pathlib`, `argparse` e
+`sys`. Os scripts de apoio acrescentam `statistics` e `random` (experimentos),
+`unittest` (testes), `http.server`, `threading`, `webbrowser` e `mimetypes`
+(servidor), além de `json`, `urllib`, `subprocess`, `shutil` e `tempfile`.
 
 ---
 
 ## Base de documentos
 
-Os 24 arquivos de `documentos/` somam cerca de **99.500 palavras** e foram
-extraídos de artigos da Wikipédia em português sobre temas de Computação
+Os 24 arquivos de `documentos/` somam **98.718 palavras** após a tokenização e
+foram extraídos de artigos da Wikipédia em português sobre temas de Computação
 (algoritmos, estruturas de dados, inteligência artificial, banco de dados,
 redes, criptografia, entre outros).
 
