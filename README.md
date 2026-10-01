@@ -206,11 +206,15 @@ Uma página só, de busca, em tema claro:
   documentos que começam com o que foi digitado (Parte I);
 - **no Enter**, a caixa sobe e os documentos aparecem ordenados pelo BM25, cada
   um com um trecho em que as palavras encontradas vêm realçadas (Parte II);
-- as abas **Palavra**, **Prefixo** e **Sequência** trocam a modalidade: índice
-  invertido, Trie + índice ou varredura do texto com KMP;
+- as abas **Palavra**, **Prefixo** e **Sequência** escolhem a pergunta, e o
+  seletor **"Respondido por"**, ao lado, escolhe a estrutura que responde;
+- esse seletor é a comparação do relatório, ao vivo: a mesma pergunta pelo
+  índice invertido O(1) ou varrendo o texto com KMP O(N); pela Trie O(m + p) ou
+  percorrendo a lista de palavras O(V·m); pelo KMP O(n + m) ou pela busca
+  ingênua O(n·m);
 - clicar num resultado abre o texto inteiro, com os realces;
-- uma linha discreta acima dos resultados informa quantos documentos voltaram
-  e quanto tempo a consulta levou.
+- a linha acima dos resultados nomeia a estrutura usada, o custo dela, quantos
+  documentos voltaram e quanto tempo a consulta levou.
 
 ### Recompilar a interface
 
@@ -392,7 +396,7 @@ python testes.py        # resumo
 python testes.py -v     # detalhado
 ```
 
-122 testes cobrindo os exemplos do enunciado, casos de borda e testes de
+127 testes cobrindo os exemplos do enunciado, casos de borda e testes de
 propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
 em 2.000 casos, a Trie comprimida contra a tradicional em 40 vocabulários
 aleatórios e a busca aproximada contra a distância de edição calculada palavra

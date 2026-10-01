@@ -36,6 +36,7 @@ import sys
 from pathlib import Path
 
 from main import carregar_lexico, configurar_saida
+from mecanismo import ler_texto
 from preparar_corpus import ARTIGOS
 from preprocessamento import carregar_stopwords
 
@@ -78,7 +79,7 @@ def gerar(pasta="documentos", lexico="palavras.txt"):
         {"nome": arquivo.name,
          "titulo": titulos.get(arquivo.name, arquivo.stem.replace("_", " ").capitalize()),
          "bytes": arquivo.stat().st_size,
-         "texto": arquivo.read_text(encoding="utf-8", errors="replace")}
+         "texto": ler_texto(arquivo)}
         for arquivo in arquivos
     ]
     palavras = carregar_lexico(lexico)

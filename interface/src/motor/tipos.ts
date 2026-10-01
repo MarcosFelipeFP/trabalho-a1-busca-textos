@@ -7,6 +7,22 @@
 /** [palavra, distância de edição, peso] */
 export type Aproximada = [string, number, number];
 
+/**
+ * Qual estrutura respondeu a consulta, e quanto custa.
+ *
+ * A aba escolhe a PERGUNTA; o método escolhe QUEM RESPONDE. Só entram na lista
+ * de um modo as estruturas que de fato respondem àquela pergunta: a Trie não
+ * sabe em que arquivos uma palavra aparece, e o KMP não responde "quais
+ * palavras começam com", de modo que um seletor livre ofereceria combinações
+ * inexistentes.
+ */
+export interface Metodo {
+  id: string;
+  rotulo: string;
+  custo: string;
+  nota?: string;
+}
+
 export interface Medida {
   tempo: number;
   repeticoes?: number;

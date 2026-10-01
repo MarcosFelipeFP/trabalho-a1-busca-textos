@@ -26,6 +26,7 @@ import io
 import json
 import random
 import shutil
+import sys
 import tempfile
 import threading
 import unittest
@@ -37,7 +38,8 @@ from unittest import mock
 
 from indice_invertido import IndiceInvertido, TabelaHash
 from kmp import buscar_ingenuo, buscar_kmp, tabela_falha
-from main import PALAVRAS_POR_PAGINA, executar_parte1, executar_parte2
+from main import (PALAVRAS_POR_PAGINA, RAIZ, analisar_argumentos,
+                  executar_parte1, executar_parte2)
 from mecanismo import MecanismoBusca
 from preprocessamento import Preprocessador, remover_pontuacao, tokenizar
 from servidor import Aplicacao, criar_servidor
@@ -833,6 +835,58 @@ class TesteMecanismoPontaAPonta(unittest.TestCase):
         self.assertLess(e.nos_na_trie_comprimida, e.nos_na_trie)
 
 
+class TesteLeituraDosDocumentos(unittest.TestCase):
+    """
+    Codificações que aparecem na prática quando alguém solta um .txt na pasta,
+    como prevê a seção 3.2 do enunciado.
+    """
+
+    def montar(self, arquivos):
+        """Cria uma pasta temporária com os arquivos dados e a indexa."""
+        pasta = Path(tempfile.mkdtemp(prefix="testes_a1_leitura_"))
+        self.addCleanup(shutil.rmtree, pasta, ignore_errors=True)
+        for nome, (texto, codificacao) in arquivos.items():
+            (pasta / nome).write_bytes(texto.encode(codificacao))
+
+        mecanismo = MecanismoBusca(pasta)
+        mecanismo.construir()
+        return mecanismo
+
+    def test_ansi_do_bloco_de_notas_mantem_os_acentos(self):
+        """
+        Salvo como "ANSI" (cp1252) e lido como UTF-8, "computação" viraria
+        "computa" + "o", e nenhuma consulta o encontraria.
+        """
+        mecanismo = self.montar({
+            "ansi.txt": ("A computação quântica usa superposição.\n", "cp1252"),
+            "utf8.txt": ("A computação clássica é diferente.\n", "utf-8"),
+        })
+
+        self.assertIn("computação", mecanismo.vocabulario)
+        documentos = [documento for documento, _nota
+                      in mecanismo.buscar_palavra("computação")["documentos"]]
+        self.assertEqual(sorted(documentos), ["ansi.txt", "utf8.txt"])
+
+        # O texto original também precisa estar legível: é nele que o KMP procura.
+        self.assertEqual(mecanismo.buscar_sequencia("superposição")["total_ocorrencias"], 1)
+
+    def test_quebras_do_windows_viram_uma_linha_so(self):
+        """
+        Ler bytes não traduz "\\r\\n" como o modo texto fazia. Sem normalizar, o
+        "\\r" entraria no conteúdo, o KMP contaria uma comparação a mais por
+        linha e o motor JavaScript passaria a divergir do Python.
+        """
+        mecanismo = self.montar({"crlf.txt": ("Primeira linha.\r\nSegunda linha.\r\n", "utf-8")})
+        self.assertNotIn("\r", mecanismo.conteudo["crlf.txt"])
+
+    def test_bom_nao_gruda_na_primeira_palavra(self):
+        """O Bloco de Notas grava BOM no UTF-8; ele não pode virar parte do token."""
+        mecanismo = self.montar({"bom.txt": ("Algoritmos de busca.\n", "utf-8-sig")})
+
+        self.assertIn("algoritmos", mecanismo.vocabulario)
+        self.assertFalse([token for token in mecanismo.vocabulario if "﻿" in token])
+
+
 # ==========================================================================
 #  INTERFACE DE TERMINAL
 # ==========================================================================
@@ -876,10 +930,17 @@ class TesteInterfaceTerminal(unittest.TestCase):
         shutil.rmtree(cls.pasta, ignore_errors=True)
 
     def conduzir(self, funcao, respostas, *argumentos):
-        """Executa um menu respondendo `respostas` na ordem; devolve a saída."""
-        fila = iter(respostas)
+        """
+        Executa um menu respondendo `respostas` na ordem; devolve a saída.
 
-        def responder(_mensagem=""):
+        As perguntas feitas ficam em `self.perguntas`, para que os testes
+        possam conferir o texto dos prompts.
+        """
+        fila = iter(respostas)
+        self.perguntas = []
+
+        def responder(mensagem=""):
+            self.perguntas.append(mensagem)
             try:
                 return next(fila)
             except StopIteration:
@@ -898,7 +959,7 @@ class TesteInterfaceTerminal(unittest.TestCase):
 
     def test_prefixo_da_parte1_reproduz_o_enunciado(self):
         """Seção 2.2: 'comp' devolve as cinco palavras, nesta ordem."""
-        saida = self.conduzir(executar_parte1, ["2", "comp", "4"],
+        saida = self.conduzir(executar_parte1, ["2", "comp", "", "4"],
                               self.lexico_do_enunciado)
         self.assertEqual(self.palavras_listadas(saida), [
             "compilador", "complexidade", "computação", "computacional", "computador",
@@ -906,22 +967,50 @@ class TesteInterfaceTerminal(unittest.TestCase):
 
     def test_prefixo_longo_mostra_todas_as_palavras_em_paginas(self):
         """Seção 2.3 pede TODAS as palavras: Enter percorre a lista até o fim."""
-        saida = self.conduzir(executar_parte1, ["2", "prefixo", "", "", "4"],
+        saida = self.conduzir(executar_parte1, ["2", "prefixo", "", "", "", "4"],
                               self.lexico_longo)
         self.assertEqual(self.palavras_listadas(saida), self.palavras_longas)
 
     def test_paginacao_pode_ser_encerrada(self):
-        saida = self.conduzir(executar_parte1, ["2", "prefixo", "0", "4"],
+        saida = self.conduzir(executar_parte1, ["2", "prefixo", "0", "", "4"],
                               self.lexico_longo)
         self.assertEqual(self.palavras_listadas(saida),
                          self.palavras_longas[:PALAVRAS_POR_PAGINA])
+
+    def test_consultas_seguidas_sem_reescolher_a_opcao(self):
+        """
+        A opção continua ativa: duas buscas seguidas, e o menu só reaparece
+        depois do Enter vazio.
+        """
+        saida = self.conduzir(executar_parte2, ["1", "dados", "busca", "", "6"],
+                              self.documentos, True)
+        self.assertEqual(saida.count("Encontrada em"), 2)
+        # O menu aparece na entrada e uma vez ao voltar -- e não entre as duas
+        # consultas, que era a reclamação.
+        self.assertEqual(saida.count("SISTEMA DE BUSCA EM DOCUMENTOS"), 2)
+        self.assertIn("Digite a palavra (Enter volta ao menu): ", self.perguntas)
+
+    def test_padroes_seguem_a_pasta_do_programa(self):
+        """
+        Rodar `python <caminho>/main.py` de outro diretório não pode mudar onde
+        o programa procura os documentos e o léxico.
+        """
+        with mock.patch.object(sys, "argv", ["main.py"]):
+            padrao = analisar_argumentos()
+        self.assertEqual(Path(padrao.pasta), RAIZ / "documentos")
+        self.assertEqual(Path(padrao.lexico), RAIZ / "palavras.txt")
+
+        # Caminho informado pelo usuário continua valendo como foi escrito.
+        with mock.patch.object(sys, "argv", ["main.py", "--pasta", "outra"]):
+            escolhido = analisar_argumentos()
+        self.assertEqual(escolhido.pasta, "outra")
 
     def test_prefixo_da_parte2_informa_os_documentos_de_cada_termo(self):
         """
         Seção 3.7.2: a Trie devolve os termos e o índice diz em que documentos
         cada um aparece -- os nomes, e não só a quantidade.
         """
-        saida = self.conduzir(executar_parte2, ["2", "dad", "6"], self.documentos, True)
+        saida = self.conduzir(executar_parte2, ["2", "dad", "", "6"], self.documentos, True)
         bloco = saida.split("Palavras encontradas:\n", 1)[1].split("\n\n", 1)[0]
         self.assertEqual(bloco.splitlines(), [
             "  dados                      ->  3 documento(s)",

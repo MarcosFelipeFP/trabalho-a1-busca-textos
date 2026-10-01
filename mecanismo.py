@@ -32,7 +32,40 @@ from kmp import buscar_kmp, contexto_da_ocorrencia
 from preprocessamento import Preprocessador
 from trie import Trie, TrieComprimida, normalizar
 
-__all__ = ["MecanismoBusca"]
+__all__ = ["ler_texto", "MecanismoBusca"]
+
+
+def ler_texto(arquivo):
+    """
+    Lê um documento como texto, tentando UTF-8 e caindo para cp1252.
+
+    O Bloco de Notas do Windows ainda oferece "ANSI" (cp1252) na hora de
+    salvar, e um arquivo desses lido como UTF-8 perderia justamente os
+    acentos: "computação" viraria "computa" + "o", dois tokens que nenhuma
+    consulta encontra. Como o enunciado (seção 3.2) prevê que o usuário
+    simplesmente solte um .txt novo na pasta, vale aceitar as duas
+    codificações em vez de exigir uma delas.
+
+    A tentativa é segura porque texto acentuado em cp1252 quase nunca é UTF-8
+    válido: os bytes 0xC0-0xFF aparecem sozinhos, fora das sequências de
+    continuação que o UTF-8 exige, e a decodificação falha.
+
+    `utf-8-sig` ainda remove a marca de ordem de bytes (BOM) que o Bloco de
+    Notas grava, e que de outro modo entraria colada na primeira palavra.
+    """
+    dados = arquivo.read_bytes()
+    try:
+        texto = dados.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        # `replace` cobre os cinco bytes que a cp1252 não define.
+        texto = dados.decode("cp1252", errors="replace")
+
+    # Ler bytes ignora a tradução de quebras de linha que o modo texto faz. Sem
+    # esta linha, cada "\r\n" do Windows deixaria um "\r" no conteúdo: o KMP
+    # passaria a contar uma comparação a mais por linha e a divergir do motor
+    # JavaScript, que recebe o corpus já traduzido. O `verificar_web.py` pegou
+    # exatamente isso -- 5.787 comparações a mais, uma por quebra de linha.
+    return texto.replace("\r\n", "\n").replace("\r", "\n")
 
 
 class MecanismoBusca:
@@ -107,7 +140,7 @@ class MecanismoBusca:
                 ao_progredir(arquivo.name, posicao, len(arquivos))
 
             with Cronometro() as relogio:
-                texto = arquivo.read_text(encoding="utf-8", errors="replace")
+                texto = ler_texto(arquivo)
             self.estatisticas.tempo_leitura += relogio.decorrido
 
             if self.guardar_conteudo:

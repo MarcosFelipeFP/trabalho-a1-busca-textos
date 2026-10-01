@@ -8,14 +8,16 @@ import { useEffect, useMemo, useRef } from 'react';
 import { normalizar } from '../algoritmos/trie.js';
 import { tituloDe } from '../dados';
 import { useMotor } from '../motor/contexto';
-import type { RespostaPalavra, RespostaPrefixo, RespostaSequencia } from '../motor/tipos';
+import type { Metodo, RespostaPalavra, RespostaPrefixo, RespostaSequencia } from '../motor/tipos';
 import { decimal, numero, plural, tempo } from '../util/formato';
 import { extrairTrecho, marcarTexto, Segmentos, type Criterio } from './trechos';
 
+// Cada resultado carrega a estrutura que o produziu: é ela que abre a linha de
+// resumo, para a tela deixar claro quem respondeu e a que custo.
 export type Resultado =
-  | { modo: 'palavra'; resposta: RespostaPalavra }
-  | { modo: 'prefixo'; resposta: RespostaPrefixo }
-  | { modo: 'sequencia'; resposta: RespostaSequencia };
+  | { modo: 'palavra'; resposta: RespostaPalavra; metodo: Metodo }
+  | { modo: 'prefixo'; resposta: RespostaPrefixo; metodo: Metodo }
+  | { modo: 'sequencia'; resposta: RespostaSequencia; metodo: Metodo };
 
 export interface Abertura {
   documento: string;
@@ -58,8 +60,8 @@ export function Resultados({
           ].filter(Boolean).join(' · '),
         })),
         resumo: r.documentos.length
-          ? `${plural(r.documentos.length, 'documento', 'documentos')}${varios ? ` · ${numero(r.todos.length)} com todos os termos` : ''} · ${tempo(r.tempo)} pelo índice invertido`
-          : `Nenhum documento · ${tempo(r.tempo)} pelo índice invertido`,
+          ? `${plural(r.documentos.length, 'documento', 'documentos')}${varios ? ` · ${numero(r.todos.length)} com todos os termos` : ''} · ${tempo(r.tempo)}`
+          : `Nenhum documento · ${tempo(r.tempo)}`,
       };
     }
     if (resultado.modo === 'prefixo') {
@@ -70,7 +72,7 @@ export function Resultados({
           documento,
           detalhe: `${plural(r.termos.filter((termo) => r.por_termo[termo]?.includes(documento)).length, 'termo', 'termos')} do prefixo · BM25 ${decimal(nota, 2)}`,
         })),
-        resumo: `${plural(r.total_disponivel, 'palavra começa', 'palavras começam')} com “${r.prefixo}” · ${plural(r.documentos.length, 'documento', 'documentos')} · ${tempo(r.tempo)} pela Trie`,
+        resumo: `${plural(r.total_disponivel, 'palavra começa', 'palavras começam')} com “${r.prefixo}” · ${plural(r.documentos.length, 'documento', 'documentos')} · ${tempo(r.tempo)}`,
       };
     }
     const r = resultado.resposta;
@@ -80,16 +82,25 @@ export function Resultados({
         documento: item.documento,
         detalhe: plural(item.ocorrencias, 'ocorrência', 'ocorrências'),
       })),
-      resumo: `${plural(r.total_ocorrencias, 'ocorrência', 'ocorrências')} em ${plural(r.resultados.length, 'documento', 'documentos')} · ${tempo(r.tempo)} lendo o texto com KMP`,
+      resumo: `${plural(r.total_ocorrencias, 'ocorrência', 'ocorrências')} em ${plural(r.resultados.length, 'documento', 'documentos')} · ${numero(r.comparacoes)} comparações · ${tempo(r.tempo)}`,
     };
   }, [resultado, preprocessador]);
 
   return (
     <div>
       <p className="numeros text-[0.84rem] text-cinza">
+        <span className="font-medium text-grafite">{resultado.metodo.rotulo}</span>
+        {' · '}
+        {resultado.metodo.custo}
+        {' · '}
         {resumo}
         {motor.nome === 'Python' && ' · Python'}
       </p>
+      {resultado.metodo.nota && (
+        <p className="mt-1 max-w-[52ch] text-[0.8rem] leading-relaxed text-cinza">
+          {resultado.metodo.nota}
+        </p>
+      )}
 
       {resultado.modo === 'palavra' && resultado.resposta.correcao && (
         <p className="mt-4 text-[1.02rem] text-grafite">

@@ -15,15 +15,66 @@ import { normalizar } from './algoritmos/trie.js';
 import { Leitor, Resultados, type Abertura, type Resultado } from './busca/Resultados';
 import { DADOS } from './dados';
 import { construirAplicacao, ProvedorDoMotor, useMotor } from './motor/contexto';
+import type { Metodo } from './motor/tipos';
+import { buscaIngenuaNoCorpus, varrerVocabulario } from './motor/varreduras';
 import { numero, tempo } from './util/formato';
 
 type Modo = 'palavra' | 'prefixo' | 'sequencia';
 
-const MODOS: { valor: Modo; titulo: string; ajuda: string; exemplos: string[] }[] = [
-  { valor: 'palavra', titulo: 'Palavra', ajuda: 'pelo índice invertido', exemplos: ['algoritmo', 'rede neural', 'algortimo'] },
-  { valor: 'prefixo', titulo: 'Prefixo', ajuda: 'pela Trie', exemplos: ['comp', 'cripto'] },
-  { valor: 'sequencia', titulo: 'Sequência', ajuda: 'com KMP no texto', exemplos: ['chave pública', 'O(n log n)'] },
+// A aba é a PERGUNTA; o seletor ao lado dela escolhe QUEM RESPONDE. O primeiro
+// método de cada lista é a estrutura do trabalho, e o segundo é a varredura que
+// ela substitui -- assim a diferença de custo aparece na tela, medida, em vez
+// de ficar só no relatório. As listas são fechadas de propósito: a Trie não sabe
+// em que arquivos uma palavra aparece, e o KMP não responde "quais palavras
+// começam com", então essas combinações não existem.
+const MODOS: { valor: Modo; titulo: string; exemplos: string[]; metodos: Metodo[] }[] = [
+  {
+    valor: 'palavra',
+    titulo: 'Palavra',
+    exemplos: ['algoritmo', 'rede neural', 'algortimo'],
+    metodos: [
+      { id: 'indice', rotulo: 'índice invertido (hash)', custo: 'O(1)' },
+      {
+        id: 'texto-kmp',
+        rotulo: 'varredura do texto (KMP)',
+        custo: 'O(N)',
+        nota: 'Sem índice, a palavra é procurada no texto inteiro — e só na forma exata: '
+          + 'sem o radical, "algoritmo" deixa de encontrar "algoritmos".',
+      },
+    ],
+  },
+  {
+    valor: 'prefixo',
+    titulo: 'Prefixo',
+    exemplos: ['comp', 'cripto'],
+    metodos: [
+      { id: 'trie', rotulo: 'Trie + índice invertido', custo: 'O(m + p)' },
+      {
+        id: 'lista',
+        rotulo: 'varredura da lista de palavras',
+        custo: 'O(V·m)',
+        nota: 'Mesma resposta, obtida percorrendo o vocabulário inteiro, palavra por palavra.',
+      },
+    ],
+  },
+  {
+    valor: 'sequencia',
+    titulo: 'Sequência',
+    exemplos: ['chave pública', 'O(n log n)'],
+    metodos: [
+      { id: 'kmp', rotulo: 'KMP no texto', custo: 'O(n + m)' },
+      {
+        id: 'ingenua',
+        rotulo: 'busca ingênua',
+        custo: 'O(n·m)',
+        nota: 'Em texto natural os dois quase empatam, porque as falhas ocorrem nas primeiras '
+          + 'letras; o ganho do KMP é a garantia no pior caso.',
+      },
+    ],
+  },
 ];
+
+const metodosDe = (modo: Modo) => MODOS.find((opcao) => opcao.valor === modo)!.metodos;
 
 type Pronta = { aplicacao: Aplicacao; segundos: number };
 let construcao: Promise<Pronta> | null = null;
@@ -64,26 +115,47 @@ function Pagina({ segundos }: { segundos: number }) {
   const { aplicacao, motor, servidorNoAr, trocarMotor } = useMotor();
   const [consulta, setConsulta] = useState('');
   const [modo, setModo] = useState<Modo>('palavra');
+  const [metodo, setMetodo] = useState(MODOS[0].metodos[0].id);
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [abertura, setAbertura] = useState<Abertura | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   const buscar = useCallback(
-    async (texto: string, qual: Modo = modo) => {
+    async (texto: string, qual: Modo = modo, como: string = metodo) => {
       const limpo = texto.trim();
       setConsulta(texto);
       if (!limpo) return;
       setErro(null);
+
+      const escolhido = metodosDe(qual).find((item) => item.id === como) ?? metodosDe(qual)[0];
       try {
-        if (qual === 'palavra') setResultado({ modo: 'palavra', resposta: await motor.buscarPalavra(limpo) });
-        else if (qual === 'prefixo') setResultado({ modo: 'prefixo', resposta: await motor.buscarPrefixo(limpo) });
-        else setResultado({ modo: 'sequencia', resposta: await motor.buscarSequencia(limpo) });
+        if (qual === 'palavra' && escolhido.id === 'texto-kmp') {
+          // A mesma pergunta -- em quais arquivos a palavra aparece --, agora
+          // sem índice nenhum: o KMP procura no texto bruto de cada documento.
+          setResultado({ modo: 'sequencia', resposta: await motor.buscarSequencia(limpo), metodo: escolhido });
+        } else if (qual === 'palavra') {
+          setResultado({ modo: 'palavra', resposta: await motor.buscarPalavra(limpo), metodo: escolhido });
+        } else if (qual === 'prefixo') {
+          const resposta = await motor.buscarPrefixo(limpo);
+          // Os termos são os mesmos nos dois caminhos; o que muda é o custo de
+          // encontrá-los, e é só esse tempo que a varredura substitui.
+          const varredura = escolhido.id === 'lista' ? varrerVocabulario(aplicacao, limpo) : null;
+          setResultado({
+            modo: 'prefixo',
+            resposta: varredura ? { ...resposta, ...varredura } : resposta,
+            metodo: escolhido,
+          });
+        } else if (escolhido.id === 'ingenua') {
+          setResultado({ modo: 'sequencia', resposta: buscaIngenuaNoCorpus(aplicacao, limpo), metodo: escolhido });
+        } else {
+          setResultado({ modo: 'sequencia', resposta: await motor.buscarSequencia(limpo), metodo: escolhido });
+        }
       } catch (falha) {
         setErro(falha instanceof Error ? falha.message : String(falha));
       }
       window.scrollTo({ top: 0 });
     },
-    [modo, motor],
+    [aplicacao, metodo, modo, motor],
   );
 
   // Sugestões da Trie para a última palavra digitada, das mais frequentes nos
@@ -103,9 +175,20 @@ function Pagina({ segundos }: { segundos: number }) {
   }, [consulta, modo, aplicacao]);
 
   function trocarModo(proximo: Modo) {
+    // Cada pergunta tem as suas estruturas: ao trocar de aba, volta-se à
+    // primeira delas, que é sempre a do trabalho.
+    const primeiro = metodosDe(proximo)[0].id;
     setModo(proximo);
-    if (resultado && consulta.trim()) void buscar(consulta, proximo);
+    setMetodo(primeiro);
+    if (resultado && consulta.trim()) void buscar(consulta, proximo, primeiro);
   }
+
+  function trocarMetodo(proximo: string) {
+    setMetodo(proximo);
+    if (resultado && consulta.trim()) void buscar(consulta, modo, proximo);
+  }
+
+  const metodoAtivo = metodosDe(modo).find((item) => item.id === metodo) ?? metodosDe(modo)[0];
 
   const abas = (
     <div className="flex flex-wrap items-center gap-x-1 gap-y-2">
@@ -122,7 +205,28 @@ function Pagina({ segundos }: { segundos: number }) {
           {opcao.titulo}
         </button>
       ))}
-      <span className="ml-2 text-[0.82rem] text-cinza">{MODOS.find((opcao) => opcao.valor === modo)?.ajuda}</span>
+
+      <span className="mx-2 hidden h-4 w-px bg-linha sm:block" aria-hidden />
+
+      <span className="flex flex-wrap items-center gap-1 text-[0.82rem] text-cinza">
+        <span className="mr-0.5">Respondido por:</span>
+        {metodosDe(modo).map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => trocarMetodo(item.id)}
+            aria-pressed={metodoAtivo.id === item.id}
+            title={item.nota}
+            className={`rounded-full px-2.5 py-1 transition-colors ${
+              metodoAtivo.id === item.id
+                ? 'bg-nevoa font-medium text-tinta'
+                : 'hover:bg-nevoa hover:text-tinta'
+            }`}
+          >
+            {item.rotulo} <span className="numeros">· {item.custo}</span>
+          </button>
+        ))}
+      </span>
     </div>
   );
 

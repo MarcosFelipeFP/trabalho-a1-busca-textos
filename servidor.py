@@ -429,17 +429,25 @@ def analisar_argumentos():
     )
     analisador.add_argument("--porta", type=int, default=8000,
                             help="porta do servidor (padrão: 8000)")
-    analisador.add_argument("--pasta", default="documentos",
-                            help="pasta com os arquivos .txt (padrão: documentos)")
-    analisador.add_argument("--lexico", default="palavras.txt",
-                            help="arquivo de palavras da Parte I (padrão: palavras.txt)")
+    analisador.add_argument("--pasta", default=None,
+                            help="pasta com os arquivos .txt (padrão: 'documentos', ao lado deste arquivo)")
+    analisador.add_argument("--lexico", default=None,
+                            help="arquivo de palavras da Parte I (padrão: 'palavras.txt', ao lado deste arquivo)")
     analisador.add_argument("--sem-stemming", action="store_true",
                             help="desliga o stemmer RSLP, para comparação")
     analisador.add_argument("--sem-navegador", action="store_true",
                             help="não abre o navegador automaticamente")
     analisador.add_argument("--silencioso", action="store_true",
                             help="não registra as requisições no terminal")
-    return analisador.parse_args()
+
+    argumentos = analisador.parse_args()
+    # Como no main.py: os padrões acompanham a pasta do arquivo, para o servidor
+    # subir mesmo quando chamado de outro diretório.
+    if argumentos.pasta is None:
+        argumentos.pasta = RAIZ_WEB.parent.parent / "documentos"
+    if argumentos.lexico is None:
+        argumentos.lexico = RAIZ_WEB.parent.parent / "palavras.txt"
+    return argumentos
 
 
 def main():

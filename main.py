@@ -23,6 +23,8 @@ from estatisticas import Cronometro, formatar_duracao
 from mecanismo import MecanismoBusca
 from trie import Trie
 
+RAIZ = Path(__file__).resolve().parent
+
 LARGURA = 60
 
 # A busca por prefixo devolve TODAS as palavras que começam com o prefixo
@@ -144,6 +146,77 @@ def carregar_lexico(caminho):
     return palavras or list(PALAVRAS_EXEMPLO)
 
 
+def autocomplete_buscar(trie):
+    """
+    Opção 1: informa se a palavra completa existe (seção 2.3, item 2).
+
+    O laço mantém a consulta ativa: depois de cada resposta o programa pergunta
+    a próxima palavra, e só volta ao menu quando o usuário responde vazio. São
+    as "sucessivas consultas" do item 4 sem obrigar a reescolher a opção.
+    """
+    while True:
+        palavra = perguntar("Digite a palavra (Enter volta ao menu): ")
+        if not palavra:
+            return
+
+        with Cronometro() as relogio:
+            existe = trie.buscar(palavra)
+
+        if existe:
+            formas = sorted(trie.formas_de(palavra))
+            print(f"\nA palavra '{palavra}' EXISTE na Trie.")
+            if formas != [palavra]:
+                print(f"Grafias registradas: {', '.join(formas)}")
+        else:
+            print(f"\nA palavra '{palavra}' NÃO está na Trie.")
+            sugestoes = trie.buscar_prefixo(palavra, limite=5)
+            if sugestoes:
+                print(f"Começam assim: {', '.join(sugestoes)}")
+            # Fora do cronômetro: a busca aproximada é um serviço a mais,
+            # e não o custo O(m) da busca exata que o enunciado pede.
+            parecidas = [p for p, distancia, _ in trie.buscar_aproximado(palavra)
+                         if distancia > 0]
+            if parecidas:
+                print(f"Você quis dizer: {', '.join(parecidas)}?")
+        informar_tempo(relogio.decorrido)
+
+
+def autocomplete_prefixo(trie):
+    """Opção 2: todas as palavras que começam com o prefixo (item 3)."""
+    while True:
+        prefixo = perguntar("Digite o prefixo (Enter volta ao menu): ")
+        if not prefixo:
+            return
+
+        with Cronometro() as relogio:
+            encontradas = trie.buscar_prefixo(prefixo)
+
+        if not encontradas:
+            print(f"\nNenhuma palavra começa com '{prefixo}'.")
+        else:
+            print("\nPalavras encontradas:")
+            exibir_em_paginas(encontradas, lambda palavra: print(f"  {palavra}"),
+                              PALAVRAS_POR_PAGINA, "palavras")
+        informar_tempo(relogio.decorrido)
+
+
+def autocomplete_inserir(trie):
+    """Opção 3: inserção de novas palavras durante a execução (item 5)."""
+    while True:
+        palavra = perguntar("Digite a nova palavra (Enter volta ao menu): ")
+        if not palavra:
+            return
+
+        with Cronometro() as relogio:
+            nova = trie.inserir(palavra)
+
+        if nova:
+            print(f"\n'{palavra}' inserida. Total agora: {len(trie):,} palavras.")
+        else:
+            print(f"\n'{palavra}' já estava cadastrada.")
+        informar_tempo(relogio.decorrido, "Tempo da inserção")
+
+
 def executar_parte1(caminho_lexico):
     """Menu do sistema de autocomplete (seções 2.2 a 2.4 do enunciado)."""
     palavras = carregar_lexico(caminho_lexico)
@@ -173,56 +246,11 @@ def executar_parte1(caminho_lexico):
             return
 
         if opcao == "1":
-            palavra = perguntar("Digite a palavra: ")
-            if not palavra:
-                continue
-            with Cronometro() as relogio:
-                existe = trie.buscar(palavra)
-            if existe:
-                formas = sorted(trie.formas_de(palavra))
-                print(f"\nA palavra '{palavra}' EXISTE na Trie.")
-                if formas != [palavra]:
-                    print(f"Grafias registradas: {', '.join(formas)}")
-            else:
-                print(f"\nA palavra '{palavra}' NÃO está na Trie.")
-                sugestoes = trie.buscar_prefixo(palavra, limite=5)
-                if sugestoes:
-                    print(f"Começam assim: {', '.join(sugestoes)}")
-                # Fora do cronômetro: a busca aproximada é um serviço a mais,
-                # e não o custo O(m) da busca exata que o enunciado pede.
-                parecidas = [p for p, distancia, _ in trie.buscar_aproximado(palavra)
-                             if distancia > 0]
-                if parecidas:
-                    print(f"Você quis dizer: {', '.join(parecidas)}?")
-            informar_tempo(relogio.decorrido)
-
+            autocomplete_buscar(trie)
         elif opcao == "2":
-            prefixo = perguntar("Digite o prefixo: ")
-            if not prefixo:
-                continue
-            with Cronometro() as relogio:
-                encontradas = trie.buscar_prefixo(prefixo)
-
-            if not encontradas:
-                print(f"\nNenhuma palavra começa com '{prefixo}'.")
-            else:
-                print("\nPalavras encontradas:")
-                exibir_em_paginas(encontradas, lambda palavra: print(f"  {palavra}"),
-                                  PALAVRAS_POR_PAGINA, "palavras")
-            informar_tempo(relogio.decorrido)
-
+            autocomplete_prefixo(trie)
         elif opcao == "3":
-            palavra = perguntar("Digite a nova palavra: ")
-            if not palavra:
-                continue
-            with Cronometro() as relogio:
-                nova = trie.inserir(palavra)
-            if nova:
-                print(f"\n'{palavra}' inserida. Total agora: {len(trie):,} palavras.")
-            else:
-                print(f"\n'{palavra}' já estava cadastrada.")
-            informar_tempo(relogio.decorrido, "Tempo da inserção")
-
+            autocomplete_inserir(trie)
         else:
             print("\nOpção inválida.")
 
@@ -237,11 +265,22 @@ def mostrar_progresso(nome, posicao, total):
 
 
 def exibir_busca_palavra(mecanismo):
-    """Consulta por palavra exata (seção 3.7.1)."""
-    palavra = perguntar("Digite a palavra: ")
-    if not palavra:
-        return
+    """
+    Consulta por palavra exata (seção 3.7.1), em laço.
 
+    Depois de cada resposta o programa pede a próxima palavra; o Enter vazio
+    volta ao menu. Assim dá para comparar consultas seguidas -- "algoritmo",
+    depois "algoritmos" -- sem reescolher a opção a cada vez.
+    """
+    while True:
+        palavra = perguntar("Digite a palavra (Enter volta ao menu): ")
+        if not palavra:
+            return
+        _mostrar_busca_palavra(mecanismo, palavra)
+
+
+def _mostrar_busca_palavra(mecanismo, palavra):
+    """Executa uma consulta por palavra e imprime o resultado."""
     resposta = mecanismo.buscar_palavra(palavra)
     documentos = resposta["documentos"]
     termos = resposta["termos"]
@@ -308,11 +347,18 @@ def exibir_busca_prefixo(mecanismo):
     vocabulário e, para cada um, o índice invertido informa os documentos em
     que ele aparece -- a integração "Trie -> termos; índice/hash -> documentos"
     pedida no enunciado.
-    """
-    prefixo = perguntar("Digite o prefixo: ")
-    if not prefixo:
-        return
 
+    Em laço, como as demais consultas: o Enter vazio volta ao menu.
+    """
+    while True:
+        prefixo = perguntar("Digite o prefixo (Enter volta ao menu): ")
+        if not prefixo:
+            return
+        _mostrar_busca_prefixo(mecanismo, prefixo)
+
+
+def _mostrar_busca_prefixo(mecanismo, prefixo):
+    """Executa uma consulta por prefixo e imprime o resultado."""
     resposta = mecanismo.buscar_prefixo(prefixo, limite=None)
     termos = resposta["termos"]
 
@@ -351,11 +397,19 @@ def exibir_busca_prefixo(mecanismo):
 
 
 def exibir_busca_sequencia(mecanismo):
-    """Consulta por sequência de caracteres com KMP (seção 3.7.3, bônus)."""
-    sequencia = perguntar("Digite a sequência: ")
-    if not sequencia:
-        return
+    """
+    Consulta por sequência de caracteres com KMP (seção 3.7.3, bônus), em laço:
+    o Enter vazio volta ao menu.
+    """
+    while True:
+        sequencia = perguntar("Digite a sequência (Enter volta ao menu): ")
+        if not sequencia:
+            return
+        _mostrar_busca_sequencia(mecanismo, sequencia)
 
+
+def _mostrar_busca_sequencia(mecanismo, sequencia):
+    """Executa uma busca por sequência e imprime o resultado."""
     resposta = mecanismo.buscar_sequencia(sequencia)
     resultados = resposta["resultados"]
 
@@ -522,18 +576,29 @@ def analisar_argumentos():
         help="vai direto para a Parte I (autocomplete) ou II (busca em documentos)",
     )
     analisador.add_argument(
-        "--pasta", default="documentos",
-        help="pasta com os arquivos .txt (padrão: documentos)",
+        "--pasta", default=None,
+        help="pasta com os arquivos .txt (padrão: a pasta 'documentos' ao lado do main.py)",
     )
     analisador.add_argument(
-        "--lexico", default="palavras.txt",
-        help="arquivo de palavras da Parte I (padrão: palavras.txt)",
+        "--lexico", default=None,
+        help="arquivo de palavras da Parte I (padrão: 'palavras.txt' ao lado do main.py)",
     )
     analisador.add_argument(
         "--sem-stemming", action="store_true",
         help="desliga o stemmer RSLP, para comparar o efeito da normalização",
     )
-    return analisador.parse_args()
+
+    argumentos = analisador.parse_args()
+
+    # Os padrões seguem a pasta do main.py, e não o diretório de onde o comando
+    # foi chamado: `python "C:\\...\\Trabalho A1\\main.py"` funciona de qualquer
+    # lugar. Caminhos informados pelo usuário continuam relativos ao diretório
+    # atual, como manda o costume de qualquer programa de linha de comando.
+    if argumentos.pasta is None:
+        argumentos.pasta = RAIZ / "documentos"
+    if argumentos.lexico is None:
+        argumentos.lexico = RAIZ / "palavras.txt"
+    return argumentos
 
 
 def main():
