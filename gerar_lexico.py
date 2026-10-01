@@ -21,6 +21,7 @@ Uso:
 import sys
 from pathlib import Path
 
+from estatisticas import formatar_numero
 from mecanismo import MecanismoBusca
 from trie import normalizar
 
@@ -74,7 +75,7 @@ def main():
     )
     DESTINO.write_text(cabecalho + "\n".join(palavras) + "\n", encoding="utf-8")
 
-    print(f"{len(palavras):,} palavras gravadas em '{DESTINO.name}'")
+    print(f"{formatar_numero(len(palavras))} palavras gravadas em '{DESTINO.name}'")
     print(f"Origem: {documentos} documento(s) de '{pasta}/'")
     return 0
 

@@ -167,7 +167,7 @@ class Preprocessador {
     return {
       'stopwords carregadas': this.stopwords.size,
       stemming: this.usarStemming ? 'RSLP (Orengo & Huyck, 2001)' : 'desligado',
-      'tamanho minimo do token': this.tamanhoMinimo,
+      'tamanho mínimo do token': this.tamanhoMinimo,
     };
   }
 }

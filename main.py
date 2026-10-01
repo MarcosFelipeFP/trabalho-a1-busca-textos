@@ -19,7 +19,7 @@ import sys
 import textwrap
 from pathlib import Path
 
-from estatisticas import Cronometro, formatar_duracao
+from estatisticas import Cronometro, formatar_duracao, formatar_numero
 from mecanismo import MecanismoBusca
 from trie import Trie
 
@@ -29,9 +29,21 @@ LARGURA = 60
 
 # A busca por prefixo devolve TODAS as palavras que começam com o prefixo
 # (seção 2.3 do enunciado). Como um prefixo de uma letra alcança mais de mil
-# delas, a lista é exibida em páginas destes tamanhos, sem cortar nada.
+# delas, a lista é exibida em páginas destes tamanhos, sem cortar nada. A lista
+# do tempo de cada consulta, nas estatísticas, segue a mesma regra.
 PALAVRAS_POR_PAGINA = 40
 TERMOS_POR_PAGINA = 10
+CONSULTAS_POR_PAGINA = 20
+
+# As perguntas usam o texto dos exemplos do enunciado ("Digite o prefixo: ").
+# Como cada opção continua ativa depois da resposta, este aviso aparece uma vez,
+# ao entrar nela, dizendo como voltar ao menu.
+AVISO_DE_VOLTA = "(Para voltar ao menu, tecle Enter sem digitar nada.)"
+
+# Rótulos das consultas na tela de estatísticas. A chave sem acento é a que o
+# mecanismo registra e que as rotas JSON do servidor devolvem.
+NOMES_DAS_CONSULTAS = {"palavra": "palavra", "prefixo": "prefixo",
+                       "sequencia": "sequência"}
 
 # Usadas quando não há léxico nem corpus: são as palavras da seção 2.2 do
 # enunciado, o suficiente para o programa demonstrar o autocomplete.
@@ -154,8 +166,9 @@ def autocomplete_buscar(trie):
     a próxima palavra, e só volta ao menu quando o usuário responde vazio. São
     as "sucessivas consultas" do item 4 sem obrigar a reescolher a opção.
     """
+    print(AVISO_DE_VOLTA)
     while True:
-        palavra = perguntar("Digite a palavra (Enter volta ao menu): ")
+        palavra = perguntar("Digite a palavra: ")
         if not palavra:
             return
 
@@ -183,8 +196,9 @@ def autocomplete_buscar(trie):
 
 def autocomplete_prefixo(trie):
     """Opção 2: todas as palavras que começam com o prefixo (item 3)."""
+    print(AVISO_DE_VOLTA)
     while True:
-        prefixo = perguntar("Digite o prefixo (Enter volta ao menu): ")
+        prefixo = perguntar("Digite o prefixo: ")
         if not prefixo:
             return
 
@@ -202,8 +216,9 @@ def autocomplete_prefixo(trie):
 
 def autocomplete_inserir(trie):
     """Opção 3: inserção de novas palavras durante a execução (item 5)."""
+    print(AVISO_DE_VOLTA)
     while True:
-        palavra = perguntar("Digite a nova palavra (Enter volta ao menu): ")
+        palavra = perguntar("Digite a nova palavra: ")
         if not palavra:
             return
 
@@ -211,7 +226,7 @@ def autocomplete_inserir(trie):
             nova = trie.inserir(palavra)
 
         if nova:
-            print(f"\n'{palavra}' inserida. Total agora: {len(trie):,} palavras.")
+            print(f"\n'{palavra}' inserida. Total agora: {formatar_numero(len(trie))} palavras.")
         else:
             print(f"\n'{palavra}' já estava cadastrada.")
         informar_tempo(relogio.decorrido, "Tempo da inserção")
@@ -228,11 +243,11 @@ def executar_parte1(caminho_lexico):
     tempo_construcao = relogio.decorrido
 
     print(f"\nTrie construída em {formatar_duracao(tempo_construcao)} "
-          f"({trie.total_nos():,} nós, altura {trie.altura()}).")
+          f"({formatar_numero(trie.total_nos())} nós, altura {trie.altura()}).")
 
     while True:
         cabecalho("AUTOCOMPLETE COM TRIE")
-        print(f"Palavras cadastradas: {len(trie):,}")
+        print(f"Palavras cadastradas: {formatar_numero(len(trie))}")
         print()
         print("1 - Buscar palavra")
         print("2 - Buscar por prefixo")
@@ -272,8 +287,9 @@ def exibir_busca_palavra(mecanismo):
     volta ao menu. Assim dá para comparar consultas seguidas -- "algoritmo",
     depois "algoritmos" -- sem reescolher a opção a cada vez.
     """
+    print(AVISO_DE_VOLTA)
     while True:
-        palavra = perguntar("Digite a palavra (Enter volta ao menu): ")
+        palavra = perguntar("Digite a palavra: ")
         if not palavra:
             return
         _mostrar_busca_palavra(mecanismo, palavra)
@@ -309,8 +325,8 @@ def _mostrar_busca_palavra(mecanismo, palavra):
         marca = ""
         if len(termos) > 1:
             marca = f"   [{resposta['cobertura'][documento]}/{len(termos)} termos]"
-        print(f"  - {documento:<42} {frequencia:>4} ocorrência(s)   "
-              f"BM25 {pontuacao:.3f}{marca}")
+        print(f"  - {documento:<42} {formatar_numero(frequencia):>4} ocorrência(s)   "
+              f"BM25 {formatar_numero(pontuacao, 3)}{marca}")
 
     # Mostra o ganho do stemming quando ele existe: é a demonstração concreta
     # de por que o item opcional da seção 3.3 foi implementado.
@@ -350,8 +366,9 @@ def exibir_busca_prefixo(mecanismo):
 
     Em laço, como as demais consultas: o Enter vazio volta ao menu.
     """
+    print(AVISO_DE_VOLTA)
     while True:
-        prefixo = perguntar("Digite o prefixo (Enter volta ao menu): ")
+        prefixo = perguntar("Digite o prefixo: ")
         if not prefixo:
             return
         _mostrar_busca_prefixo(mecanismo, prefixo)
@@ -384,14 +401,14 @@ def _mostrar_busca_prefixo(mecanismo, prefixo):
     if resposta["sugestoes"]:
         print("\nMais relevantes (por frequência no corpus):")
         for posicao, (palavra, ocorrencias) in enumerate(resposta["sugestoes"][:5], 1):
-            print(f"  {posicao}. {palavra:<26} {ocorrencias:>5} ocorrência(s)")
+            print(f"  {posicao}. {palavra:<26} {formatar_numero(ocorrencias):>5} ocorrência(s)")
 
     ranking = resposta["ranking"]
     print(f"\nDocumentos que contêm algum desses termos: {len(resposta['documentos'])}")
     if len(ranking) > 8:
         print("Os 8 mais relevantes pelo BM25:")
     for documento, pontuacao in ranking[:8]:
-        print(f"  - {documento:<42} BM25 {pontuacao:.3f}")
+        print(f"  - {documento:<42} BM25 {formatar_numero(pontuacao, 3)}")
 
     informar_tempo(resposta["tempo"])
 
@@ -401,8 +418,9 @@ def exibir_busca_sequencia(mecanismo):
     Consulta por sequência de caracteres com KMP (seção 3.7.3, bônus), em laço:
     o Enter vazio volta ao menu.
     """
+    print(AVISO_DE_VOLTA)
     while True:
-        sequencia = perguntar("Digite a sequência (Enter volta ao menu): ")
+        sequencia = perguntar("Digite a sequência: ")
         if not sequencia:
             return
         _mostrar_busca_sequencia(mecanismo, sequencia)
@@ -416,14 +434,15 @@ def _mostrar_busca_sequencia(mecanismo, sequencia):
     if not resultados:
         print(f"\nA sequência '{sequencia}' não aparece em nenhum documento.")
     else:
-        print(f"\n{resposta['total_ocorrencias']} ocorrência(s) em "
+        print(f"\n{formatar_numero(resposta['total_ocorrencias'])} ocorrência(s) em "
               f"{len(resultados)} arquivo(s):")
         for item in resultados:
-            print(f"\n  {item['documento']} ({item['ocorrencias']} ocorrência(s))")
+            print(f"\n  {item['documento']} ({formatar_numero(item['ocorrencias'])} ocorrência(s))")
             for trecho in item["contextos"]:
                 print(f"      {trecho}")
 
-    print(f"\n  Comparações de caractere feitas pelo KMP: {resposta['comparacoes']:,}")
+    print(f"\n  Comparações de caractere feitas pelo KMP: "
+          f"{formatar_numero(resposta['comparacoes'])}")
     informar_tempo(resposta["tempo"])
 
 
@@ -438,8 +457,8 @@ def exibir_documentos(mecanismo):
     print(f"  {'arquivo':<44}{'KB':>8}{'tokens':>10}")
     for linha in linhas:
         print(f"  {linha['documento']:<44}"
-              f"{linha['bytes'] / 1024:>8.1f}"
-              f"{linha['tokens']:>10,}")
+              f"{formatar_numero(linha['bytes'] / 1024, 1):>8}"
+              f"{formatar_numero(linha['tokens']):>10}")
 
 
 def exibir_estatisticas(mecanismo):
@@ -447,20 +466,21 @@ def exibir_estatisticas(mecanismo):
     e = mecanismo.estatisticas
 
     secao("ESTATÍSTICAS DO SISTEMA")
-    print(f"  Documentos processados              : {e.documentos:,}")
-    print(f"  Palavras após a tokenização         : {e.total_palavras_brutas:,}")
-    print(f"  Palavras após remover stopwords     : {e.total_palavras:,} "
-          f"(redução de {e.taxa_reducao_stopwords() * 100:.1f}%)")
-    print(f"  Termos distintos (vocabulário)      : {e.termos_distintos:,}")
-    print(f"  Palavras armazenadas na Trie        : {e.palavras_na_trie:,}")
-    print(f"  Radicais no índice invertido        : {mecanismo.indice.total_termos():,}")
-    print(f"  Postagens (pares termo-documento)   : {e.postagens:,}")
+    print(f"  Documentos processados              : {formatar_numero(e.documentos)}")
+    print(f"  Palavras após a tokenização         : {formatar_numero(e.total_palavras_brutas)}")
+    print(f"  Palavras após remover stopwords     : {formatar_numero(e.total_palavras)} "
+          f"(redução de {formatar_numero(e.taxa_reducao_stopwords() * 100, 1)} %)")
+    print(f"  Termos distintos (vocabulário)      : {formatar_numero(e.termos_distintos)}")
+    print(f"  Palavras armazenadas na Trie        : {formatar_numero(e.palavras_na_trie)}")
+    print(f"  Radicais no índice invertido        : "
+          f"{formatar_numero(mecanismo.indice.total_termos())}")
+    print(f"  Postagens (pares termo-documento)   : {formatar_numero(e.postagens)}")
 
     secao("MEMÓRIA DAS ESTRUTURAS")
-    print(f"  Nós na Trie tradicional             : {e.nos_na_trie:,}")
-    print(f"  Nós na Trie comprimida (PATRICIA)   : {e.nos_na_trie_comprimida:,}")
+    print(f"  Nós na Trie tradicional             : {formatar_numero(e.nos_na_trie)}")
+    print(f"  Nós na Trie comprimida (PATRICIA)   : {formatar_numero(e.nos_na_trie_comprimida)}")
     print(f"  Economia da compressão              : "
-          f"{e.economia_trie_comprimida() * 100:.1f}%")
+          f"{formatar_numero(e.economia_trie_comprimida() * 100, 1)} %")
 
     secao("TEMPOS DE CONSTRUÇÃO")
     print(f"  Leitura dos arquivos                : {formatar_duracao(e.tempo_leitura)}")
@@ -474,16 +494,24 @@ def exibir_estatisticas(mecanismo):
         print(f"  {chave:<36}: {valor}")
 
     if e.consultas:
-        secao(f"CONSULTAS REALIZADAS ({len(e.consultas)})")
+        secao(f"CONSULTAS REALIZADAS ({formatar_numero(len(e.consultas))})")
         print(f"  {'tipo':<12}{'qtd':>6}{'tempo total':>16}{'tempo médio':>16}")
         for tipo, (quantidade, total, media) in sorted(e.resumo_por_tipo().items()):
-            print(f"  {tipo:<12}{quantidade:>6}"
+            print(f"  {NOMES_DAS_CONSULTAS.get(tipo, tipo):<12}{formatar_numero(quantidade):>6}"
                   f"{formatar_duracao(total):>16}{formatar_duracao(media):>16}")
 
-        print("\n  Últimas consultas:")
-        for tipo, texto, resultados, segundos in e.consultas[-5:]:
-            print(f"    {tipo:<10} '{texto[:26]:<26}' "
-                  f"{resultados:>4} resultado(s)  {formatar_duracao(segundos)}")
+        # Item 7 da seção 3.9: o tempo de CADA consulta da sessão, na ordem em
+        # que foram feitas, e não apenas das últimas.
+        print("\n  Tempo de cada consulta:")
+
+        def exibir_consulta(item):
+            posicao, (tipo, texto, resultados, segundos) = item
+            consulta = f"'{texto[:26]}'"
+            print(f"  {posicao:>4}. {NOMES_DAS_CONSULTAS.get(tipo, tipo):<10} {consulta:<28}"
+                  f"{formatar_numero(resultados):>6} resultado(s){formatar_duracao(segundos):>12}")
+
+        exibir_em_paginas(list(enumerate(e.consultas, start=1)), exibir_consulta,
+                          CONSULTAS_POR_PAGINA, "consultas")
     else:
         secao("CONSULTAS REALIZADAS")
         print("  Nenhuma consulta feita ainda nesta sessão.")
@@ -507,9 +535,9 @@ def executar_parte2(pasta, usar_stemming):
 
     while True:
         cabecalho("SISTEMA DE BUSCA EM DOCUMENTOS")
-        print(f"Documentos processados: {e.documentos:,}")
-        print(f"Total de palavras: {e.total_palavras_brutas:,}")
-        print(f"Termos distintos: {e.termos_distintos:,}")
+        print(f"Documentos processados: {formatar_numero(e.documentos)}")
+        print(f"Total de palavras: {formatar_numero(e.total_palavras_brutas)}")
+        print(f"Termos distintos: {formatar_numero(e.termos_distintos)}")
         print()
         print("1 - Buscar palavra")
         print("2 - Buscar por prefixo")

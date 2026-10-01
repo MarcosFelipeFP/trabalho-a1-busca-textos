@@ -27,6 +27,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from estatisticas import formatar_numero
+
 API = "https://pt.wikipedia.org/w/api.php"
 USER_AGENT = "TrabalhoA1-UVA/1.0 (projeto academico; Analise e Otimizacao de Sistemas)"
 PASTA_DESTINO = Path(__file__).parent / "documentos"
@@ -158,11 +160,11 @@ def main():
         palavras = len(texto.split())
         total_palavras += palavras
         gravados += 1
-        print(f"  [BAIXOU] {destino.name:<40} {palavras:>7,} palavras", flush=True)
+        print(f"  [BAIXOU] {destino.name:<40} {formatar_numero(palavras):>7} palavras", flush=True)
         time.sleep(2.0)                           # cortesia com a API
 
     print(f"\n{gravados} arquivo(s) em '{PASTA_DESTINO.name}/'")
-    print(f"Total aproximado: {total_palavras:,} palavras")
+    print(f"Total aproximado: {formatar_numero(total_palavras)} palavras")
     if falhas:
         print(f"\n{len(falhas)} artigo(s) nao baixado(s) -- rode o script de novo:")
         for titulo, motivo in falhas:

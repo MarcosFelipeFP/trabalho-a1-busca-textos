@@ -25,7 +25,12 @@ esporádicos do que a média.
 
 import time
 
-__all__ = ["Cronometro", "formatar_duracao", "Estatisticas"]
+__all__ = ["Cronometro", "formatar_numero", "formatar_duracao", "Estatisticas"]
+
+# Ponto separa os milhares e vírgula separa as decimais, como se escreve no
+# Brasil e como está no relatório. O padrão do Python é o inglês, em que
+# "98,718" seria lido aqui como noventa e oito vírgula setecentos e dezoito.
+_PADRAO_BRASILEIRO = str.maketrans(",.", ".,")
 
 
 class Cronometro:
@@ -63,19 +68,33 @@ class Cronometro:
         return f"Cronometro({formatar_duracao(self.decorrido)})"
 
 
+def formatar_numero(valor, casas=None):
+    """
+    Formata um número no padrão brasileiro: "98.718", "46,6", "0,614".
+
+    Sem `casas`, o valor sai como está, com separador de milhar; com `casas`,
+    sai com esse número de casas decimais.
+    """
+    texto = f"{valor:,}" if casas is None else f"{valor:,.{casas}f}"
+    return texto.translate(_PADRAO_BRASILEIRO)
+
+
 def formatar_duracao(segundos):
     """
     Formata uma duração escolhendo a unidade legível.
 
     Um índice leva centenas de milissegundos para ser construído; uma consulta
-    leva microssegundos. Exibir tudo na mesma unidade produziria ou "0.000 s"
-    ou "812000.000 us" -- nenhum dos dois ajuda a ler o resultado.
+    leva microssegundos. Exibir tudo na mesma unidade produziria ou "0,000 s"
+    ou "812.000,0 µs" -- nenhum dos dois ajuda a ler o resultado.
+
+    O número segue o padrão brasileiro, com uma casa decimal, como no
+    relatório: "28,8 µs", "330,8 ms".
     """
     if segundos >= 1.0:
-        return f"{segundos:.3f} s"
+        return f"{formatar_numero(segundos, 2)} s"
     if segundos >= 1e-3:
-        return f"{segundos * 1e3:.3f} ms"
-    return f"{segundos * 1e6:.1f} us"
+        return f"{formatar_numero(segundos * 1e3, 1)} ms"
+    return f"{formatar_numero(segundos * 1e6, 1)} µs"
 
 
 class Estatisticas:

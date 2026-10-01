@@ -38,7 +38,8 @@ from unittest import mock
 
 from indice_invertido import IndiceInvertido, TabelaHash
 from kmp import buscar_ingenuo, buscar_kmp, tabela_falha
-from main import (PALAVRAS_POR_PAGINA, RAIZ, analisar_argumentos,
+from estatisticas import formatar_duracao, formatar_numero
+from main import (AVISO_DE_VOLTA, PALAVRAS_POR_PAGINA, RAIZ, analisar_argumentos,
                   executar_parte1, executar_parte2)
 from mecanismo import MecanismoBusca
 from preprocessamento import Preprocessador, remover_pontuacao, tokenizar
@@ -51,6 +52,26 @@ EXEMPLO_ENUNCIADO = [
     "computador", "computação", "computacional", "compilador",
     "complexidade", "programação", "processador", "processamento",
 ]
+
+
+class TesteFormatacao(unittest.TestCase):
+    """Números e durações no padrão brasileiro, como o relatório escreve."""
+
+    def test_inteiros_com_ponto_nos_milhares(self):
+        self.assertEqual(formatar_numero(98718), "98.718")
+        self.assertEqual(formatar_numero(1234567), "1.234.567")
+        self.assertEqual(formatar_numero(24), "24")
+
+    def test_decimais_com_virgula(self):
+        self.assertEqual(formatar_numero(46.6, 1), "46,6")
+        self.assertEqual(formatar_numero(0.6137, 3), "0,614")
+        self.assertEqual(formatar_numero(1234.5, 1), "1.234,5")
+
+    def test_duracoes_com_uma_casa_decimal(self):
+        self.assertEqual(formatar_duracao(28.8e-6), "28,8 µs")
+        self.assertEqual(formatar_duracao(0.3308), "330,8 ms")
+        self.assertEqual(formatar_duracao(55.2e-3), "55,2 ms")
+        self.assertEqual(formatar_duracao(1.5), "1,50 s")
 
 
 class TesteNormalizacao(unittest.TestCase):
@@ -1059,7 +1080,44 @@ class TesteInterfaceTerminal(unittest.TestCase):
         # O menu aparece na entrada e uma vez ao voltar -- e não entre as duas
         # consultas, que era a reclamação.
         self.assertEqual(saida.count("SISTEMA DE BUSCA EM DOCUMENTOS"), 2)
-        self.assertIn("Digite a palavra (Enter volta ao menu): ", self.perguntas)
+        # Como voltar ao menu é dito uma vez, ao entrar na opção.
+        self.assertEqual(saida.count(AVISO_DE_VOLTA), 1)
+
+    def test_perguntas_usam_o_texto_do_enunciado(self):
+        """
+        Seções 2.4, 3.7.1 e 3.7.2: "Digite o prefixo: " e "Digite a palavra: ",
+        sem nada acrescentado ao texto da pergunta.
+        """
+        self.conduzir(executar_parte1, ["1", "", "2", "", "3", "", "4"],
+                      self.lexico_do_enunciado)
+        self.assertEqual(self.perguntas[1:6:2], [
+            "Digite a palavra: ", "Digite o prefixo: ", "Digite a nova palavra: "])
+
+        self.conduzir(executar_parte2, ["1", "", "2", "", "3", "", "6"], self.documentos, True)
+        self.assertEqual(self.perguntas[1:6:2], [
+            "Digite a palavra: ", "Digite o prefixo: ", "Digite a sequência: "])
+
+    def test_estatisticas_listam_o_tempo_de_cada_consulta(self):
+        """
+        Seção 3.9, item 7: o tempo de CADA consulta realizada. Com sete
+        consultas, a primeira também precisa aparecer -- antes só as cinco
+        últimas eram listadas.
+        """
+        consultas = ["dados", "busca", "redes", "tabelas", "banco", "algoritmos", "máquinas"]
+        saida = self.conduzir(executar_parte2, ["1", *consultas, "", "5", "6"],
+                              self.documentos, True)
+        bloco = saida.split("Tempo de cada consulta:\n", 1)[1].split("\n\n", 1)[0]
+        linhas = bloco.splitlines()
+        self.assertEqual(len(linhas), len(consultas))
+        for posicao, (linha, consulta) in enumerate(zip(linhas, consultas), start=1):
+            self.assertRegex(linha, rf"^\s+{posicao}\. palavra\s+'{consulta}'.*(µs|ms)$")
+
+    def test_numeros_no_padrao_brasileiro(self):
+        """Ponto nos milhares e vírgula nas decimais, como no relatório."""
+        saida = self.conduzir(executar_parte2, ["1", "dados", "", "6"], self.documentos, True)
+        self.assertRegex(saida, r"BM25 \d+,\d{3}")
+        self.assertRegex(saida, r"Tempo da consulta: \d+,\d (µs|ms)\n")
+        self.assertNotRegex(saida, r"\d\.\d+ (us|µs|ms|s)\b")
 
     def test_padroes_seguem_a_pasta_do_programa(self):
         """
@@ -1164,10 +1222,13 @@ class TesteServidorWeb(unittest.TestCase):
         """Código HTTP de uma rota que se espera recusada."""
         endereco = f"http://127.0.0.1:{self.porta}{caminho}"
         try:
-            urllib.request.urlopen(endereco, timeout=10)
+            with urllib.request.urlopen(endereco, timeout=10) as resposta:
+                return resposta.status
         except urllib.error.HTTPError as falha:
+            # O erro também é uma resposta aberta: sem fechá-lo, o Python
+            # avisa no fim dos testes que um recurso ficou sem liberar.
+            falha.close()
             return falha.code
-        return 200
 
     # -------------------------------------------------------------- rotas
 

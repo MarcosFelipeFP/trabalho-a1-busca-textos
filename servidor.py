@@ -33,7 +33,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-from estatisticas import Cronometro, formatar_duracao
+from estatisticas import Cronometro, formatar_duracao, formatar_numero
 from main import carregar_lexico, configurar_saida
 from mecanismo import MecanismoBusca
 from trie import Trie
@@ -466,11 +466,11 @@ def main():
     )
 
     estado = aplicacao.estado()
-    print(f"  Parte I  : {estado['parte1']['palavras']:,} palavras na Trie "
+    print(f"  Parte I  : {formatar_numero(estado['parte1']['palavras'])} palavras na Trie "
           f"({formatar_duracao(estado['parte1']['tempo_construcao'])})")
     if aplicacao.documentos:
         print(f"  Parte II : {estado['parte2']['documentos']} documentos, "
-              f"{estado['parte2']['termos']:,} termos distintos "
+              f"{formatar_numero(estado['parte2']['termos'])} termos distintos "
               f"({formatar_duracao(estado['parte2']['tempo_construcao'])})")
     else:
         print(f"  Parte II : nenhum .txt em '{argumentos.pasta}/'. "

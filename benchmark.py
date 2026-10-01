@@ -31,6 +31,7 @@ import statistics
 import sys
 import time
 
+from estatisticas import formatar_numero
 from indice_invertido import TabelaHash
 from kmp import buscar_ingenuo, buscar_kmp
 from mecanismo import MecanismoBusca
@@ -83,8 +84,8 @@ def medir(funcao, repeticoes=REPETICOES, lotes=1):
 
 
 def us(segundos):
-    """Formata segundos como microssegundos."""
-    return f"{segundos * 1e6:>10.2f} us"
+    """Formata segundos como microssegundos, no padrão brasileiro."""
+    return f"{formatar_numero(segundos * 1e6, 2):>10} µs"
 
 
 # ==========================================================================
@@ -141,8 +142,8 @@ def experimento_trie_vs_sequencial(vocabulario):
         tempo_lista = medir(com_lista)
         ganho = tempo_lista / tempo_trie if tempo_trie else 0
 
-        print(f"  {len(amostra):>12,}{encontrados:>12,}{us(tempo_trie):>15}"
-              f"{us(tempo_lista):>15}{ganho:>9.0f}x")
+        print(f"  {formatar_numero(len(amostra)):>12}{formatar_numero(encontrados):>12}"
+              f"{us(tempo_trie):>15}{us(tempo_lista):>15}{formatar_numero(ganho, 0):>9}x")
 
     print("\n  As duas colunas de tempo crescem, mas por motivos diferentes: a")
     print("  da lista cresce porque há mais palavras para varrer; a da Trie,")
@@ -178,8 +179,8 @@ def experimento_trie_vs_sequencial(vocabulario):
         tempo_lista = medir(com_lista_limitada)
         ganho = tempo_lista / tempo_trie if tempo_trie else 0
 
-        print(f"  {len(amostra):>12,}{encontrados:>12,}{us(tempo_trie):>15}"
-              f"{us(tempo_lista):>15}{ganho:>9.0f}x")
+        print(f"  {formatar_numero(len(amostra)):>12}{formatar_numero(encontrados):>12}"
+              f"{us(tempo_trie):>15}{us(tempo_lista):>15}{formatar_numero(ganho, 0):>9}x")
 
     print("\n  A comparação decisiva está entre a segunda e a terceira linha: o")
     print("  vocabulário DOBRA, o número de resultados fica igual, e o tempo da")
@@ -238,8 +239,10 @@ def experimento_autocomplete(mecanismo):
         nos_best_first = trie.nos_visitados
 
         economia = (1 - nos_best_first / nos_varredura) if nos_varredura else 0.0
-        print(f"  {prefixo:>10}{disponiveis:>11,}{nos_varredura:>18,}"
-              f"{nos_best_first:>18,}{economia:>10.1%}")
+        porcentagem = f"{formatar_numero(economia * 100, 1)} %"
+        print(f"  {prefixo:>10}{formatar_numero(disponiveis):>11}"
+              f"{formatar_numero(nos_varredura):>18}"
+              f"{formatar_numero(nos_best_first):>18}{porcentagem:>11}")
 
     subtitulo("(b) Tempo das duas estratégias")
     print(f"  {'prefixo':>10}{'palavras':>11}{'varredura':>16}"
@@ -263,8 +266,8 @@ def experimento_autocomplete(mecanismo):
         tempo_best = medir(com_best_first, lotes=20)
         ganho = tempo_varredura / tempo_best if tempo_best else 0
 
-        print(f"  {prefixo:>10}{disponiveis:>11,}{us(tempo_varredura):>16}"
-              f"{us(tempo_best):>16}{ganho:>9.1f}x")
+        print(f"  {prefixo:>10}{formatar_numero(disponiveis):>11}{us(tempo_varredura):>16}"
+              f"{us(tempo_best):>16}{formatar_numero(ganho, 1):>9}x")
 
     subtitulo("(c) O que cada estratégia devolve para 'comp'")
     alfabeticas = trie.buscar_prefixo("comp", limite=5)
@@ -317,16 +320,16 @@ def experimento_trie_comprimida(vocabulario):
     caracteres = sum(len(normalizar(p)) for p in palavras)
 
     subtitulo("Memória")
-    print(f"  Palavras distintas                 : {len(trie):,}")
-    print(f"  Caracteres totais (limite superior): {caracteres:,}")
-    print(f"  Nós na Trie tradicional            : {trie.total_nos():,}")
-    print(f"  Nós na Trie comprimida             : {comprimida.total_nos():,}")
+    print(f"  Palavras distintas                 : {formatar_numero(len(trie))}")
+    print(f"  Caracteres totais (limite superior): {formatar_numero(caracteres)}")
+    print(f"  Nós na Trie tradicional            : {formatar_numero(trie.total_nos())}")
+    print(f"  Nós na Trie comprimida             : {formatar_numero(comprimida.total_nos())}")
     economia = 1 - comprimida.total_nos() / trie.total_nos()
-    print(f"  Economia de nós                    : {economia * 100:.1f}%")
+    print(f"  Economia de nós                    : {formatar_numero(economia * 100, 1)} %")
 
     subtitulo("Construção")
-    print(f"  Trie tradicional : {tempo_trie * 1000:>8.2f} ms")
-    print(f"  Trie comprimida  : {tempo_comprimida * 1000:>8.2f} ms")
+    print(f"  Trie tradicional : {formatar_numero(tempo_trie * 1000, 2):>8} ms")
+    print(f"  Trie comprimida  : {formatar_numero(tempo_comprimida * 1000, 2):>8} ms")
 
     subtitulo("Consulta por prefixo (mediana de 25 repetições)")
     prefixos = ["comp", "prog", "algor", "dad", "red"]
@@ -367,7 +370,8 @@ def experimento_kmp(mecanismo):
         k = buscar_kmp(texto, padrao)
         i = buscar_ingenuo(texto, padrao)
         razao = i.comparacoes / k.comparacoes
-        print(f"  {n:>10,}{m:>6}{k.comparacoes:>16,}{i.comparacoes:>18,}{razao:>9.1f}x")
+        print(f"  {formatar_numero(n):>10}{m:>6}{formatar_numero(k.comparacoes):>16}"
+              f"{formatar_numero(i.comparacoes):>18}{formatar_numero(razao, 1):>9}x")
 
     print("\n  As comparações do KMP crescem como 2n (linear); as do ingênuo")
     print("  crescem como n*m. Dobrar n dobra o KMP e dobra o ingênuo, mas a")
@@ -375,7 +379,7 @@ def experimento_kmp(mecanismo):
 
     subtitulo("Texto natural: corpus real do trabalho")
     corpus = "\n".join(mecanismo.conteudo.values()).lower()
-    print(f"  Tamanho do corpus: {len(corpus):,} caracteres\n")
+    print(f"  Tamanho do corpus: {formatar_numero(len(corpus))} caracteres\n")
     print(f"  {'padrão':<28}{'ocorr.':>8}{'KMP':>14}{'ingênuo':>14}{'razão':>9}")
     print("  " + "-" * (LARGURA - 4))
     for padrao in ["rede neural", "chave pública", "algoritmo de busca",
@@ -384,7 +388,8 @@ def experimento_kmp(mecanismo):
         i = buscar_ingenuo(corpus, padrao)
         razao = i.comparacoes / k.comparacoes if k.comparacoes else 0
         print(f"  {padrao:<28}{len(k.ocorrencias):>8}"
-              f"{k.comparacoes:>14,}{i.comparacoes:>14,}{razao:>8.2f}x")
+              f"{formatar_numero(k.comparacoes):>14}{formatar_numero(i.comparacoes):>14}"
+              f"{formatar_numero(razao, 2):>8}x")
 
     print("\n  Em texto natural a vantagem encolhe: o alfabeto é grande e as")
     print("  falhas acontecem cedo, então a força bruta raramente atinge o seu")
@@ -406,7 +411,7 @@ def experimento_hash(mecanismo):
     titulo("EXPERIMENTO 5 - Tabela hash: fator de carga e colisões")
 
     termos = list(mecanismo.indice.por_radical)
-    print(f"\n  Termos indexados: {len(termos):,}\n")
+    print(f"\n  Termos indexados: {formatar_numero(len(termos))}\n")
 
     print(f"  {'capacidade':>12}{'carga':>10}{'colisões':>12}"
           f"{'maior cadeia':>15}{'cadeia média':>15}")
@@ -421,9 +426,10 @@ def experimento_hash(mecanismo):
             tabela.inserir(termo, None)
 
         e = tabela.estatisticas()
-        print(f"  {e['capacidade']:>12,}{e['fator de carga']:>10.3f}"
-              f"{e['colisoes']:>12,}{e['maior cadeia']:>15}"
-              f"{e['cadeia media']:>15.3f}")
+        print(f"  {formatar_numero(e['capacidade']):>12}"
+              f"{formatar_numero(e['fator de carga'], 3):>10}"
+              f"{formatar_numero(e['colisoes']):>12}{e['maior cadeia']:>15}"
+              f"{formatar_numero(e['cadeia media'], 3):>15}")
 
     print("\n  A cadeia média acompanha o fator de carga: é o α da análise")
     print("  clássica, e o custo médio da busca é O(1 + α). Com a tabela")
@@ -439,9 +445,9 @@ def experimento_hash(mecanismo):
     tempo_propria = medir(lambda: [tabela.buscar(t) for t in amostra], repeticoes=7)
     tempo_dict = medir(lambda: [dicionario.get(t) for t in amostra], repeticoes=7)
 
-    print(f"  Tabela própria (Python puro) : {tempo_propria * 1000:>8.2f} ms")
-    print(f"  dict nativo (C)              : {tempo_dict * 1000:>8.2f} ms")
-    print(f"  Razão                        : {tempo_propria / tempo_dict:>8.1f}x")
+    print(f"  Tabela própria (Python puro) : {formatar_numero(tempo_propria * 1000, 2):>8} ms")
+    print(f"  dict nativo (C)              : {formatar_numero(tempo_dict * 1000, 2):>8} ms")
+    print(f"  Razão                        : {formatar_numero(tempo_propria / tempo_dict, 1):>8}x")
     print("\n  Mesma complexidade assintótica, O(1) em média nos dois casos. A")
     print("  diferença é o fator constante: o dict é implementado em C e usa")
     print("  endereçamento aberto. É por isso que o sistema usa o dict e a")
@@ -468,7 +474,7 @@ def experimento_escalabilidade(pasta):
         return
 
     print(f"\n  {'docs':>6}{'tokens':>12}{'trie (ms)':>12}{'índice (ms)':>14}"
-          f"{'total (ms)':>13}{'us/1k tokens':>16}")
+          f"{'total (ms)':>13}{'µs/1k tokens':>16}")
     print("  " + "-" * (LARGURA - 4))
 
     for quantidade in (len(arquivos) // 4, len(arquivos) // 2,
@@ -485,9 +491,10 @@ def experimento_escalabilidade(pasta):
         total = e.tempo_total_construcao()
         por_mil = (total / e.total_palavras * 1000 * 1e6) if e.total_palavras else 0
 
-        print(f"  {e.documentos:>6}{e.total_palavras:>12,}"
-              f"{e.tempo_trie * 1000:>12.1f}{e.tempo_indice * 1000:>14.1f}"
-              f"{total * 1000:>13.1f}{por_mil:>16.1f}")
+        print(f"  {e.documentos:>6}{formatar_numero(e.total_palavras):>12}"
+              f"{formatar_numero(e.tempo_trie * 1000, 1):>12}"
+              f"{formatar_numero(e.tempo_indice * 1000, 1):>14}"
+              f"{formatar_numero(total * 1000, 1):>13}{formatar_numero(por_mil, 1):>16}")
 
     print("\n  A última coluna é o custo normalizado. Mantendo-se estável")
     print("  enquanto o corpus quadruplica, ela confirma o comportamento")
@@ -509,7 +516,8 @@ def experimento_ranqueamento(mecanismo):
     titulo("EXPERIMENTO 7 - Ranqueamento: BM25 contra TF-IDF")
 
     indice = mecanismo.indice
-    print(f"\n  Tamanho médio dos documentos: {indice.tamanho_medio():.0f} tokens\n")
+    print(f"\n  Tamanho médio dos documentos: "
+          f"{formatar_numero(indice.tamanho_medio(), 0)} tokens\n")
 
     for consulta in ["algoritmo", "rede", "dados", "segurança"]:
         radical = mecanismo.preprocessador.radicalizar(consulta)
@@ -521,14 +529,18 @@ def experimento_ranqueamento(mecanismo):
         subtitulo(f"Consulta: '{consulta}'  (radical '{radical}')")
         print(f"  {'#':>2}  {'BM25':<40}{'TF-IDF':<40}")
         for posicao in range(max(len(bm25), len(tfidf))):
-            esquerda = f"{bm25[posicao][0]} ({bm25[posicao][1]:.2f})" if posicao < len(bm25) else ""
-            direita = f"{tfidf[posicao][0]} ({tfidf[posicao][1]:.2f})" if posicao < len(tfidf) else ""
+            esquerda = (f"{bm25[posicao][0]} ({formatar_numero(bm25[posicao][1], 2)})"
+                        if posicao < len(bm25) else "")
+            direita = (f"{tfidf[posicao][0]} ({formatar_numero(tfidf[posicao][1], 2)})"
+                       if posicao < len(tfidf) else "")
             print(f"  {posicao + 1:>2}  {esquerda:<40}{direita:<40}")
 
         tamanhos_bm25 = [indice.tamanho_documento[d] for d, _ in bm25]
         tamanhos_tfidf = [indice.tamanho_documento[d] for d, _ in tfidf]
-        print(f"\n      tamanho médio do top-5  BM25: {sum(tamanhos_bm25) / len(tamanhos_bm25):>8,.0f} tokens")
-        print(f"      tamanho médio do top-5 TFIDF: {sum(tamanhos_tfidf) / len(tamanhos_tfidf):>8,.0f} tokens")
+        media_bm25 = formatar_numero(sum(tamanhos_bm25) / len(tamanhos_bm25), 0)
+        media_tfidf = formatar_numero(sum(tamanhos_tfidf) / len(tamanhos_tfidf), 0)
+        print(f"\n      tamanho médio do top-5  BM25: {media_bm25:>8} tokens")
+        print(f"      tamanho médio do top-5 TFIDF: {media_tfidf:>8} tokens")
 
         # Termo presente em TODOS os documentos: df = N, logo log10(N/df) = 0 e
         # o TF-IDF zera a consulta inteira, deixando a ordem sem significado. O
@@ -539,7 +551,7 @@ def experimento_ranqueamento(mecanismo):
             print("      O TF-IDF zera todos os pesos -- log10(N/df) = log10(1) = 0 --")
             print("      e a ordem que ele exibe passa a ser apenas alfabética.")
             print("      O BM25 continua discriminando porque seu IDF é")
-            print("      ln((N-df+0.5)/(df+0.5) + 1), que se mantém positivo.")
+            print("      ln((N-df+0,5)/(df+0,5) + 1), que se mantém positivo.")
 
 
 # ==========================================================================
@@ -560,10 +572,10 @@ def experimento_stemming(mecanismo):
     radicais = indice.total_termos(usar_radical=True)
 
     subtitulo("Compressão do vocabulário")
-    print(f"  Formas distintas no texto : {exatos:,}")
-    print(f"  Radicais distintos (RSLP) : {radicais:,}")
-    print(f"  Redução                   : {(1 - radicais / exatos) * 100:.1f}%")
-    print(f"  Formas por radical         : {exatos / radicais:.2f}")
+    print(f"  Formas distintas no texto : {formatar_numero(exatos)}")
+    print(f"  Radicais distintos (RSLP) : {formatar_numero(radicais)}")
+    print(f"  Redução                   : {formatar_numero((1 - radicais / exatos) * 100, 1)} %")
+    print(f"  Formas por radical         : {formatar_numero(exatos / radicais, 2)}")
 
     subtitulo("Cobertura das consultas")
     print(f"  {'consulta':<20}{'sem stemming':>16}{'com stemming':>16}{'ganho':>12}")
@@ -608,7 +620,8 @@ def experimento_busca_aproximada(mecanismo):
     chaves = sorted({normalizar(palavra) for palavra in mecanismo.vocabulario})
     consultas = ["algortimo", "estrutra", "compilaodr", "neurl", "hahs"]
 
-    print(f"\n  Vocabulário: {len(chaves):,} chaves, {trie.total_nos():,} nós na Trie.")
+    print(f"\n  Vocabulário: {formatar_numero(len(chaves))} chaves, "
+          f"{formatar_numero(trie.total_nos())} nós na Trie.")
     print("  Distância máxima: 2 edições (1 para palavras de até 4 letras).")
 
     subtitulo("(a) Células da matriz calculadas por consulta")
@@ -631,9 +644,9 @@ def experimento_busca_aproximada(mecanismo):
         assert pela_forca == len(achadas), f"divergência em '{consulta}'"
 
         medidas.append((consulta, chave, distancia, comparadas))
-        print(f"  {consulta:<13}{len(achadas):>8}{trie.nos_visitados:>15,}"
-              f"{celulas_trie:>16,}{celulas_bruta:>19,}"
-              f"{celulas_bruta / celulas_trie:>7.0f}x")
+        print(f"  {consulta:<13}{len(achadas):>8}{formatar_numero(trie.nos_visitados):>15}"
+              f"{formatar_numero(celulas_trie):>16}{formatar_numero(celulas_bruta):>19}"
+              f"{formatar_numero(celulas_bruta / celulas_trie, 0):>7}x")
 
     subtitulo("(b) Tempo das duas estratégias")
     print(f"  {'consulta':<13}{'Trie':>16}{'palavra a palavra':>20}{'ganho':>10}")
@@ -646,7 +659,7 @@ def experimento_busca_aproximada(mecanismo):
             lambda: [c for c in comparadas if distancia_edicao(c, chave) <= distancia],
             repeticoes=3)
         print(f"  {consulta:<13}{us(tempo_trie):>16}{us(tempo_bruta):>20}"
-              f"{tempo_bruta / tempo_trie:>9.1f}x")
+              f"{formatar_numero(tempo_bruta / tempo_trie, 1):>9}x")
 
     print("\n  A coluna de nós visitados é a poda em ação: de mais de trinta mil")
     print("  nós, a busca abre poucos milhares -- os caminhos que ainda estão a até")
@@ -681,8 +694,8 @@ def main():
         return 1
 
     e = mecanismo.estatisticas
-    print(f"  {e.documentos} documentos, {e.total_palavras:,} tokens, "
-          f"{e.termos_distintos:,} termos distintos.")
+    print(f"  {e.documentos} documentos, {formatar_numero(e.total_palavras)} tokens, "
+          f"{formatar_numero(e.termos_distintos)} termos distintos.")
 
     experimento_trie_vs_sequencial(mecanismo.vocabulario)
     experimento_autocomplete(mecanismo)

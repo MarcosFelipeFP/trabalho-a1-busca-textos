@@ -105,16 +105,29 @@ function medir(funcao, { alvoMs = 8, tetoMs = 60 } = {}) {
 }
 
 /**
+ * Número com `casas` decimais no padrão brasileiro -- ponto nos milhares,
+ * vírgula nas decimais --, como o `formatar_numero` do Python.
+ */
+function decimalBrasileiro(valor, casas) {
+  const [inteiro, fracao] = valor.toFixed(casas).split('.');
+  const agrupado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return fracao === undefined ? agrupado : `${agrupado},${fracao}`;
+}
+
+/**
  * Formata uma duração escolhendo a unidade legível.
  *
  * Um índice leva centenas de milissegundos para ser construído; uma consulta
- * leva microssegundos. Exibir tudo na mesma unidade produziria ou "0.000 s"
- * ou "812000.000 µs" -- nenhum dos dois ajuda a ler o resultado.
+ * leva microssegundos. Exibir tudo na mesma unidade produziria ou "0,000 s"
+ * ou "812.000,0 µs" -- nenhum dos dois ajuda a ler o resultado.
+ *
+ * O número segue o padrão brasileiro, com uma casa decimal, igual ao
+ * `formatar_duracao` do Python: "28,8 µs", "330,8 ms".
  */
 function formatarDuracao(segundos) {
-  if (segundos >= 1) return `${segundos.toFixed(3)} s`;
-  if (segundos >= 1e-3) return `${(segundos * 1e3).toFixed(3)} ms`;
-  return `${(segundos * 1e6).toFixed(1)} µs`;
+  if (segundos >= 1) return `${decimalBrasileiro(segundos, 2)} s`;
+  if (segundos >= 1e-3) return `${decimalBrasileiro(segundos * 1e3, 1)} ms`;
+  return `${decimalBrasileiro(segundos * 1e6, 1)} µs`;
 }
 
 /**

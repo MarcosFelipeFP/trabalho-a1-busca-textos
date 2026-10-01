@@ -207,5 +207,5 @@ class Preprocessador:
         return {
             "stopwords carregadas": len(self.stopwords),
             "stemming": "RSLP (Orengo & Huyck, 2001)" if self.usar_stemming else "desligado",
-            "tamanho minimo do token": self.tamanho_minimo,
+            "tamanho mínimo do token": self.tamanho_minimo,
         }
