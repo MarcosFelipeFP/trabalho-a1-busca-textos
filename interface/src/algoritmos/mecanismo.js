@@ -322,16 +322,19 @@ class MecanismoBusca {
    */
   buscarPrefixo(prefixo, limite = 50) {
     const medida = medir(() => {
-      const termos = this.trie.buscarPrefixo(prefixo, limite);
+      // As grafias de cada termo saem da mesma travessia da Trie: pedir depois
+      // com `formasDe` desceria a árvore de novo para cada um.
+      const comGrafias = this.trie.buscarPrefixoComGrafias(prefixo, limite);
+      const termos = comGrafias.map(([termo]) => termo);
       const totalDisponivel = this.trie.contarPrefixo(prefixo);
       const sugestoes = this.trie.sugerir(prefixo, 10);
 
       const porTermo = {};
       const documentos = new Set();
       const formas = new Set();
-      for (const termo of termos) {
+      for (const [termo, grafias] of comGrafias) {
         const encontrados = new Set();
-        for (const grafia of this.trie.formasDe(termo)) {
+        for (const grafia of grafias) {
           const forma = grafia.toLowerCase();
           formas.add(forma);
           for (const documento of Object.keys(this.indice.buscar(forma, false))) {

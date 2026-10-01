@@ -358,16 +358,19 @@ class MecanismoBusca:
         o tempo. Complexidade: O(m + p) na Trie, mais O(1) por termo no índice.
         """
         with Cronometro() as relogio:
-            termos = self.trie.buscar_prefixo(prefixo, limite=limite)
+            # As grafias de cada termo saem da mesma travessia da Trie: pedir
+            # depois com `formas_de` desceria a árvore de novo para cada um.
+            com_grafias = self.trie.buscar_prefixo_com_grafias(prefixo, limite=limite)
+            termos = [termo for termo, _grafias in com_grafias]
             total_disponivel = self.trie.contar_prefixo(prefixo)
             sugestoes = self.trie.sugerir(prefixo, limite=10)
 
             por_termo = {}
             documentos = set()
             formas = set()
-            for termo in termos:
+            for termo, grafias in com_grafias:
                 encontrados = set()
-                for grafia in self.trie.formas_de(termo):
+                for grafia in grafias:
                     forma = grafia.lower()
                     formas.add(forma)
                     encontrados.update(self.indice.buscar(forma, usar_radical=False))

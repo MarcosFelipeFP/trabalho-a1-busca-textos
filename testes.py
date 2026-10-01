@@ -125,6 +125,17 @@ class TesteTrie(unittest.TestCase):
     def test_limite_trunca(self):
         self.assertEqual(len(self.trie.buscar_prefixo("comp", limite=2)), 2)
 
+    def test_prefixo_com_grafias_traz_todas_as_formas_da_chave(self):
+        trie = Trie(["análise", "analise", "anel", "computação"])
+        self.assertEqual(trie.buscar_prefixo_com_grafias("ana"),
+                         [("analise", ["analise", "análise"])])
+        # Mesmas palavras, na mesma ordem e com o mesmo limite, que buscar_prefixo.
+        for prefixo in ["", "a", "an", "comp", "comp", "x"]:
+            for limite in [None, 1, 2]:
+                self.assertEqual(
+                    [palavra for palavra, _ in trie.buscar_prefixo_com_grafias(prefixo, limite)],
+                    trie.buscar_prefixo(prefixo, limite))
+
     def test_contar_prefixo(self):
         self.assertEqual(self.trie.contar_prefixo("comp"), 5)
         self.assertEqual(self.trie.contar_prefixo("prog"), 1)

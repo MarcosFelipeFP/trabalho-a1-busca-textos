@@ -147,6 +147,8 @@ class Trie:
         inserir(palavra)       O(m)
         buscar(palavra)        O(m)
         buscar_prefixo(pref)   O(m + p)  -- desce o prefixo e varre a subárvore
+        buscar_prefixo_com_grafias(pref)
+                               O(m + p)  -- a mesma varredura, com as grafias
         contar_prefixo(pref)   O(m)      -- lê o agregado do nó, não varre nada
         sugerir(pref, k)       O(m + k·h·σ·log(k·h·σ)) -- não depende de p
         buscar_aproximado(w)   O(n·m), n = nós que sobrevivem à poda
@@ -274,6 +276,24 @@ class Trie:
 
         Complexidade: O(m + p), ou O(m + k) quando `limite` é informado.
         """
+        return [min(no.formas) for no in self._nos_do_prefixo(prefixo, limite)]
+
+    def buscar_prefixo_com_grafias(self, prefixo, limite=None):
+        """
+        Como `buscar_prefixo`, mas devolve pares (palavra, grafias): a palavra
+        exibida e TODAS as grafias guardadas sob a mesma chave, em ordem
+        alfabética -- "analise" traz ["analise", "análise"].
+
+        É o que a consulta por prefixo da Parte II precisa para perguntar ao
+        índice da forma exata em que documentos cada termo aparece. Obter as
+        grafias depois, com `formas_de`, desceria a Trie de novo para cada
+        termo; aqui elas saem da mesma travessia, e o custo continua O(m + p).
+        """
+        return [(min(no.formas), sorted(no.formas))
+                for no in self._nos_do_prefixo(prefixo, limite)]
+
+    def _nos_do_prefixo(self, prefixo, limite):
+        """Desce o prefixo e devolve, em ordem alfabética, os nós de fim de palavra abaixo dele."""
         chave = normalizar(prefixo)
         no = self._descer(chave)
         if no is None:
@@ -282,11 +302,11 @@ class Trie:
         self.nos_visitados = 0      # instrumentação: contraste com `sugerir`
         encontradas = []
         self._coletar(no, chave, encontradas, limite)
-        return [forma for _, forma in encontradas]
+        return [no for _, no in encontradas]
 
     def _coletar(self, no, prefixo_atual, saida, limite):
         """
-        Busca em profundidade que acumula as palavras da subárvore.
+        Busca em profundidade que acumula os nós de fim de palavra da subárvore.
 
         Usa pilha explícita em vez de recursão para não esbarrar no limite de
         recursão do Python quando as chaves são muito longas. Os filhos são
@@ -313,9 +333,10 @@ class Trie:
             self.nos_visitados += 1
 
             if atual.fim_de_palavra:
-                # Uma mesma chave pode ter mais de uma grafia; adota-se a menor
-                # em ordem alfabética como representante.
-                saida.append((caminho, min(atual.formas)))
+                # Uma mesma chave pode ter mais de uma grafia; quem chama
+                # decide o que tirar do nó -- a menor delas, como
+                # representante, ou todas.
+                saida.append((caminho, atual))
 
             for caractere in sorted(atual.filhos, reverse=True):
                 pilha.append((atual.filhos[caractere], caminho + caractere))

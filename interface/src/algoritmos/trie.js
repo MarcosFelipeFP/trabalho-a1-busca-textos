@@ -320,6 +320,27 @@ class Trie {
    * curto e a subárvore é enorme. O(m + p), ou O(m + k) com limite.
    */
   buscarPrefixo(prefixo, limite) {
+    return this.nosDoPrefixo(prefixo, limite).map((no) => menorForma(no.formas));
+  }
+
+  /**
+   * Como `buscarPrefixo`, mas devolve pares [palavra, grafias]: a palavra
+   * exibida e TODAS as grafias guardadas sob a mesma chave, em ordem
+   * alfabética -- "analise" traz ["analise", "análise"].
+   *
+   * É o que a consulta por prefixo da Parte II precisa para perguntar ao
+   * índice da forma exata em que documentos cada termo aparece. Obter as
+   * grafias depois, com `formasDe`, desceria a Trie de novo para cada termo;
+   * aqui elas saem da mesma travessia, e o custo continua O(m + p).
+   */
+  buscarPrefixoComGrafias(prefixo, limite) {
+    return this.nosDoPrefixo(prefixo, limite).map((no) => [
+      menorForma(no.formas), Array.from(no.formas).sort(ordemDeTexto),
+    ]);
+  }
+
+  /** Desce o prefixo e devolve, em ordem alfabética, os nós de fim de palavra abaixo dele. */
+  nosDoPrefixo(prefixo, limite) {
     const chave = normalizar(prefixo);
     const no = this.descer(chave);
     if (no === null) return [];
@@ -334,9 +355,9 @@ class Trie {
       this.nosVisitados += 1;
 
       if (atual.fimDePalavra) {
-        // Uma mesma chave pode ter mais de uma grafia; adota-se a menor em
-        // ordem alfabética como representante.
-        encontradas.push([caminho, menorForma(atual.formas)]);
+        // Uma mesma chave pode ter mais de uma grafia; quem chama decide o
+        // que tirar do nó -- a menor delas, como representante, ou todas.
+        encontradas.push(atual);
       }
 
       // Empilhados em ordem decrescente para que o menor caractere seja
@@ -349,7 +370,7 @@ class Trie {
       }
     }
 
-    return encontradas.map((par) => par[1]);
+    return encontradas;
   }
 
   /**

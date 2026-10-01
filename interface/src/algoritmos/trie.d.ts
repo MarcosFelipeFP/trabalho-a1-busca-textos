@@ -24,6 +24,7 @@ export class Trie {
   buscar(palavra: string): boolean;
   formasDe(palavra: string): string[];
   buscarPrefixo(prefixo: string, limite?: number | null): string[];
+  buscarPrefixoComGrafias(prefixo: string, limite?: number | null): [string, string[]][];
   contarPrefixo(prefixo: string): number;
   sugerir(prefixo: string, limite?: number): [string, number][];
   buscarAproximado(
