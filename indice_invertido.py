@@ -203,6 +203,11 @@ class IndiceInvertido:
     isso o exemplo da seção 3.7.1 do próprio enunciado não funcionaria. Manter
     os dois permite comparar as duas estratégias lado a lado no relatório.
 
+    Cada consulta usa o índice que responde à sua pergunta: a consulta por
+    palavra (3.7.1) vai ao radical, para reunir as variantes da palavra; a
+    consulta por prefixo (3.7.2) vai à forma exata, porque precisa dizer em
+    que documentos cada termo devolvido pela Trie aparece.
+
     --- Estrutura ---
     Cada índice é um dicionário de dicionários:
 

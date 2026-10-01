@@ -835,6 +835,77 @@ class TesteMecanismoPontaAPonta(unittest.TestCase):
         self.assertLess(e.nos_na_trie_comprimida, e.nos_na_trie)
 
 
+class TestePrefixoPelaFormaExata(unittest.TestCase):
+    """
+    Seção 3.7.2: para cada termo que a Trie devolve, o índice informa os
+    documentos em que AQUELE termo aparece. Pelo radical, "algoritmo" e
+    "algoritmos" dividiriam a mesma lista, e cada um apontaria o arquivo em que
+    só o outro está.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.pasta = Path(tempfile.mkdtemp(prefix="testes_a1_prefixo_"))
+        (cls.pasta / "singular.txt").write_text(
+            "O algoritmo compara cada elemento. A análise termina cedo.",
+            encoding="utf-8",
+        )
+        (cls.pasta / "plural.txt").write_text(
+            "Os algoritmos fazem comparações. Uma analise rápida basta.",
+            encoding="utf-8",
+        )
+        cls.mecanismo = MecanismoBusca(cls.pasta)
+        cls.mecanismo.construir()
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.pasta, ignore_errors=True)
+
+    def test_cada_termo_lista_so_os_documentos_em_que_aparece(self):
+        por_termo = self.mecanismo.buscar_prefixo("algor", limite=None)["por_termo"]
+        self.assertEqual(por_termo, {"algoritmo": ["singular.txt"],
+                                     "algoritmos": ["plural.txt"]})
+
+        por_termo = self.mecanismo.buscar_prefixo("compar", limite=None)["por_termo"]
+        self.assertEqual(por_termo, {"compara": ["singular.txt"],
+                                     "comparações": ["plural.txt"]})
+
+    def test_grafias_da_mesma_chave_somam_os_documentos(self):
+        """'análise' e 'analise' são uma chave só na Trie: o termo leva as duas."""
+        resposta = self.mecanismo.buscar_prefixo("anal", limite=None)
+        self.assertEqual(resposta["termos"], ["analise"])
+        self.assertEqual(resposta["por_termo"]["analise"], ["plural.txt", "singular.txt"])
+
+    def test_consulta_por_palavra_continua_pelo_radical(self):
+        """Na seção 3.7.1 o radical segue reunindo singular e plural."""
+        documentos = [d for d, _ in self.mecanismo.buscar_palavra("algoritmo")["documentos"]]
+        self.assertEqual(sorted(documentos), ["plural.txt", "singular.txt"])
+
+    def test_lista_confere_com_os_tokens_de_cada_documento(self):
+        """
+        Propriedade: um documento está na lista de um termo se, e somente se,
+        algum token dele é uma das grafias desse termo. O ranking cobre os
+        mesmos documentos que a lista, nem um a mais.
+        """
+        preprocessador = self.mecanismo.preprocessador
+        tokens = {nome: set(preprocessador.processar(texto))
+                  for nome, texto in self.mecanismo.conteudo.items()}
+
+        for prefixo in ["", "a", "al", "an", "c", "co", "r", "x"]:
+            resposta = self.mecanismo.buscar_prefixo(prefixo, limite=None)
+            for termo in resposta["termos"]:
+                grafias = self.mecanismo.trie.formas_de(termo)
+                esperado = sorted(nome for nome, conjunto in tokens.items()
+                                  if conjunto & grafias)
+                self.assertEqual(resposta["por_termo"][termo], esperado,
+                                 f"prefixo {prefixo!r}, termo {termo!r}")
+
+            listados = sorted({documento for lista in resposta["por_termo"].values()
+                               for documento in lista})
+            self.assertEqual(resposta["documentos"], listados)
+            self.assertEqual(sorted(d for d, _nota in resposta["ranking"]), listados)
+
+
 class TesteLeituraDosDocumentos(unittest.TestCase):
     """
     Codificações que aparecem na prática quando alguém solta um .txt na pasta,

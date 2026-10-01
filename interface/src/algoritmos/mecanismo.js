@@ -10,8 +10,8 @@
        palavra exata   consulta -> RSLP -> radical -> índice (hash) -> documentos
                        O(1) em média
 
-       prefixo         prefixo -> Trie -> termos do vocabulário -> RSLP ->
-                       índice (hash) -> documentos
+       prefixo         prefixo -> Trie -> termos do vocabulário ->
+                       índice da forma exata (hash) -> documentos de cada termo
                        O(m + p) na Trie, mais O(1) por termo recuperado
 
        sequência       padrão -> KMP sobre o texto ORIGINAL de cada documento
@@ -307,6 +307,13 @@ class MecanismoBusca {
    *   1. a Trie devolve os termos do vocabulário que começam com o prefixo;
    *   2. para cada termo, o índice informa em que documentos ele aparece.
    *
+   * A etapa 2 consulta o índice da FORMA EXATA, e não o do radical, porque a
+   * pergunta do enunciado é em que documentos cada termo aparece. Pelo
+   * radical, "compara" herdaria os documentos de "comparação" e de
+   * "comparado". A Trie guarda sob a mesma chave as grafias que diferem só no
+   * acento ("análise" e "analise"), então cada termo consulta o índice uma vez
+   * por grafia registrada.
+   *
    * O(m + p) na Trie, mais O(1) por termo no índice.
    *
    * Além da lista alfabética que o enunciado pede, a resposta traz as
@@ -321,17 +328,24 @@ class MecanismoBusca {
 
       const porTermo = {};
       const documentos = new Set();
-      const radicais = new Set();
+      const formas = new Set();
       for (const termo of termos) {
-        const radical = this.preprocessador.radicalizar(termo);
-        radicais.add(radical);
-        const encontrados = Object.keys(this.indice.buscar(radical, true));
+        const encontrados = new Set();
+        for (const grafia of this.trie.formasDe(termo)) {
+          const forma = grafia.toLowerCase();
+          formas.add(forma);
+          for (const documento of Object.keys(this.indice.buscar(forma, false))) {
+            encontrados.add(documento);
+          }
+        }
         porTermo[termo] = ordenarNomes(encontrados);
         for (const documento of encontrados) documentos.add(documento);
       }
 
-      const ranking = radicais.size
-        ? this.indice.ranquearBm25(ordenarNomes(radicais))
+      // O BM25 pontua as mesmas formas exatas, de modo que o ranking cobre
+      // exatamente os documentos listados acima, nem um a mais.
+      const ranking = formas.size
+        ? this.indice.ranquearBm25(ordenarNomes(formas), false)
         : [];
 
       return {

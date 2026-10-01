@@ -11,8 +11,8 @@ O caminho de uma consulta
     palavra exata   consulta -> RSLP -> radical -> índice (hash) -> documentos
                     O(1) em média
 
-    prefixo         prefixo -> Trie -> termos do vocabulário -> RSLP ->
-                    índice (hash) -> documentos
+    prefixo         prefixo -> Trie -> termos do vocabulário ->
+                    índice da forma exata (hash) -> documentos de cada termo
                     O(m + p) na Trie, mais O(1) por termo recuperado
 
     sequência       padrão -> KMP sobre o texto ORIGINAL de cada documento
@@ -340,6 +340,14 @@ class MecanismoBusca:
           2. para cada termo, o índice invertido informa em que documentos ele
              aparece.
 
+        A etapa 2 consulta o índice da FORMA EXATA, e não o do radical, porque
+        a pergunta do enunciado é em que documentos cada termo aparece. Pelo
+        radical, "compara" herdaria os documentos de "comparação" e de
+        "comparado", e a lista apontaria arquivos em que a palavra não está. A
+        Trie guarda sob a mesma chave as grafias que diferem só no acento
+        ("análise" e "analise"), então cada termo consulta o índice uma vez por
+        grafia registrada, a O(1) cada.
+
         Além da lista alfabética exigida pelo enunciado, a resposta traz as
         `sugestoes`: as palavras mais frequentes no corpus que começam com o
         prefixo, obtidas pela busca best-first da Trie. É a ordem que um
@@ -356,17 +364,20 @@ class MecanismoBusca:
 
             por_termo = {}
             documentos = set()
-            radicais = set()
+            formas = set()
             for termo in termos:
-                # O radical é calculado uma única vez por termo e reaproveitado
-                # no ranqueamento; o stemmer é a etapa mais cara do pipeline.
-                radical = self.preprocessador.radicalizar(termo)
-                radicais.add(radical)
-                encontrados = self.indice.buscar(radical, usar_radical=True)
+                encontrados = set()
+                for grafia in self.trie.formas_de(termo):
+                    forma = grafia.lower()
+                    formas.add(forma)
+                    encontrados.update(self.indice.buscar(forma, usar_radical=False))
                 por_termo[termo] = sorted(encontrados)
                 documentos.update(encontrados)
 
-            ranking = self.indice.ranquear_bm25(sorted(radicais)) if radicais else []
+            # O BM25 pontua as mesmas formas exatas, de modo que o ranking cobre
+            # exatamente os documentos listados acima, nem um a mais.
+            ranking = (self.indice.ranquear_bm25(sorted(formas), usar_radical=False)
+                       if formas else [])
 
         resposta = {
             "prefixo": prefixo,

@@ -27,8 +27,10 @@ idêntico em doze frentes:
     8. índice invertido                  frequência documental de cada radical
     9. consultas com vários termos       BM25 (tolerância 1e-9), interseção e
                                          "você quis dizer?"
-   10. KMP                               posições e número de comparações
-   11. tabela hash                       dispersão, colisões e maior cadeia
+   10. consultas por prefixo             termos da Trie, documentos de cada
+                                         termo e BM25
+   11. KMP                               posições e número de comparações
+   12. tabela hash                       dispersão, colisões e maior cadeia
 
 Requer o Node.js apenas aqui -- a página no navegador não precisa dele. Se o
 `node` não estiver instalado, o script diz isso e sai sem falhar.
@@ -50,7 +52,7 @@ from pathlib import Path
 from indice_invertido import TabelaHash
 from kmp import buscar_kmp
 from main import carregar_lexico, configurar_saida
-from mecanismo import MecanismoBusca
+from mecanismo import MecanismoBusca, ler_texto
 from preprocessamento import Preprocessador, carregar_stopwords
 from stemmer_rslp import RSLP
 from trie import Trie, TrieComprimida, distancia_edicao, normalizar
@@ -185,6 +187,19 @@ for (const consulta of entrada.consultas) {
   };
 }
 
+/* --- consultas por prefixo: termos da Trie e documentos de cada termo --- */
+const prefixos = {};
+for (const p of entrada.prefixos) {
+  const resposta = mecanismo.buscarPrefixo(p, null);
+  prefixos[p] = {
+    termos: resposta.termos,
+    total_disponivel: resposta.total_disponivel,
+    por_termo: resposta.por_termo,
+    documentos: resposta.documentos,
+    ranking: resposta.ranking,
+  };
+}
+
 /* --- 8. KMP --- */
 const kmp = {};
 for (const padrao of entrada.padroes) {
@@ -203,7 +218,7 @@ const hash = mecanismo.indice.espelharEmTabelaHash().estatisticas();
 
 fs.writeFileSync(saida, JSON.stringify({
   normalizacao, tokenizacao, stemming, trie, patricia, sugestoes, aproximadas,
-  vocabulario, indice, ranking, kmp, hash,
+  vocabulario, indice, ranking, prefixos, kmp, hash,
 }));
 """
 
@@ -423,7 +438,7 @@ def main():
     # --- 2. tokenização ---
     tokens_python, tokens_js, casos, divergentes = {}, {}, 0, []
     for arquivo in sorted(Path("documentos").glob("*.txt")):
-        texto = arquivo.read_text(encoding="utf-8", errors="replace")
+        texto = ler_texto(arquivo)
         brutos, filtrados = preprocessador.processar_detalhado(texto)
         casos += len(brutos)
         lado_js = js["tokenizacao"][arquivo.name]
@@ -562,6 +577,24 @@ def main():
                                    f"{lado_js['resto'].get(chave)!r}")
     relatorio.conferir("consultas: BM25 e varios termos", True, iguais,
                        len(entrada["consultas"]), divergentes)
+
+    # --- consultas por prefixo: termos da Trie e documentos de cada termo ---
+    # Sem limite, como no menu do terminal: o prefixo vazio confronta o
+    # vocabulário inteiro, termo a termo.
+    iguais, divergentes = True, []
+    for prefixo in entrada["prefixos"]:
+        resposta = mecanismo.buscar_prefixo(prefixo, limite=None)
+        lado_js = js["prefixos"].get(prefixo, {})
+        for chave in ("termos", "total_disponivel", "por_termo", "documentos"):
+            if resposta[chave] != lado_js.get(chave):
+                iguais = False
+                divergentes.append(f"prefixo {prefixo!r}: '{chave}' diverge")
+        ok, motivo = comparar_ranking(resposta["ranking"], lado_js.get("ranking", []))
+        if not ok:
+            iguais = False
+            divergentes.append(f"prefixo {prefixo!r}: {motivo}")
+    relatorio.conferir("consultas por prefixo", True, iguais,
+                       len(entrada["prefixos"]), divergentes)
 
     # --- 8. KMP ---
     kmp_python, divergentes = {}, []
