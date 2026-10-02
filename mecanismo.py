@@ -32,7 +32,27 @@ from kmp import buscar_kmp, contexto_da_ocorrencia
 from preprocessamento import Preprocessador
 from trie import Trie, TrieComprimida, normalizar
 
-__all__ = ["ler_texto", "MecanismoBusca"]
+__all__ = ["listar_documentos", "ler_texto", "MecanismoBusca"]
+
+
+def listar_documentos(pasta):
+    """
+    Todos os arquivos .txt da pasta, em ordem alfabética, com a extensão em
+    qualquer caixa: .txt, .TXT, .Txt.
+
+    `Path.glob("*.txt")` não serve aqui porque diferencia maiúsculas no Linux e
+    no macOS: lá, um "NOTAS.TXT" ficaria de fora, e a seção 3.2 do enunciado
+    pede todos os .txt da pasta. No Windows os dois jeitos dariam o mesmo.
+
+    A ordenação não é estética: garante que duas execuções sobre a mesma pasta
+    produzam exatamente o mesmo índice, o que torna as medições de tempo
+    comparáveis entre si.
+    """
+    pasta = Path(pasta)
+    if not pasta.is_dir():
+        return []
+    return sorted(arquivo for arquivo in pasta.iterdir()
+                  if arquivo.suffix.lower() == ".txt" and arquivo.is_file())
 
 
 def ler_texto(arquivo):
@@ -72,7 +92,7 @@ class MecanismoBusca:
     """
     Mecanismo de busca sobre uma pasta de arquivos .txt.
 
-    A pasta é varrida a cada execução com `Path.glob("*.txt")`: nenhum nome de
+    A pasta é varrida a cada execução por `listar_documentos`: nenhum nome de
     arquivo aparece no código, e basta soltar um .txt novo na pasta para que
     ele entre no índice na próxima execução -- o que a seção 3.2 do enunciado
     exige explicitamente.
@@ -106,16 +126,8 @@ class MecanismoBusca:
     # ------------------------------------------------------------- construção
 
     def listar_arquivos(self):
-        """
-        Todos os .txt da pasta, em ordem alfabética.
-
-        A ordenação não é estética: garante que duas execuções sobre a mesma
-        pasta produzam exatamente o mesmo índice, o que torna as medições de
-        tempo comparáveis entre si.
-        """
-        if not self.pasta.is_dir():
-            return []
-        return sorted(self.pasta.glob("*.txt"))
+        """Todos os .txt da pasta, em ordem alfabética (ver `listar_documentos`)."""
+        return listar_documentos(self.pasta)
 
     def construir(self, ao_progredir=None):
         """
@@ -239,15 +251,14 @@ class MecanismoBusca:
             postagens = []      # (radical, {documento: frequência})
             vistos = set()
             for termo in termos:
-                radical = self.preprocessador.radicalizar(termo)
+                radical = self.radical_da_consulta(termo)
                 if radical in vistos:
                     continue    # "algoritmo algoritmos" é um termo só
                 vistos.add(radical)
                 postagem = self.indice.buscar(radical, usar_radical=True)
-                exatos = self.indice.frequencia_documental(termo.lower(), usar_radical=False)
                 postagens.append((radical, postagem))
                 detalhes.append({"termo": termo, "radical": radical,
-                                 "documentos": len(postagem), "exatos": exatos})
+                                 "documentos": len(postagem)})
 
             cobertura = {}      # documento -> quantos termos da consulta contém
             frequencias = {}    # documento -> ocorrências somadas dos termos
@@ -271,6 +282,15 @@ class MecanismoBusca:
                 ((documento, pontuacao.get(documento, 0.0)) for documento in cobertura),
                 key=lambda par: (-cobertura[par[0]], -par[1], par[0]),
             )
+
+        # A "palavra exata" da seção 3.7.1: em que documentos cada termo aparece
+        # escrito como foi digitado. A consulta em si é a do radical, medida
+        # acima; esta lista serve para a tela marcar os arquivos que o radical
+        # alcançou só por variantes, e fica fora do cronômetro, como o "você
+        # quis dizer?" logo abaixo.
+        for detalhe in detalhes:
+            detalhe["com_forma_exata"] = self.documentos_da_forma_exata(detalhe["termo"])
+            detalhe["exatos"] = len(detalhe["com_forma_exata"])
 
         with Cronometro() as relogio_aproximacao:
             aproximadas = {}
@@ -309,6 +329,36 @@ class MecanismoBusca:
             "palavra", consulta, len(documentos), relogio.decorrido
         )
         return resposta
+
+    def radical_da_consulta(self, termo):
+        """
+        Radical com que um termo digitado consulta o índice.
+
+        O RSLP olha o acento: "computação" vira "computac", mas "computacao",
+        digitado sem acento, viraria "computaca" e não acharia documento
+        nenhum. Quando a forma digitada não está no vocabulário, mas a Trie --
+        que não diferencia acentos -- conhece a palavra por outra grafia, o
+        radical sai da grafia que os documentos usam, a mais frequente se
+        houver mais de uma. Quem digita uma grafia que existe continua com o
+        radical dela.
+        """
+        grafias = self.trie.formas_de(termo)
+        if grafias and termo not in grafias:
+            termo = max(sorted(grafias), key=lambda grafia: self.frequencia.get(grafia, 0))
+        return self.preprocessador.radicalizar(termo)
+
+    def documentos_da_forma_exata(self, termo):
+        """
+        Documentos em que o termo aparece escrito como foi digitado, sem
+        diferenciar acentos: "computacao" conta os arquivos que escrevem
+        "computação". As grafias são as que a Trie guarda sob a mesma chave, e
+        cada uma é uma consulta O(1) ao índice da forma exata.
+        """
+        grafias = self.trie.formas_de(termo) | {termo.lower()}
+        documentos = set()
+        for grafia in grafias:
+            documentos.update(self.indice.buscar(grafia.lower(), usar_radical=False))
+        return sorted(documentos)
 
     def sugerir_correcao(self, termo, limite=5):
         """

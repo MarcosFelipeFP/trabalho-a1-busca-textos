@@ -45,6 +45,14 @@ AVISO_DE_VOLTA = "(Para voltar ao menu, tecle Enter sem digitar nada.)"
 NOMES_DAS_CONSULTAS = {"palavra": "palavra", "prefixo": "prefixo",
                        "sequencia": "sequência"}
 
+# Custo previsto de cada consulta, exibido ao lado do tempo medido e na tela de
+# estatísticas: é a ligação entre medição e análise de complexidade que a seção
+# 3.9 pede. Na Parte I, a busca e a inserção custam O(m), e o prefixo O(m + p).
+CUSTO_DA_CONSULTA = {"palavra": "O(1) por termo", "prefixo": "O(m + p)",
+                     "sequencia": "O(N)"}
+LEGENDA_DO_CUSTO = ("m = tamanho da palavra ou do prefixo; p = nós da Trie abaixo "
+                    "do prefixo; N = caracteres de todos os documentos.")
+
 # Usadas quando não há léxico nem corpus: são as palavras da seção 2.2 do
 # enunciado, o suficiente para o programa demonstrar o autocomplete.
 PALAVRAS_EXEMPLO = [
@@ -122,15 +130,17 @@ def exibir_em_paginas(itens, exibir_item, por_pagina, unidade):
                 return
 
 
-def informar_tempo(segundos, rotulo="Tempo da consulta"):
+def informar_tempo(segundos, rotulo="Tempo da consulta", custo=None):
     """
     Exibe o custo da consulta -- item 7 das estatísticas obrigatórias (3.9).
 
     Mostrar o tempo a cada consulta, e não só no relatório, é o que permite ao
     usuário perceber na prática a diferença de custo entre uma busca exata
-    (O(1) no hash) e uma busca por sequência (O(n) sobre todo o corpus).
+    (O(1) no hash) e uma busca por sequência (O(N) sobre todo o corpus). Por
+    isso o custo previsto pela análise aparece ao lado do tempo medido.
     """
-    print(f"\n{rotulo}: {formatar_duracao(segundos)}")
+    previsto = f" (custo previsto: {custo})" if custo else ""
+    print(f"\n{rotulo}: {formatar_duracao(segundos)}{previsto}")
 
 
 # ==========================================================================
@@ -191,7 +201,7 @@ def autocomplete_buscar(trie):
                          if distancia > 0]
             if parecidas:
                 print(f"Você quis dizer: {', '.join(parecidas)}?")
-        informar_tempo(relogio.decorrido)
+        informar_tempo(relogio.decorrido, custo="O(m)")
 
 
 def autocomplete_prefixo(trie):
@@ -211,7 +221,7 @@ def autocomplete_prefixo(trie):
             print("\nPalavras encontradas:")
             exibir_em_paginas(encontradas, lambda palavra: print(f"  {palavra}"),
                               PALAVRAS_POR_PAGINA, "palavras")
-        informar_tempo(relogio.decorrido)
+        informar_tempo(relogio.decorrido, custo="O(m + p)")
 
 
 def autocomplete_inserir(trie):
@@ -229,7 +239,7 @@ def autocomplete_inserir(trie):
             print(f"\n'{palavra}' inserida. Total agora: {formatar_numero(len(trie))} palavras.")
         else:
             print(f"\n'{palavra}' já estava cadastrada.")
-        informar_tempo(relogio.decorrido, "Tempo da inserção")
+        informar_tempo(relogio.decorrido, "Tempo da inserção", custo="O(m)")
 
 
 def executar_parte1(caminho_lexico):
@@ -307,8 +317,15 @@ def _mostrar_busca_palavra(mecanismo, palavra):
     if not documentos:
         print(f"\n'{palavra}' não foi encontrada em nenhum documento.")
         mostrar_correcao(resposta)
-        informar_tempo(resposta["tempo"])
+        informar_tempo(resposta["tempo"], custo=CUSTO_DA_CONSULTA["palavra"])
         return
+
+    # Com um termo só, a resposta separa os arquivos que têm a palavra escrita
+    # como foi digitada -- a "palavra exata" da seção 3.7.1 -- dos que o radical
+    # do RSLP alcançou apenas por variantes, marcados com *. É também a
+    # demonstração concreta do que o stemming opcional da seção 3.3 acrescenta.
+    exatos = set(termos[0]["com_forma_exata"]) if len(termos) == 1 else None
+    so_variantes = exatos is not None and len(exatos) < len(documentos)
 
     if len(termos) > 1:
         print("\nTermos da consulta:")
@@ -317,6 +334,9 @@ def _mostrar_busca_palavra(mecanismo, palavra):
                   f"-> {termo['documentos']} arquivo(s)")
         print(f"\nArquivos com todos os termos: {len(resposta['todos'])} "
               f"(com algum deles: {len(documentos)})")
+    elif so_variantes:
+        print(f"\nEncontrada em {len(documentos)} arquivo(s), "
+              f"{len(exatos) or 'nenhum'} com a forma exata '{resposta['termo']}':")
     else:
         print(f"\nEncontrada em {len(documentos)} arquivo(s):")
 
@@ -325,21 +345,18 @@ def _mostrar_busca_palavra(mecanismo, palavra):
         marca = ""
         if len(termos) > 1:
             marca = f"   [{resposta['cobertura'][documento]}/{len(termos)} termos]"
+        elif so_variantes and documento not in exatos:
+            marca = "   *"
         print(f"  - {documento:<42} {formatar_numero(frequencia):>4} ocorrência(s)   "
               f"BM25 {formatar_numero(pontuacao, 3)}{marca}")
 
-    # Mostra o ganho do stemming quando ele existe: é a demonstração concreta
-    # de por que o item opcional da seção 3.3 foi implementado.
-    if len(termos) == 1:
-        exatos = termos[0]["exatos"]
-        if exatos and exatos < len(documentos):
-            print(f"\n  Sem stemming a forma exata '{resposta['termo']}' apareceria em "
-                  f"{exatos} arquivo(s).")
-            print(f"  O radical '{resposta['radical']}' (RSLP) alcança {len(documentos)}, "
-                  f"reunindo as variantes da palavra.")
+    if so_variantes:
+        print(f"\n  * sem a forma exata '{resposta['termo']}': o radical "
+              f"'{resposta['radical']}' (RSLP)")
+        print("    alcança esses arquivos pelas variantes da palavra.")
 
     mostrar_correcao(resposta)
-    informar_tempo(resposta["tempo"])
+    informar_tempo(resposta["tempo"], custo=CUSTO_DA_CONSULTA["palavra"])
 
 
 def mostrar_correcao(resposta):
@@ -381,7 +398,7 @@ def _mostrar_busca_prefixo(mecanismo, prefixo):
 
     if not termos:
         print(f"\nNenhum termo do vocabulário começa com '{prefixo}'.")
-        informar_tempo(resposta["tempo"])
+        informar_tempo(resposta["tempo"], custo=CUSTO_DA_CONSULTA["prefixo"])
         return
 
     def exibir_termo(termo):
@@ -410,7 +427,7 @@ def _mostrar_busca_prefixo(mecanismo, prefixo):
     for documento, pontuacao in ranking[:8]:
         print(f"  - {documento:<42} BM25 {formatar_numero(pontuacao, 3)}")
 
-    informar_tempo(resposta["tempo"])
+    informar_tempo(resposta["tempo"], custo=CUSTO_DA_CONSULTA["prefixo"])
 
 
 def exibir_busca_sequencia(mecanismo):
@@ -443,7 +460,7 @@ def _mostrar_busca_sequencia(mecanismo, sequencia):
 
     print(f"\n  Comparações de caractere feitas pelo KMP: "
           f"{formatar_numero(resposta['comparacoes'])}")
-    informar_tempo(resposta["tempo"])
+    informar_tempo(resposta["tempo"], custo=CUSTO_DA_CONSULTA["sequencia"])
 
 
 def exibir_documentos(mecanismo):
@@ -495,10 +512,23 @@ def exibir_estatisticas(mecanismo):
 
     if e.consultas:
         secao(f"CONSULTAS REALIZADAS ({formatar_numero(len(e.consultas))})")
-        print(f"  {'tipo':<12}{'qtd':>6}{'tempo total':>16}{'tempo médio':>16}")
-        for tipo, (quantidade, total, media) in sorted(e.resumo_por_tipo().items()):
-            print(f"  {NOMES_DAS_CONSULTAS.get(tipo, tipo):<12}{formatar_numero(quantidade):>6}"
-                  f"{formatar_duracao(total):>16}{formatar_duracao(media):>16}")
+        print(f"  {'tipo':<12}{'qtd':>5}{'tempo médio':>14}   custo previsto")
+        resumo = e.resumo_por_tipo()
+        for tipo, (quantidade, _total, media) in sorted(resumo.items()):
+            print(f"  {NOMES_DAS_CONSULTAS.get(tipo, tipo):<12}{formatar_numero(quantidade):>5}"
+                  f"{formatar_duracao(media):>14}   {CUSTO_DA_CONSULTA.get(tipo, '')}")
+
+        # A medição confrontada com a análise (seção 3.9): a razão entre os
+        # tempos médios mostra, com os números desta sessão, o que separa uma
+        # consulta O(1) ao hash de uma varredura O(N) do texto.
+        if "palavra" in resumo and "sequencia" in resumo and resumo["palavra"][2] > 0:
+            razao = resumo["sequencia"][2] / resumo["palavra"][2]
+            print(f"\n  Em média, a busca por sequência levou "
+                  f"{formatar_numero(razao, 0)} vezes o tempo")
+            print("  da busca por palavra: O(N) contra O(1).")
+        print()
+        for linha in textwrap.wrap(LEGENDA_DO_CUSTO, width=LARGURA - 2):
+            print(f"  {linha}")
 
         # Item 7 da seção 3.9: o tempo de CADA consulta da sessão, na ordem em
         # que foram feitas, e não apenas das últimas.

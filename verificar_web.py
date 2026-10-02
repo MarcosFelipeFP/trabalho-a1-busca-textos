@@ -52,7 +52,7 @@ from pathlib import Path
 from indice_invertido import TabelaHash
 from kmp import buscar_kmp
 from main import carregar_lexico, configurar_saida
-from mecanismo import MecanismoBusca, ler_texto
+from mecanismo import MecanismoBusca, ler_texto, listar_documentos
 from preprocessamento import Preprocessador, carregar_stopwords
 from stemmer_rslp import RSLP
 from trie import Trie, TrieComprimida, distancia_edicao, normalizar
@@ -348,7 +348,9 @@ def montar_entrada(lexico, vocabulario):
                  "algoritmo algoritmos", "banco de dados relacional",
                  # erros de digitação: o "você quis dizer?"
                  "algortimo", "estrutra de dados", "rede neurl", "hahs",
-                 "busca de algortimo", "xyzkw"]
+                 "busca de algortimo", "xyzkw",
+                 # sem acento: o radical sai da grafia que os documentos usam
+                 "computacao", "informacao quantica", "analise", "treina"]
 
     padroes = ["chave pública", "algoritmo", "busca binária", "árvore",
                "índice invertido", "O(n log n)", "Trie", "zzzz",
@@ -437,7 +439,7 @@ def main():
 
     # --- 2. tokenização ---
     tokens_python, tokens_js, casos, divergentes = {}, {}, 0, []
-    for arquivo in sorted(Path("documentos").glob("*.txt")):
+    for arquivo in listar_documentos("documentos"):
         texto = ler_texto(arquivo)
         brutos, filtrados = preprocessador.processar_detalhado(texto)
         casos += len(brutos)

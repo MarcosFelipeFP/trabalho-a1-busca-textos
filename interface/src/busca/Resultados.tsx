@@ -45,6 +45,11 @@ export function Resultados({
     if (resultado.modo === 'palavra') {
       const r = resultado.resposta;
       const varios = r.termos.length > 1;
+      // Com um termo só, marca os documentos que o radical alcançou apenas por
+      // variantes da palavra -- a "palavra exata" da seção 3.7.1.
+      const exatos = !varios && r.termos[0]?.com_forma_exata
+        ? new Set(r.termos[0].com_forma_exata)
+        : null;
       return {
         criterio: {
           tipo: 'radicais',
@@ -56,6 +61,7 @@ export function Resultados({
           detalhe: [
             plural(r.frequencias[documento] ?? 0, 'ocorrência', 'ocorrências'),
             varios ? `${r.cobertura[documento]} de ${r.termos.length} termos` : null,
+            exatos && !exatos.has(documento) ? 'só variantes da palavra' : null,
             `BM25 ${decimal(nota, 2)}`,
           ].filter(Boolean).join(' · '),
         })),

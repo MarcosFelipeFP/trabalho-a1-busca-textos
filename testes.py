@@ -788,6 +788,17 @@ class TesteMecanismoPontaAPonta(unittest.TestCase):
         self.assertTrue(resposta["documentos"])
         self.assertEqual(resposta["todos"], [])
 
+    def test_sem_acento_acha_a_grafia_dos_documentos(self):
+        """
+        O texto traz "execução". Digitada sem acento, a palavra daria outro
+        radical no RSLP ("execuca", e não "execuc") e não acharia nada; a Trie,
+        que não diferencia acentos, aponta a grafia certa.
+        """
+        resposta = self.mecanismo.buscar_palavra("execucao")
+        self.assertEqual([d for d, _ in resposta["documentos"]], ["algoritmos.txt"])
+        self.assertEqual(resposta["radical"], self.mecanismo.preprocessador.radicalizar("execução"))
+        self.assertEqual(resposta["aproximadas"], {})
+
     def test_sem_sugestao_quando_nada_parece(self):
         resposta = self.mecanismo.buscar_palavra("xyzkw")
         self.assertEqual(resposta["aproximadas"], {"xyzkw": []})
@@ -913,6 +924,20 @@ class TestePrefixoPelaFormaExata(unittest.TestCase):
         documentos = [d for d, _ in self.mecanismo.buscar_palavra("algoritmo")["documentos"]]
         self.assertEqual(sorted(documentos), ["plural.txt", "singular.txt"])
 
+    def test_palavra_informa_onde_esta_a_forma_exata(self):
+        """
+        A "palavra exata" da seção 3.7.1: o radical acha os dois arquivos, mas
+        só um escreve "algoritmo" -- o outro tem apenas "algoritmos".
+        """
+        termo = self.mecanismo.buscar_palavra("algoritmo")["termos"][0]
+        self.assertEqual(termo["com_forma_exata"], ["singular.txt"])
+        self.assertEqual(termo["exatos"], 1)
+
+    def test_forma_exata_nao_diferencia_acentos(self):
+        """'análise' e 'analise' contam como a mesma palavra escrita."""
+        termo = self.mecanismo.buscar_palavra("analise")["termos"][0]
+        self.assertEqual(termo["com_forma_exata"], ["plural.txt", "singular.txt"])
+
     def test_lista_confere_com_os_tokens_de_cada_documento(self):
         """
         Propriedade: um documento está na lista de um termo se, e somente se,
@@ -981,6 +1006,20 @@ class TesteLeituraDosDocumentos(unittest.TestCase):
         """
         mecanismo = self.montar({"crlf.txt": ("Primeira linha.\r\nSegunda linha.\r\n", "utf-8")})
         self.assertNotIn("\r", mecanismo.conteudo["crlf.txt"])
+
+    def test_extensao_em_maiusculas_tambem_entra(self):
+        """
+        Seção 3.2: todos os .txt da pasta. No Linux e no macOS, glob("*.txt")
+        deixaria "MAIUSCULO.TXT" de fora; outras extensões continuam fora.
+        """
+        mecanismo = self.montar({
+            "minusculo.txt": ("Texto sobre grafos.\n", "utf-8"),
+            "MAIUSCULO.TXT": ("Texto sobre grafos.\n", "utf-8"),
+            "misto.Txt": ("Texto sobre grafos.\n", "utf-8"),
+            "notas.md": ("Texto sobre grafos.\n", "utf-8"),
+        })
+        self.assertEqual(sorted(mecanismo.conteudo),
+                         sorted(["minusculo.txt", "MAIUSCULO.TXT", "misto.Txt"]))
 
     def test_bom_nao_gruda_na_primeira_palavra(self):
         """O Bloco de Notas grava BOM no UTF-8; ele não pode virar parte do token."""
@@ -1127,8 +1166,53 @@ class TesteInterfaceTerminal(unittest.TestCase):
         """Ponto nos milhares e vírgula nas decimais, como no relatório."""
         saida = self.conduzir(executar_parte2, ["1", "dados", "", "6"], self.documentos, True)
         self.assertRegex(saida, r"BM25 \d+,\d{3}")
-        self.assertRegex(saida, r"Tempo da consulta: \d+,\d (µs|ms)\n")
+        self.assertRegex(saida, r"Tempo da consulta: \d+,\d (µs|ms) \(")
         self.assertNotRegex(saida, r"\d\.\d+ (us|µs|ms|s)\b")
+
+    def test_tempo_vem_com_o_custo_previsto(self):
+        """
+        Seção 3.9: as medições servem para relacionar o programa à análise de
+        complexidade. Cada tempo informado traz o custo que a análise prevê.
+        """
+        saida = self.conduzir(executar_parte1,
+                              ["1", "computador", "", "2", "comp", "", "3", "compilar", "", "4"],
+                              self.lexico_do_enunciado)
+        self.assertRegex(saida, r"Tempo da consulta: \d+,\d (µs|ms) \(custo previsto: O\(m\)\)")
+        self.assertRegex(saida, r"Tempo da consulta: .* \(custo previsto: O\(m \+ p\)\)")
+        self.assertRegex(saida, r"Tempo da inserção: .* \(custo previsto: O\(m\)\)")
+
+        saida = self.conduzir(executar_parte2,
+                              ["1", "dados", "", "2", "dad", "", "3", "dados", "", "6"],
+                              self.documentos, True)
+        self.assertIn("(custo previsto: O(1) por termo)", saida)
+        self.assertIn("(custo previsto: O(m + p))", saida)
+        self.assertIn("(custo previsto: O(N))", saida)
+
+    def test_estatisticas_comparam_o_medido_com_o_previsto(self):
+        saida = self.conduzir(executar_parte2,
+                              ["1", "dados", "", "3", "dados", "", "5", "6"],
+                              self.documentos, True)
+        bloco = saida.split("CONSULTAS REALIZADAS", 1)[1]
+        self.assertRegex(bloco, r"palavra\s+1\s+\d+,\d (µs|ms)\s+O\(1\) por termo")
+        self.assertRegex(bloco, r"sequência\s+1\s+\d+,\d (µs|ms)\s+O\(N\)")
+        self.assertRegex(bloco, r"a busca por sequência levou [\d.]+ vezes o tempo")
+        self.assertIn("O(N) contra O(1)", bloco)
+
+    def test_palavra_marca_os_arquivos_sem_a_forma_exata(self):
+        """
+        Seção 3.7.1: o texto de teste só escreve "algoritmos". A consulta por
+        "algoritmo" acha o arquivo pelo radical e avisa que ele não tem a
+        forma exata.
+        """
+        saida = self.conduzir(executar_parte2, ["1", "algoritmo", "", "6"], self.documentos, True)
+        self.assertIn("Encontrada em 1 arquivo(s), nenhum com a forma exata 'algoritmo':", saida)
+        self.assertRegex(saida, r"- algoritmos\.txt .*BM25 [\d,]+   \*\n")
+        self.assertIn("* sem a forma exata 'algoritmo'", saida)
+
+        # Quando todos têm a forma exata, nada é marcado.
+        saida = self.conduzir(executar_parte2, ["1", "dados", "", "6"], self.documentos, True)
+        self.assertIn("Encontrada em 3 arquivo(s):", saida)
+        self.assertNotIn("forma exata", saida)
 
     def test_padroes_seguem_a_pasta_do_programa(self):
         """

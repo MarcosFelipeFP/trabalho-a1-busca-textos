@@ -198,15 +198,12 @@ class MecanismoBusca {
       const postagens = [];    // [radical, Map{documento: frequência}]
       const vistos = new Set();
       for (const termo of termos) {
-        const radical = this.preprocessador.radicalizar(termo);
+        const radical = this.radicalDaConsulta(termo);
         if (vistos.has(radical)) continue;   // "algoritmo algoritmos" é um termo só
         vistos.add(radical);
         const postagem = this.indice.porRadical.get(radical) || new Map();
         postagens.push([radical, postagem]);
-        detalhes.push({
-          termo, radical, documentos: postagem.size,
-          exatos: this.indice.frequenciaDocumental(termo.toLowerCase(), false),
-        });
+        detalhes.push({ termo, radical, documentos: postagem.size });
       }
 
       const cobertura = new Map();     // documento -> termos da consulta que contém
@@ -241,6 +238,15 @@ class MecanismoBusca {
     });
 
     const { ignorados, detalhes, documentos, todos, frequencias, cobertura } = medida.resultado;
+
+    // A "palavra exata" da seção 3.7.1: em que documentos cada termo aparece
+    // escrito como foi digitado. A consulta em si é a do radical, medida acima;
+    // esta lista serve para a tela marcar os arquivos que o radical alcançou só
+    // por variantes, e fica fora do cronômetro, como o "você quis dizer?".
+    for (const detalhe of detalhes) {
+      detalhe.com_forma_exata = this.documentosDaFormaExata(detalhe.termo);
+      detalhe.exatos = detalhe.com_forma_exata.length;
+    }
 
     // Fora do cronômetro da consulta: o "você quis dizer?" só roda quando falta
     // resultado, e o seu custo não é o custo O(1) do índice.
@@ -281,6 +287,47 @@ class MecanismoBusca {
     };
     this.estatisticas.registrarConsulta('palavra', consulta, documentos.length, medida.tempo);
     return resposta;
+  }
+
+  /**
+   * Radical com que um termo digitado consulta o índice.
+   *
+   * O RSLP olha o acento: "computação" vira "computac", mas "computacao",
+   * digitado sem acento, viraria "computaca" e não acharia documento nenhum.
+   * Quando a forma digitada não está no vocabulário, mas a Trie -- que não
+   * diferencia acentos -- conhece a palavra por outra grafia, o radical sai da
+   * grafia que os documentos usam, a mais frequente se houver mais de uma.
+   * Quem digita uma grafia que existe continua com o radical dela.
+   */
+  radicalDaConsulta(termo) {
+    const grafias = this.trie.formasDe(termo);   // já em ordem alfabética
+    let escolhida = termo;
+    if (grafias.length && !grafias.includes(termo)) {
+      escolhida = grafias[0];
+      for (const grafia of grafias) {
+        if ((this.frequencia.get(grafia) || 0) > (this.frequencia.get(escolhida) || 0)) {
+          escolhida = grafia;
+        }
+      }
+    }
+    return this.preprocessador.radicalizar(escolhida);
+  }
+
+  /**
+   * Documentos em que o termo aparece escrito como foi digitado, sem
+   * diferenciar acentos: "computacao" conta os arquivos que escrevem
+   * "computação". As grafias são as que a Trie guarda sob a mesma chave, e
+   * cada uma é uma consulta O(1) ao índice da forma exata.
+   */
+  documentosDaFormaExata(termo) {
+    const grafias = new Set([...this.trie.formasDe(termo), termo.toLowerCase()]);
+    const documentos = new Set();
+    for (const grafia of grafias) {
+      for (const documento of Object.keys(this.indice.buscar(grafia.toLowerCase(), false))) {
+        documentos.add(documento);
+      }
+    }
+    return ordenarNomes(documentos);
   }
 
   /**

@@ -36,7 +36,7 @@ import sys
 from pathlib import Path
 
 from main import carregar_lexico, configurar_saida
-from mecanismo import ler_texto
+from mecanismo import ler_texto, listar_documentos
 from preparar_corpus import ARTIGOS
 from preprocessamento import carregar_stopwords
 
@@ -63,7 +63,7 @@ def escrever_json(caminho, valor):
 def gerar(pasta="documentos", lexico="palavras.txt"):
     """Regenera os três arquivos de `interface/src/dados/` e devolve o que saiu."""
     pasta_documentos = Path(pasta)
-    arquivos = sorted(pasta_documentos.glob("*.txt")) if pasta_documentos.is_dir() else []
+    arquivos = listar_documentos(pasta_documentos)
 
     if not arquivos:
         raise SystemExit(

@@ -76,6 +76,8 @@ export interface DetalheDoTermo {
   termo: string;
   radical: string;
   documentos: number;
+  /** Documentos em que o termo aparece na forma digitada (sem diferenciar acentos). */
+  com_forma_exata: string[];
   exatos: number;
 }
 
