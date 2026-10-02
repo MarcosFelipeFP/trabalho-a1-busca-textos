@@ -537,7 +537,7 @@ permite reproduzir a base.
 
 | Nome | Matrícula |
 |---|---|
-| Marcos Felipe Ferreira Pires | 1230110993 |
+| Giovanni Cardoso Avallone Belo | 1230104729 |
 | Luana Cristina de Azevedo Celestino | 1230206514 |
+| Marcos Felipe Ferreira Pires | 1230110993 |
 | Pedro Henrique Graciliano Taka | 1230119578 |
-| Giovanni Cardoso Avallone Belo |  |
