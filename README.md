@@ -16,6 +16,7 @@ motor de busca, conforme a restrição do enunciado.
 ## Sumário
 
 - [Início rápido](#início-rápido)
+- [Onde está cada item do enunciado](#onde-está-cada-item-do-enunciado)
 - [O que o sistema faz](#o-que-o-sistema-faz)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Como usar](#como-usar)
@@ -33,8 +34,8 @@ motor de busca, conforme a restrição do enunciado.
 Requer **Python 3.8 ou superior**. Nada mais.
 
 ```bash
-git clone <url-do-repositorio>
-cd <pasta-do-repositorio>
+git clone https://github.com/MarcosFelipeFP/trabalho-a1-busca-textos.git
+cd trabalho-a1-busca-textos
 
 python main.py       # no terminal
 python servidor.py   # no navegador
@@ -46,6 +47,36 @@ em `palavras.txt`, então o programa roda direto após o clone.
 Sem Python instalado, abra **`interface/dist/index.html`** com dois cliques: a
 interface inteira funciona offline, no próprio navegador. É essa a versão que
 vai no pendrive ou no Google Drive — veja [Interface web](#interface-web).
+
+---
+
+## Onde está cada item do enunciado
+
+As seções são as do enunciado do Trabalho Prático A1; o relatório é o PDF na
+raiz do repositório.
+
+| Enunciado | O que pede | No código | No relatório |
+|---|---|---|---|
+| 2.1 e 2.3 | Trie própria com `inserir`, `buscar` e `buscar_prefixo` | `trie.py`: classe `Trie` | 2.2 |
+| 2.2 a 2.4 | Autocomplete: menu, consultas sucessivas, inserção durante a execução | `main.py`: `executar_parte1` | 2.2 e Figura 1 |
+| 2.5 | Complexidade da inserção, da busca exata e da busca por prefixo | `trie.py`, nos comentários de cada operação | 2.2 e Quadro 1 |
+| 2.6 | Questões conceituais da Parte I | — | 2.8 |
+| 3.1 e 4 | A Trie da Parte I reaproveitada na Parte II | `mecanismo.py`: `MecanismoBusca` usa `trie.Trie` | 2.1 |
+| 3.2 | Todos os `.txt` da pasta, sem nomes de arquivo no código | `mecanismo.py`: `listar_documentos` | 2.1 |
+| 3.3 | Minúsculas, pontuação, tokenização e stopwords; stemming opcional | `preprocessamento.py`, `stemmer_rslp.py`, `stopwords.txt` | 2.3 |
+| 3.4 | Vocabulário inserido na Trie | `mecanismo.py`: `MecanismoBusca.construir` | 2.3 |
+| 3.5 | Índice invertido palavra → documentos | `indice_invertido.py`: classe `IndiceInvertido` | 2.3 |
+| 3.6 | Hash (`dict`), função hash, O(1) em média e colisões | `indice_invertido.py`: classe `TabelaHash` | 2.4 |
+| 3.7.1 | Consulta por palavra, com a forma exata destacada | `mecanismo.py`: `buscar_palavra` | 2.3 e 2.7 |
+| 3.7.2 | Prefixo: a Trie dá os termos, o índice dá os documentos de cada um | `mecanismo.py`: `buscar_prefixo` | 2.3 e Figura 1 |
+| 3.7.3 e 9 | Sequência de caracteres com KMP (opcional, bônus) | `kmp.py`; `mecanismo.py`: `buscar_sequencia` | 2.5 |
+| 3.8 | Menu sugerido | `main.py`: `executar_parte2` | — |
+| 3.9 | As sete estatísticas, inclusive o tempo de cada consulta | `estatisticas.py`; `main.py`: `exibir_estatisticas` | 2.1 (Tabela 1) e 2.7 (Tabela 3) |
+| 3.9 | Tempos relacionados à análise de complexidade | custo previsto ao lado de cada tempo; `benchmark.py` | 2.6 (Tabela 2) e 2.7 |
+| 4 | Sem bibliotecas prontas; funções e classes comentadas | todos os módulos `.py` | — |
+| 5 | Organização sugerida do projeto | ver [Estrutura do projeto](#estrutura-do-projeto) | — |
+| 6 | Código, pasta de `.txt`, README e relatório curto | este repositório | descrição e decisões de implementação em 2.1 |
+| 6.1 | Conteúdo mínimo do relatório | — | 2.2 a 2.9 |
 
 ---
 
@@ -75,10 +106,11 @@ Varre automaticamente todos os `.txt` de uma pasta, pré-processa o texto,
 monta o vocabulário na Trie e constrói um índice invertido. Oferece três
 modalidades de consulta:
 
-1. **Palavra** — consulta o índice invertido via hash, O(1) em média. Aceita
-   vários termos (`rede neural`): os documentos com todos eles vêm primeiro,
-   por interseção a partir da menor lista, e termos sem resultado ganham
-   sugestão de correção.
+1. **Palavra** — consulta o índice invertido via hash, O(1) em média, pelo
+   radical do RSLP; os arquivos que só têm variantes da palavra, e não a forma
+   exata, vêm marcados. Aceita vários termos (`rede neural`): os documentos com
+   todos eles vêm primeiro, por interseção a partir da menor lista, e termos
+   sem resultado ganham sugestão de correção.
 2. **Prefixo** — a Trie recupera os termos, e o índice da forma exata diz em
    que documentos cada um aparece.
 3. **Sequência de caracteres** — KMP direto sobre o conteúdo original dos
@@ -86,6 +118,10 @@ modalidades de consulta:
 
 Nenhum nome de arquivo aparece no código: basta soltar um `.txt` novo na pasta
 `documentos/` para que ele entre no índice na execução seguinte.
+
+Cada tempo informado vem com o custo que a análise prevê — O(1) por termo na
+palavra, O(m + p) no prefixo, O(N) na sequência —, e a tela de estatísticas
+lista o tempo de cada consulta e compara as médias dos três tipos.
 
 ---
 
@@ -286,7 +322,7 @@ Palavras encontradas:
   competição
   -- 40 de 151 palavras. Enter mostra mais; 0 encerra a lista: 0
 
-Tempo da consulta: 317,6 µs
+Tempo da consulta: 183,9 µs (custo previsto: O(m + p))
 Digite o prefixo:
 ```
 
@@ -328,7 +364,7 @@ Documentos que contêm algum desses termos: 4
   - estruturas_de_dados.txt                    BM25 2,044
   - sistemas_operacionais.txt                  BM25 1,783
 
-Tempo da consulta: 124,0 µs
+Tempo da consulta: 123,8 µs (custo previsto: O(m + p))
 ```
 
 Cada termo vem com os documentos em que aquela palavra aparece, consultados no
@@ -341,19 +377,26 @@ Escolha uma opção: 1
 (Para voltar ao menu, tecle Enter sem digitar nada.)
 Digite a palavra: algoritmo
 
-Encontrada em 19 arquivo(s):
+Encontrada em 19 arquivo(s), 14 com a forma exata 'algoritmo':
   - algoritmos.txt                               79 ocorrência(s)   BM25 0,614
   - complexidade_computacional.txt               51 ocorrência(s)   BM25 0,601
   - computacao_quantica.txt                      61 ocorrência(s)   BM25 0,594
   - aprendizado_de_maquina.txt                   31 ocorrência(s)   BM25 0,593
   - criptografia.txt                             53 ocorrência(s)   BM25 0,591
   ...
+  - sistemas_operacionais.txt                     1 ocorrência(s)   BM25 0,258   *
+  - redes.txt                                     1 ocorrência(s)   BM25 0,166   *
 
-  Sem stemming a forma exata 'algoritmo' apareceria em 14 arquivo(s).
-  O radical 'algoritm' (RSLP) alcança 19, reunindo as variantes da palavra.
+  * sem a forma exata 'algoritmo': o radical 'algoritm' (RSLP)
+    alcança esses arquivos pelas variantes da palavra.
 
-Tempo da consulta: 57,1 µs
+Tempo da consulta: 61,5 µs (custo previsto: O(1) por termo)
 ```
+
+O índice é consultado pelo radical, que reúne as variantes da palavra; os
+arquivos marcados com `*` não têm a forma exata digitada, só variantes como
+*algoritmos*. Uma palavra digitada sem acento, como `computacao`, acha os
+arquivos que escrevem *computação*.
 
 ### Busca por sequência com KMP
 
@@ -373,14 +416,43 @@ Digite a sequência: chave pública
 
   Comparações de caractere feitas pelo KMP: 697.716
 
-Tempo da consulta: 54,8 ms
+Tempo da consulta: 53,1 ms (custo previsto: O(N))
 ```
 
 O contraste entre os dois últimos exemplos é o ponto central do trabalho: a
 consulta indexada leva microssegundos, e a varredura do corpus inteiro,
 dezenas de milissegundos. Nas medianas do relatório (Tabela 3), são
-**27,6 µs** contra **59,7 ms**, cerca de 2.200 vezes. É a diferença entre O(1)
+**31,0 µs** contra **57,7 ms**, cerca de 1.900 vezes. É a diferença entre O(1)
 e O(N), medida na prática.
+
+### Estatísticas: o tempo medido ao lado do custo previsto
+
+```
+CONSULTAS REALIZADAS (5)
+------------------------------------------------------------
+  tipo          qtd   tempo médio   custo previsto
+  palavra         3       95,0 µs   O(1) por termo
+  prefixo         1      133,2 µs   O(m + p)
+  sequência       1       85,8 ms   O(N)
+
+  Em média, a busca por sequência levou 904 vezes o tempo
+  da busca por palavra: O(N) contra O(1).
+
+  m = tamanho da palavra ou do prefixo; p = nós da Trie
+  abaixo do prefixo; N = caracteres de todos os documentos.
+
+  Tempo de cada consulta:
+     1. palavra    'algoritmo'                     19 resultado(s)    112,8 µs
+     2. palavra    'rede neural'                   17 resultado(s)     93,8 µs
+     3. palavra    'dados'                         24 resultado(s)     78,3 µs
+     4. prefixo    'compil'                        13 resultado(s)    133,2 µs
+     5. sequência  'chave pública'                  2 resultado(s)     85,8 ms
+```
+
+A opção 5 mostra as estatísticas da seção 3.9 e, ao final, esse bloco. Os
+tempos de uma sessão variam com a máquina e com a primeira execução de cada
+consulta; as medianas do relatório, sobre centenas de execuções, são a
+referência.
 
 ---
 
@@ -415,7 +487,7 @@ python testes.py        # resumo
 python testes.py -v     # detalhado
 ```
 
-138 testes cobrindo os exemplos do enunciado, casos de borda e testes de
+145 testes cobrindo os exemplos do enunciado, casos de borda e testes de
 propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
 em 2.000 casos, a Trie comprimida contra a tradicional em 40 vocabulários
 aleatórios, a busca aproximada contra a distância de edição calculada palavra
