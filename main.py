@@ -571,7 +571,7 @@ def executar_parte2(pasta, usar_stemming):
         print()
         print("1 - Buscar palavra")
         print("2 - Buscar por prefixo")
-        print("3 - Buscar sequência nos documentos (KMP)")
+        print("3 - Buscar sequência nos documentos (opcional)")
         print("4 - Listar documentos")
         print("5 - Exibir estatísticas")
         print("6 - Sair")
