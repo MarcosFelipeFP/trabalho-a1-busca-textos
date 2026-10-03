@@ -1350,6 +1350,17 @@ class TesteServidorWeb(unittest.TestCase):
         self.assertEqual(len(resposta["palavras"]), 1)
         self.assertTrue(resposta["truncado"])
 
+    def test_limite_zero_devolve_a_lista_inteira(self):
+        """A interface pede todas as palavras do prefixo, como o terminal (2.3)."""
+        resposta = self.obter("/api/parte1/prefixo", q="comp", limite=0)
+        self.assertEqual(len(resposta["palavras"]), resposta["total"])
+        self.assertFalse(resposta["truncado"])
+
+        termos = self.obter("/api/parte2/prefixo", q="gr", limite=0)
+        self.assertEqual(termos["termos"], ["grafo", "grafos"])
+        self.assertFalse(termos["truncado"])
+        self.assertEqual(termos["por_termo"]["grafo"], ["grafos.txt"])
+
     def test_palavra_do_lexico_distingue_prefixo_de_palavra(self):
         """'comp' é caminho na Trie, mas não é palavra; 'grafo' é as duas coisas."""
         caminho = self.obter("/api/parte1/palavra", q="comp")

@@ -669,8 +669,12 @@ class Aplicacao {
         por_tipo: Object.fromEntries(e.resumoPorTipo().map(
           ({ tipo, quantidade, total, media }) => [tipo, {
             quantidade, total: formatar(total), media: formatar(media),
+            // Em segundos, para a página dividir uma média pela outra.
+            media_segundos: media,
           }])),
-        ultimas: e.consultas.slice(-8).map(
+        // Todas, e não só as últimas: o tempo de CADA consulta é o item 7 das
+        // estatísticas da seção 3.9.
+        cada_consulta: e.consultas.map(
           ({ tipo, texto, resultados, segundos }) => ({
             tipo, texto, resultados, tempo: formatar(segundos),
           })),

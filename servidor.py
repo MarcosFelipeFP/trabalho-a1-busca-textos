@@ -290,7 +290,7 @@ class Manipulador(BaseHTTPRequestHandler):
     def _api(self, rota, parametros):
         aplicacao = self.aplicacao
         consulta = (parametros.get("q") or [""])[0].strip()
-        limite = self._inteiro(parametros.get("limite"), LIMITE_PREFIXO)
+        limite = self._limite(parametros.get("limite"), LIMITE_PREFIXO)
 
         if rota == "/api/estado":
             return self._json(aplicacao.estado())
@@ -335,12 +335,18 @@ class Manipulador(BaseHTTPRequestHandler):
         return self._erro(404, f"rota desconhecida: {rota}")
 
     @staticmethod
-    def _inteiro(valores, padrao):
-        """Lê um inteiro da query string, caindo no padrão quando vier lixo."""
+    def _limite(valores, padrao):
+        """
+        Lê o limite da query string, caindo no padrão quando vier lixo.
+
+        `limite=0` pede a lista inteira, como a do terminal: as seções 2.3 e
+        3.7.2 pedem TODAS as palavras que começam com o prefixo.
+        """
         try:
-            return max(1, min(500, int(valores[0])))
+            valor = int(valores[0])
         except (TypeError, ValueError, IndexError):
             return padrao
+        return None if valor == 0 else max(1, min(500, valor))
 
     # ------------------------------------------------------------------ log
 
@@ -395,13 +401,17 @@ def resumir_estatisticas(mecanismo):
                     "quantidade": quantidade,
                     "total": formatar_duracao(total),
                     "media": formatar_duracao(media),
+                    # Em segundos, para a página dividir uma média pela outra.
+                    "media_segundos": media,
                 }
                 for tipo, (quantidade, total, media) in sorted(e.resumo_por_tipo().items())
             },
-            "ultimas": [
+            # Todas, e não só as últimas: o tempo de CADA consulta é o item 7
+            # das estatísticas da seção 3.9.
+            "cada_consulta": [
                 {"tipo": tipo, "texto": texto, "resultados": resultados,
                  "tempo": formatar_duracao(segundos)}
-                for tipo, texto, resultados, segundos in e.consultas[-8:]
+                for tipo, texto, resultados, segundos in e.consultas
             ],
         },
         "hash": mecanismo.indice.espelhar_em_tabela_hash().estatisticas(),

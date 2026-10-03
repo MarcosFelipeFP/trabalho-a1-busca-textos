@@ -68,7 +68,7 @@ function aquecer(aplicacao: Aplicacao): void {
   for (let volta = 0; volta < 2; volta += 1) {
     for (const palavra of palavras) aplicacao.mecanismo.buscarPalavra(palavra);
     for (const prefixo of prefixos) {
-      aplicacao.mecanismo.buscarPrefixo(prefixo, 50);
+      aplicacao.mecanismo.buscarPrefixo(prefixo, null);
       aplicacao.mecanismo.trie.sugerir(prefixo, 7);
     }
   }

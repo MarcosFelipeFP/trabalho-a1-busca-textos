@@ -141,21 +141,24 @@ export interface RespostaEstatisticas {
   preprocessamento: Record<string, string>;
   consultas: {
     total: number;
-    por_tipo: Record<string, { quantidade: number; total: string; media: string }>;
-    ultimas: { tipo: string; texto: string; resultados: number; tempo: string }[];
+    por_tipo: Record<string, { quantidade: number; total: string; media: string; media_segundos: number }>;
+    cada_consulta: { tipo: string; texto: string; resultados: number; tempo: string }[];
   };
   hash: Record<string, number>;
 }
 
-/** O que a interface precisa de quem executa os algoritmos. */
+/**
+ * O que a interface precisa de quem executa os algoritmos. Nas buscas por
+ * prefixo, `limite` null pede a lista inteira, como o terminal mostra.
+ */
 export interface Motor {
   readonly nome: 'JavaScript' | 'Python';
   estado(): Promise<EstadoSistema>;
-  autocompletar(prefixo: string, limite?: number): Promise<RespostaAutocomplete>;
+  autocompletar(prefixo: string, limite?: number | null): Promise<RespostaAutocomplete>;
   buscarNoLexico(palavra: string): Promise<RespostaLexico>;
   inserirNoLexico(palavra: string): Promise<RespostaInsercao>;
   buscarPalavra(consulta: string): Promise<RespostaPalavra>;
-  buscarPrefixo(prefixo: string, limite?: number): Promise<RespostaPrefixo>;
+  buscarPrefixo(prefixo: string, limite?: number | null): Promise<RespostaPrefixo>;
   buscarSequencia(sequencia: string): Promise<RespostaSequencia>;
   estatisticas(): Promise<RespostaEstatisticas>;
 }

@@ -59,7 +59,7 @@ export class Aplicacao {
   mecanismo: MecanismoBusca;
   construirEmEtapas(): Generator<EtapaDeConstrucao, number, void>;
   estado(): EstadoSistema;
-  autocompletar(prefixo: string, limite?: number): RespostaAutocomplete;
+  autocompletar(prefixo: string, limite?: number | null): RespostaAutocomplete;
   buscarNoLexico(palavra: string): RespostaLexico;
   inserirNoLexico(palavra: string): RespostaInsercao;
   resumirEstatisticas(): RespostaEstatisticas;

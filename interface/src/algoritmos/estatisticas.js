@@ -17,8 +17,8 @@
 
    A saída é a mesma que `benchmark.py` já adota por razões metodológicas:
    repetir a operação até acumular tempo suficiente para o relógio enxergar, e
-   dividir. A interface sempre mostra quantas repetições entraram na conta, de
-   modo que o número exibido não pretenda ser algo que não é.
+   dividir. A resposta traz quantas repetições entraram na conta, e o número
+   exibido é a média por execução.
 
    O efeito colateral é bom: a mediana de centenas de execuções é bem menos
    sensível a um pico do escalonador do que uma execução única.

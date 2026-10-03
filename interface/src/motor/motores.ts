@@ -34,7 +34,7 @@ export class MotorLocal implements Motor {
     return this.aplicacao.estado();
   }
 
-  async autocompletar(prefixo: string, limite = LIMITE_AUTOCOMPLETE): Promise<RespostaAutocomplete> {
+  async autocompletar(prefixo: string, limite: number | null = LIMITE_AUTOCOMPLETE): Promise<RespostaAutocomplete> {
     return this.aplicacao.autocompletar(prefixo, limite);
   }
 
@@ -50,7 +50,7 @@ export class MotorLocal implements Motor {
     return this.aplicacao.mecanismo.buscarPalavra(consulta);
   }
 
-  async buscarPrefixo(prefixo: string, limite = LIMITE_PREFIXO): Promise<RespostaPrefixo> {
+  async buscarPrefixo(prefixo: string, limite: number | null = LIMITE_PREFIXO): Promise<RespostaPrefixo> {
     return this.aplicacao.mecanismo.buscarPrefixo(prefixo, limite);
   }
 
@@ -81,8 +81,9 @@ export class MotorServidor implements Motor {
     return this.pedir<EstadoSistema>('/api/estado');
   }
 
-  autocompletar(prefixo: string, limite = LIMITE_AUTOCOMPLETE) {
-    return this.pedir<RespostaAutocomplete>('/api/parte1/prefixo', { q: prefixo, limite });
+  // Na rota, `limite=0` é a lista inteira.
+  autocompletar(prefixo: string, limite: number | null = LIMITE_AUTOCOMPLETE) {
+    return this.pedir<RespostaAutocomplete>('/api/parte1/prefixo', { q: prefixo, limite: limite ?? 0 });
   }
 
   buscarNoLexico(palavra: string) {
@@ -104,8 +105,8 @@ export class MotorServidor implements Motor {
     return this.pedir<RespostaPalavra>('/api/parte2/palavra', { q: consulta });
   }
 
-  buscarPrefixo(prefixo: string, limite = LIMITE_PREFIXO) {
-    return this.pedir<RespostaPrefixo>('/api/parte2/prefixo', { q: prefixo, limite });
+  buscarPrefixo(prefixo: string, limite: number | null = LIMITE_PREFIXO) {
+    return this.pedir<RespostaPrefixo>('/api/parte2/prefixo', { q: prefixo, limite: limite ?? 0 });
   }
 
   buscarSequencia(sequencia: string) {
