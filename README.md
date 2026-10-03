@@ -510,7 +510,7 @@ python testes.py        # resumo
 python testes.py -v     # detalhado
 ```
 
-145 testes cobrindo os exemplos do enunciado, casos de borda e testes de
+146 testes cobrindo os exemplos do enunciado, casos de borda e testes de
 propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
 em 2.000 casos, a Trie comprimida contra a tradicional em 40 vocabulários
 aleatórios, a busca aproximada contra a distância de edição calculada palavra
