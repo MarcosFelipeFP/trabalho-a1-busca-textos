@@ -3,7 +3,7 @@
  */
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 
 import { normalizar } from '../algoritmos/trie.js';
 import { tituloDe } from '../dados';
@@ -50,6 +50,10 @@ export function Resultados({
       const exatos = !varios && r.termos[0]?.com_forma_exata
         ? new Set(r.termos[0].com_forma_exata)
         : null;
+      // Como no terminal, a contagem da forma exata só entra no resumo quando
+      // algum documento ficou de fora dela.
+      const comForma = exatos ? r.documentos.filter(([documento]) => exatos.has(documento)).length : 0;
+      const soVariantes = exatos !== null && comForma < r.documentos.length;
       return {
         criterio: {
           tipo: 'radicais',
@@ -66,17 +70,30 @@ export function Resultados({
           ].filter(Boolean).join(' · '),
         })),
         resumo: r.documentos.length
-          ? `${plural(r.documentos.length, 'documento', 'documentos')}${varios ? ` · ${numero(r.todos.length)} com todos os termos` : ''} · ${tempo(r.tempo)}`
+          ? [
+            plural(r.documentos.length, 'documento', 'documentos'),
+            varios ? `${numero(r.todos.length)} com todos os termos` : null,
+            soVariantes ? `${comForma ? numero(comForma) : 'nenhum'} com a forma exata “${r.termos[0].termo}”` : null,
+            tempo(r.tempo),
+          ].filter(Boolean).join(' · ')
           : `Nenhum documento · ${tempo(r.tempo)}`,
       };
     }
     if (resultado.modo === 'prefixo') {
       const r = resultado.resposta;
+      // Quantos termos do prefixo cada documento contém, numa passada só pelas
+      // listas que o índice devolveu para cada termo.
+      const termosNoDocumento = new Map<string, number>();
+      for (const documentos of Object.values(r.por_termo)) {
+        for (const documento of documentos) {
+          termosNoDocumento.set(documento, (termosNoDocumento.get(documento) ?? 0) + 1);
+        }
+      }
       return {
         criterio: { tipo: 'prefixo', chave: normalizar(r.prefixo) } as Criterio,
         itens: r.ranking.map(([documento, nota]): Item => ({
           documento,
-          detalhe: `${plural(r.termos.filter((termo) => r.por_termo[termo]?.includes(documento)).length, 'termo', 'termos')} do prefixo · BM25 ${decimal(nota, 2)}`,
+          detalhe: `${plural(termosNoDocumento.get(documento) ?? 0, 'termo', 'termos')} do prefixo · BM25 ${decimal(nota, 2)}`,
         })),
         resumo: `${plural(r.total_disponivel, 'palavra começa', 'palavras começam')} com “${r.prefixo}” · ${plural(r.documentos.length, 'documento', 'documentos')} · ${tempo(r.tempo)}`,
       };
@@ -129,30 +146,17 @@ export function Resultados({
       )}
 
       {resultado.modo === 'prefixo' && resultado.resposta.termos.length > 0 && (
-        <div className="mt-5">
-          <p className="mb-2 text-[0.8rem] font-medium text-cinza">Palavras encontradas na Trie</p>
-          <ul className="flex flex-wrap gap-1.5">
-            {resultado.resposta.termos.slice(0, 28).map((termo) => (
-              <li key={termo}>
-                <button
-                  type="button"
-                  onClick={() => aoBuscar(termo)}
-                  className="rounded-full bg-nevoa px-3 py-1 text-[0.88rem] text-grafite transition-colors hover:bg-linha hover:text-tinta"
-                >
-                  <b className="font-semibold text-tinta">{Array.from(termo).slice(0, Array.from(resultado.resposta.prefixo).length).join('')}</b>
-                  {Array.from(termo).slice(Array.from(resultado.resposta.prefixo).length).join('')}
-                </button>
-              </li>
-            ))}
-            {resultado.resposta.total_disponivel > 28 && (
-              <li className="px-2 py-1 text-[0.85rem] text-cinza">+{numero(resultado.resposta.total_disponivel - 28)}</li>
-            )}
-          </ul>
-        </div>
+        <TermosDoPrefixo resposta={resultado.resposta} aoAbrir={aoAbrir} />
+      )}
+
+      {resultado.modo === 'prefixo' && itens.length > 0 && (
+        <p className="mt-10 text-[0.8rem] font-medium text-cinza">
+          Documentos com algum desses termos, do mais relevante ao menos (BM25)
+        </p>
       )}
 
       {itens.length > 0 ? (
-        <ol className="mt-7 space-y-7">
+        <ol className={`${resultado.modo === 'prefixo' ? 'mt-4' : 'mt-7'} space-y-7`}>
           {itens.map((item, posicao) => (
             <motion.li
               key={item.documento}
@@ -170,6 +174,71 @@ export function Resultados({
         )
       )}
     </div>
+  );
+}
+
+// Dez termos por vez, como o terminal: cada um ocupa uma ou duas linhas.
+const TERMOS_POR_PAGINA = 10;
+
+/**
+ * A integração da seção 3.7.2, termo a termo: a Trie recuperou as palavras do
+ * prefixo e, para cada uma, o índice invertido informou os documentos. Todos os
+ * termos estão na resposta; a tela só os mostra em páginas. Clicar num
+ * documento abre o texto com aquele termo realçado.
+ */
+function TermosDoPrefixo({ resposta, aoAbrir }: { resposta: RespostaPrefixo; aoAbrir: (abertura: Abertura) => void }) {
+  const [mostrados, setMostrados] = useState(TERMOS_POR_PAGINA);
+  useEffect(() => setMostrados(TERMOS_POR_PAGINA), [resposta]);
+
+  const letrasDoPrefixo = Array.from(resposta.prefixo).length;
+  const total = resposta.termos.length;
+
+  return (
+    <section className="mt-6">
+      <p className="mb-1 text-[0.8rem] font-medium text-cinza">
+        Palavras encontradas na Trie e os documentos de cada uma, pelo índice invertido
+      </p>
+      <ul className="divide-y divide-linha border-y border-linha">
+        {resposta.termos.slice(0, mostrados).map((termo) => {
+          const letras = Array.from(termo);
+          const documentos = resposta.por_termo[termo] ?? [];
+          const criterio: Criterio = { tipo: 'termo', chave: normalizar(termo) };
+          return (
+            <li key={termo} className="py-2.5 sm:grid sm:grid-cols-[11rem_1fr] sm:gap-4">
+              <p className="break-words text-[0.98rem] text-grafite">
+                <b className="font-semibold text-tinta">{letras.slice(0, letrasDoPrefixo).join('')}</b>
+                {letras.slice(letrasDoPrefixo).join('')}
+              </p>
+              <p className="mt-0.5 text-[0.84rem] leading-relaxed text-cinza sm:mt-px">
+                <span className="numeros">{plural(documentos.length, 'documento', 'documentos')}</span>
+                {documentos.length > 0 && ': '}
+                {documentos.map((documento, posicao) => (
+                  <Fragment key={documento}>
+                    {posicao > 0 && ', '}
+                    <button
+                      type="button"
+                      onClick={() => aoAbrir({ documento, criterio })}
+                      className="text-grafite underline decoration-linha underline-offset-[3px] hover:text-tinta hover:decoration-tinta"
+                    >
+                      {tituloDe(documento)}
+                    </button>
+                  </Fragment>
+                ))}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+      {mostrados < total && (
+        <button
+          type="button"
+          onClick={() => setMostrados((atual) => atual + TERMOS_POR_PAGINA)}
+          className="numeros mt-3 rounded-full border border-linha px-3.5 py-1.5 text-[0.84rem] text-grafite transition-colors hover:bg-nevoa hover:text-tinta"
+        >
+          Mostrar mais · {numero(mostrados)} de {numero(total)} termos
+        </button>
+      )}
+    </section>
   );
 }
 
@@ -247,7 +316,8 @@ export function Leitor({ abertura, aoFechar }: { abertura: Abertura | null; aoFe
               <div>
                 <h2 className="text-[1.35rem] font-semibold tracking-[-0.01em]">{tituloDe(abertura.documento)}</h2>
                 <p className="mt-0.5 text-[0.82rem] text-cinza">
-                  {abertura.documento} · {plural(marcado.total, 'trecho realçado', 'trechos realçados')}
+                  {abertura.documento}
+                  {abertura.criterio.tipo !== 'nenhum' && ` · ${plural(marcado.total, 'trecho realçado', 'trechos realçados')}`}
                 </p>
               </div>
               <button

@@ -5,7 +5,10 @@
  *   palavra    toda palavra cujo radical é o de um termo da consulta
  *              ("rede" acende "redes", porque o índice as uniu);
  *   prefixo    toda palavra que começa com o prefixo;
- *   sequência  a sequência exata, sem diferenciar maiúsculas.
+ *   termo      um termo da lista do prefixo, na forma exata, sem diferenciar
+ *              acentos -- a mesma regra com que o índice achou o documento;
+ *   sequência  a sequência exata, sem diferenciar maiúsculas;
+ *   nenhum     nada: o documento aberto pela lista de documentos.
  */
 import { Fragment } from 'react';
 
@@ -14,7 +17,9 @@ import { normalizar } from '../algoritmos/trie.js';
 export type Criterio =
   | { tipo: 'radicais'; radicais: Set<string>; radicalizar: (palavra: string) => string }
   | { tipo: 'prefixo'; chave: string }
-  | { tipo: 'sequencia'; trecho: string };
+  | { tipo: 'termo'; chave: string }
+  | { tipo: 'sequencia'; trecho: string }
+  | { tipo: 'nenhum' };
 
 export interface Segmento {
   texto: string;
@@ -27,12 +32,14 @@ function acende(criterio: Criterio, palavra: string): boolean {
   if (palavra.length < 2) return false;
   if (criterio.tipo === 'radicais') return criterio.radicais.has(criterio.radicalizar(palavra.toLowerCase()));
   if (criterio.tipo === 'prefixo') return normalizar(palavra).startsWith(criterio.chave);
+  if (criterio.tipo === 'termo') return normalizar(palavra) === criterio.chave;
   return false;
 }
 
 /** Posições [início, fim) de tudo o que acende em `texto`. */
 function faixas(texto: string, criterio: Criterio, primeiraApenas = false): [number, number][] {
   const achadas: [number, number][] = [];
+  if (criterio.tipo === 'nenhum') return achadas;
   if (criterio.tipo === 'sequencia') {
     const alvo = criterio.trecho.toLowerCase();
     const minusculo = texto.toLowerCase();

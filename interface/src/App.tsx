@@ -1,10 +1,14 @@
 /*
- * Uma página, uma busca.
+ * A busca no centro, e as outras telas do enunciado a um clique.
  *
  * Antes da primeira consulta, só o nome e a caixa, no centro. Enquanto se
- * digita, a Trie sugere as palavras mais frequentes dos documentos (Parte I).
- * No Enter, a caixa sobe e os resultados aparecem embaixo (Parte II), com o
- * que foi encontrado realçado no trecho de cada documento.
+ * digita, a Trie sugere as palavras mais frequentes dos documentos. No Enter,
+ * a caixa sobe e os resultados aparecem embaixo (Parte II), com o que foi
+ * encontrado realçado no trecho de cada documento.
+ *
+ * No alto, à direita, ficam as outras telas: o autocomplete da Parte I, a
+ * lista de documentos e as estatísticas da seção 3.9 -- os mesmos menus do
+ * terminal.
  */
 import { LayoutGroup, motion } from 'motion/react';
 import { Search, X } from 'lucide-react';
@@ -17,6 +21,7 @@ import { DADOS } from './dados';
 import { construirAplicacao, ProvedorDoMotor, useMotor } from './motor/contexto';
 import type { Metodo } from './motor/tipos';
 import { buscaIngenuaNoCorpus, varrerVocabulario } from './motor/varreduras';
+import { Documentos, Estatisticas, Navegacao, ParteUm, type Tela } from './telas/Telas';
 import { numero, tempo } from './util/formato';
 
 type Modo = 'palavra' | 'prefixo' | 'sequencia';
@@ -97,6 +102,7 @@ export function App() {
   if (!pronta) {
     return (
       <Inicial
+        topo={null}
         caixa={<CaixaDeBusca valor="" aoMudar={() => undefined} aoBuscar={() => undefined} sugestoes={[]} desabilitada />}
         abas={null}
         rodape={`Preparando o índice · ${lidos} de ${DADOS.corpus.length} documentos`}
@@ -113,6 +119,7 @@ export function App() {
 
 function Pagina({ segundos }: { segundos: number }) {
   const { aplicacao, motor, servidorNoAr, trocarMotor } = useMotor();
+  const [tela, setTela] = useState<Tela>('busca');
   const [consulta, setConsulta] = useState('');
   const [modo, setModo] = useState<Modo>('palavra');
   const [metodo, setMetodo] = useState(MODOS[0].metodos[0].id);
@@ -136,7 +143,9 @@ function Pagina({ segundos }: { segundos: number }) {
         } else if (qual === 'palavra') {
           setResultado({ modo: 'palavra', resposta: await motor.buscarPalavra(limpo), metodo: escolhido });
         } else if (qual === 'prefixo') {
-          const resposta = await motor.buscarPrefixo(limpo);
+          // Todos os termos do prefixo, como no terminal (seção 3.7.2); a tela
+          // é que os mostra em páginas.
+          const resposta = await motor.buscarPrefixo(limpo, null);
           // Os termos são os mesmos nos dois caminhos; o que muda é o custo de
           // encontrá-los, e é só esse tempo que a varredura substitui.
           const varredura = escolhido.id === 'lista' ? varrerVocabulario(aplicacao, limpo) : null;
@@ -256,10 +265,53 @@ function Pagina({ segundos }: { segundos: number }) {
     </span>
   );
 
+  function trocarTela(proxima: Tela) {
+    setTela(proxima);
+    window.scrollTo({ top: 0 });
+  }
+
+  function voltarAoInicio() {
+    setTela('busca');
+    setResultado(null);
+    setConsulta('');
+  }
+
+  const navegacao = <Navegacao atual={tela} aoTrocar={trocarTela} />;
+
+  if (tela !== 'busca') {
+    return (
+      <>
+        <div className="min-h-dvh">
+          <header className="border-b border-linha">
+            <div className="mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3 sm:px-8">
+              <button type="button" onClick={voltarAoInicio} className="shrink-0 text-left">
+                <Logo pequeno />
+              </button>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                {navegacao}
+                {seletorDeMotor && <span className="hidden h-4 w-px bg-linha sm:block" aria-hidden />}
+                {seletorDeMotor}
+              </div>
+            </div>
+          </header>
+          <main className="mx-auto max-w-[1080px] px-5 pb-24 pt-8 sm:px-8 sm:pl-[calc(2rem+9.6rem)]">
+            {tela === 'parte1' && <ParteUm />}
+            {tela === 'documentos' && (
+              <Documentos aoAbrir={(documento) => setAbertura({ documento, criterio: { tipo: 'nenhum' } })} />
+            )}
+            {tela === 'estatisticas' && <Estatisticas />}
+          </main>
+        </div>
+        <Leitor abertura={abertura} aoFechar={() => setAbertura(null)} />
+      </>
+    );
+  }
+
   return (
     <LayoutGroup>
       {!resultado ? (
         <Inicial
+          topo={<div className="flex justify-end px-5 pt-3 sm:px-8">{navegacao}</div>}
           caixa={caixa}
           abas={
             <>
@@ -286,9 +338,10 @@ function Pagina({ segundos }: { segundos: number }) {
         />
       ) : (
         <div className="min-h-dvh">
+          <div className="mx-auto flex max-w-[1080px] justify-end px-5 pt-3 sm:px-8">{navegacao}</div>
           <header className="sticky top-0 z-30 border-b border-linha bg-fundo/95 backdrop-blur">
             <div className="mx-auto flex max-w-[1080px] flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-8 sm:px-8">
-              <button type="button" onClick={() => { setResultado(null); setConsulta(''); }} className="shrink-0 text-left">
+              <button type="button" onClick={voltarAoInicio} className="shrink-0 text-left">
                 <Logo pequeno />
               </button>
               <div className="w-full max-w-[680px]">{caixa}</div>
@@ -312,9 +365,15 @@ function Pagina({ segundos }: { segundos: number }) {
   );
 }
 
-function Inicial({ caixa, abas, rodape }: { caixa: React.ReactNode; abas: React.ReactNode; rodape: React.ReactNode }) {
+function Inicial({ topo, caixa, abas, rodape }: {
+  topo: React.ReactNode;
+  caixa: React.ReactNode;
+  abas: React.ReactNode;
+  rodape: React.ReactNode;
+}) {
   return (
     <div className="flex min-h-dvh flex-col">
+      {topo}
       <main className="flex flex-1 flex-col items-center justify-center px-5 pb-[12vh]">
         <motion.h1 layoutId="logo" className="mb-9">
           <Logo />
