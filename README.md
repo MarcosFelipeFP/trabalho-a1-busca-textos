@@ -232,24 +232,43 @@ python servidor.py
 ```
 
 Constrói as estruturas em Python, serve a mesma página em
-`http://localhost:8000` e abre o navegador. No rodapé da página aparece a
-opção **Python**: as consultas passam a ser respondidas pelos módulos `.py`,
-com o mesmo formato de resposta.
+`http://localhost:8000` e abre o navegador. Com o servidor no ar, a página
+mostra a opção **Python** (no rodapé da tela inicial e no alto das outras
+telas): as consultas passam a ser respondidas pelos módulos `.py`, com o mesmo
+formato de resposta.
 
 ### Como é a página
 
-Uma página só, de busca, em tema claro:
+Quatro telas, em tema claro, que espelham os menus do terminal. Os botões no
+alto, à direita, levam de uma a outra:
 
-- **enquanto se digita**, a Trie sugere as palavras mais frequentes dos
-  documentos que começam com o que foi digitado (Parte I);
-- **no Enter**, a caixa sobe e os documentos aparecem ordenados pelo BM25, cada
-  um com um trecho em que as palavras encontradas vêm realçadas (Parte II);
+- **Autocomplete (Parte I)**: as opções do menu da seção 2.4 sobre o léxico de
+  `palavras.txt` — buscar uma palavra, listar todas as que começam com um
+  prefixo, em ordem alfabética, e inserir palavras novas durante a sessão —,
+  cada uma com o tempo medido e o custo previsto;
+- **Busca (Parte II)**, a tela inicial: enquanto se digita, a Trie do
+  vocabulário sugere as palavras mais frequentes dos documentos; no Enter, a
+  caixa sobe e os documentos aparecem ordenados pelo BM25, cada um com um
+  trecho em que as palavras encontradas vêm realçadas;
+- **Documentos**: a opção 4 do menu da seção 3.8, com o tamanho e as palavras
+  indexadas de cada arquivo; clicar num deles abre o texto;
+- **Estatísticas**: a opção 5, com as estatísticas obrigatórias da seção 3.9,
+  o tempo de cada consulta feita na sessão e quantas vezes a busca por
+  sequência custou a busca por palavra, ao lado do custo previsto de cada uma.
+
+Na busca:
+
 - as abas **Palavra**, **Prefixo** e **Sequência** escolhem a pergunta, e o
   seletor **"Respondido por"**, ao lado, escolhe a estrutura que responde;
 - esse seletor é a comparação do relatório, ao vivo: a mesma pergunta pelo
   índice invertido O(1) ou varrendo o texto com KMP O(N); pela Trie O(m + p) ou
   percorrendo a lista de palavras O(V·m); pelo KMP O(n + m) ou pela busca
   ingênua O(n·m);
+- na aba **Prefixo**, todos os termos que começam com o prefixo aparecem em
+  ordem alfabética, cada um com os documentos em que aparece, dez por vez, como
+  no terminal (seção 3.7.2); clicar num documento o abre com o termo realçado;
+- na aba **Palavra**, o resumo diz quantos documentos têm a forma exata
+  digitada, e os que o radical alcançou só por variantes vêm marcados (3.7.1);
 - clicar num resultado abre o texto inteiro, com os realces;
 - a linha acima dos resultados nomeia a estrutura usada, o custo dela, quantos
   documentos voltaram e quanto tempo a consulta levou.
@@ -285,9 +304,13 @@ mais de 120 mil casos comparados um a um.
 
 Uma ressalva de método: o navegador arredonda o relógio por segurança (em
 `file://`, para cerca de 100 µs). Por isso cada consulta barata é repetida em
-lotes até acumular alguns milissegundos, e a interface informa quantas
-execuções entraram na média. Antes da primeira consulta, os algoritmos são
-aquecidos para que o compilador JIT não seja medido junto.
+lotes até acumular alguns milissegundos, e o tempo exibido é a média por
+execução. Antes da primeira consulta, os algoritmos são aquecidos para que o
+compilador JIT não seja medido junto. A exceção é a inserção da Parte I:
+repetida, ela já não inseriria nada, então é medida uma vez só, e quando fica
+abaixo do que o relógio do navegador mede a tela diz isso em vez de mostrar
+"0 µs". O relógio do Python tem resolução de nanossegundos e mede a inserção
+direto.
 
 ---
 
