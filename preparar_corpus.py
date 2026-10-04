@@ -141,7 +141,7 @@ def main():
             palavras = len(destino.read_text(encoding="utf-8").split())
             total_palavras += palavras
             gravados += 1
-            print(f"  [EXISTE] {destino.name:<40} {palavras:>7,} palavras")
+            print(f"  [EXISTE] {destino.name:<40} {formatar_numero(palavras):>7} palavras")
             continue
 
         try:
