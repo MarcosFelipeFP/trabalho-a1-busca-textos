@@ -23,7 +23,7 @@ import type { Medida, OcorrenciasNoDocumento, RespostaSequencia } from './tipos'
  * o trabalho que a Trie evita ao descer o prefixo e visitar apenas a subárvore
  * alcançada. A resposta é a mesma; o que muda é o custo: O(V·m) contra O(m + p).
  */
-export function varrerVocabulario(aplicacao: Aplicacao, prefixo: string): Medida {
+export function buscaSequencialNoVocabulario(aplicacao: Aplicacao, prefixo: string): Medida {
   const chave = normalizar(prefixo);
   const palavras = [...aplicacao.mecanismo.vocabulario];
 

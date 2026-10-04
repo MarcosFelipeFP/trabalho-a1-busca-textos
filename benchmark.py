@@ -95,7 +95,7 @@ def us(segundos):
 
 def experimento_trie_vs_sequencial(vocabulario):
     """
-    Compara a busca por prefixo na Trie com a varredura de uma lista.
+    Compara a busca por prefixo na Trie com a busca sequencial numa lista.
 
     Previsão teórica:
         Trie        O(m + p)  -- p = nós abaixo do prefixo, ou seja, o custo
@@ -109,7 +109,7 @@ def experimento_trie_vs_sequencial(vocabulario):
     quadro repete a medição com o número de resultados FIXADO por `limite`,
     onde aí sim o tempo da Trie deve estabilizar.
     """
-    titulo("EXPERIMENTO 1 - Busca por prefixo: Trie contra varredura sequencial")
+    titulo("EXPERIMENTO 1 - Busca por prefixo: Trie contra busca sequencial")
 
     prefixos = ["comp", "prog", "algor", "dad", "red", "seg", "inte", "proc"]
     print(f"\nPrefixos testados: {', '.join(prefixos)}")
@@ -187,7 +187,7 @@ def experimento_trie_vs_sequencial(vocabulario):
     print("  vocabulário DOBRA, o número de resultados fica igual, e o tempo da")
     print("  Trie não se move -- enquanto o da lista dobra junto com V. É a")
     print("  demonstração controlada de que o custo da Trie é O(m + p) e o da")
-    print("  varredura é O(V * m). Nas demais linhas o tempo da Trie sobe, mas")
+    print("  busca sequencial é O(V * m). Nas demais linhas o tempo da Trie sobe, mas")
     print("  acompanhando a coluna de resultados, não a de vocabulário.")
 
 

@@ -271,8 +271,8 @@ Na busca:
 - as abas **Palavra**, **Prefixo** e **Sequência** escolhem a pergunta, e o
   seletor **"Respondido por"**, ao lado, escolhe a estrutura que responde;
 - esse seletor é a comparação do relatório, ao vivo: a mesma pergunta pelo
-  índice invertido O(1) ou varrendo o texto com KMP O(N); pela Trie O(m + p) ou
-  percorrendo a lista de palavras O(V·m); pelo KMP O(n + m) ou pela força
+  índice invertido O(1) ou pela busca por sequência com KMP O(N); pela Trie O(m + p) ou
+  pela busca sequencial na lista de palavras O(V·m); pelo KMP O(n + m) ou pela força
   bruta O(n·m);
 - na aba **Prefixo**, todos os termos que começam com o prefixo aparecem em
   ordem alfabética, cada um com os documentos em que aparece, dez por vez, como
@@ -499,7 +499,7 @@ python benchmark.py
 Nove experimentos que confrontam o custo assintótico previsto com o que se
 mede na prática — tempo, nós visitados, comparações de caractere ou colisões:
 
-1. Busca por prefixo: Trie contra varredura sequencial
+1. Busca por prefixo: Trie contra busca sequencial
 2. Autocomplete top-k: busca best-first contra varredura da subárvore
 3. Trie tradicional contra Trie comprimida (PATRICIA)
 4. KMP contra força bruta, no pior caso e em texto natural

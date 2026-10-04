@@ -19,7 +19,7 @@ import { Leitor, Resultados, type Abertura, type Resultado } from './busca/Resul
 import { DADOS } from './dados';
 import { construirAplicacao, ProvedorDoMotor, useMotor } from './motor/contexto';
 import type { Metodo } from './motor/tipos';
-import { buscaForcaBrutaNoCorpus, varrerVocabulario } from './motor/varreduras';
+import { buscaForcaBrutaNoCorpus, buscaSequencialNoVocabulario } from './motor/varreduras';
 import { Documentos, Estatisticas, Navegacao, ParteUm, type Tela } from './telas/Telas';
 import { numero, tempo } from './util/formato';
 
@@ -40,7 +40,7 @@ const MODOS: { valor: Modo; titulo: string; exemplos: string[]; metodos: Metodo[
       { id: 'indice', rotulo: 'índice invertido (hash)', custo: 'O(1)' },
       {
         id: 'texto-kmp',
-        rotulo: 'varredura do texto (KMP)',
+        rotulo: 'busca por sequência (KMP)',
         custo: 'O(N)',
         nota: 'Sem índice, a palavra é procurada no texto inteiro — e só na forma exata: '
           + 'sem o radical, "algoritmo" deixa de encontrar "algoritmos".',
@@ -55,7 +55,7 @@ const MODOS: { valor: Modo; titulo: string; exemplos: string[]; metodos: Metodo[
       { id: 'trie', rotulo: 'Trie + índice invertido', custo: 'O(m + p)' },
       {
         id: 'lista',
-        rotulo: 'varredura da lista de palavras',
+        rotulo: 'busca sequencial',
         custo: 'O(V·m)',
         nota: 'Mesma resposta, obtida percorrendo o vocabulário inteiro, palavra por palavra.',
       },
@@ -147,7 +147,7 @@ function Pagina({ segundos }: { segundos: number }) {
           const resposta = await motor.buscarPrefixo(limpo, null);
           // Os termos são os mesmos nos dois caminhos; o que muda é o custo de
           // encontrá-los, e é só esse tempo que a varredura substitui.
-          const varredura = escolhido.id === 'lista' ? varrerVocabulario(aplicacao, limpo) : null;
+          const varredura = escolhido.id === 'lista' ? buscaSequencialNoVocabulario(aplicacao, limpo) : null;
           setResultado({
             modo: 'prefixo',
             resposta: varredura ? { ...resposta, ...varredura } : resposta,
