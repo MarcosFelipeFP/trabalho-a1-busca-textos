@@ -31,7 +31,7 @@ motor de busca, conforme a restrição do enunciado.
 
 ## Início rápido
 
-Requer **Python 3.8 ou superior**. Nada mais.
+Requer **Python 3.8 ou superior** (os testes passam no 3.8 e no 3.14). Nada mais.
 
 ```bash
 git clone https://github.com/MarcosFelipeFP/trabalho-a1-busca-textos.git
