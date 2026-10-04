@@ -147,7 +147,7 @@ lista o tempo de cada consulta e compara as médias dos três tipos.
 ├── stemmer_rslp.py          stemmer RSLP para português
 ├── preprocessamento.py      minúsculas, pontuação, tokenização, stopwords
 ├── indice_invertido.py      índice invertido, tabela hash, BM25 e TF-IDF
-├── kmp.py                   Knuth–Morris–Pratt e busca ingênua
+├── kmp.py                   Knuth–Morris–Pratt e busca por força bruta
 ├── mecanismo.py             integração de tudo: varredura, indexação, consultas
 ├── estatisticas.py          cronometragem e métricas
 ├── benchmark.py             experimentos de análise de complexidade
@@ -272,8 +272,8 @@ Na busca:
   seletor **"Respondido por"**, ao lado, escolhe a estrutura que responde;
 - esse seletor é a comparação do relatório, ao vivo: a mesma pergunta pelo
   índice invertido O(1) ou varrendo o texto com KMP O(N); pela Trie O(m + p) ou
-  percorrendo a lista de palavras O(V·m); pelo KMP O(n + m) ou pela busca
-  ingênua O(n·m);
+  percorrendo a lista de palavras O(V·m); pelo KMP O(n + m) ou pela força
+  bruta O(n·m);
 - na aba **Prefixo**, todos os termos que começam com o prefixo aparecem em
   ordem alfabética, cada um com os documentos em que aparece, dez por vez, como
   no terminal (seção 3.7.2); clicar num documento o abre com o termo realçado;
@@ -524,7 +524,7 @@ python testes.py -v     # detalhado
 ```
 
 154 testes cobrindo os exemplos do enunciado, casos de borda e testes de
-propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
+propriedade com entradas aleatórias — o KMP é comparado contra a busca por força bruta
 em 2.000 casos, a Trie comprimida contra a tradicional em 40 vocabulários
 aleatórios, a busca aproximada contra a distância de edição calculada palavra
 a palavra e a lista de documentos de cada termo do prefixo contra os tokens de
