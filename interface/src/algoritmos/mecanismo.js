@@ -34,7 +34,7 @@ import { Cronometro, Estatisticas, formatarDuracao, medir } from './estatisticas
 import { IndiceInvertido } from './indice-invertido.js';
 import { buscarKmp, contextoDaOcorrencia } from './kmp.js';
 import { Preprocessador } from './preprocessamento.js';
-import { Trie, TrieComprimida, normalizar, ordemDeTexto } from './trie.js';
+import { Trie, TrieComprimida, grafia, ordemDeTexto } from './trie.js';
 
 /** Ordena nomes de documento, como o `sorted` do Python faz. */
 const ordenarNomes = (nomes) => Array.from(nomes).sort(ordemDeTexto);
@@ -126,16 +126,10 @@ class MecanismoBusca {
     const vocabularioOrdenado = ordenarNomes(this.vocabulario);
     yield { fase: 'trie', posicao: 0, total: vocabularioOrdenado.length };
 
-    // Duas grafias diferentes ("computação" e "computacao") viram a mesma
-    // chave na Trie; os pesos delas precisam somar, não competir. O peso de
-    // cada palavra fica pronto ANTES do cronômetro: normalizar a chave para
-    // consultar a soma não é trabalho da Trie.
-    const pesoDaChave = new Map();
-    for (const [token, ocorrencias] of this.frequencia) {
-      const chave = normalizar(token);
-      pesoDaChave.set(chave, (pesoDaChave.get(chave) || 0) + ocorrencias);
-    }
-    const pesos = vocabularioOrdenado.map((palavra) => pesoDaChave.get(normalizar(palavra)) || 1);
+    // Todas as palavras distintas entram, inclusive as que só diferem no
+    // acento ("análise" e "analise"): cada uma é uma palavra, com a sua
+    // própria frequência como peso, lida antes do cronômetro.
+    const pesos = vocabularioOrdenado.map((palavra) => this.frequencia.get(palavra));
 
     const relogioTrie = Cronometro.iniciar();
     vocabularioOrdenado.forEach((palavra, posicao) => this.trie.inserir(palavra, pesos[posicao]));
@@ -198,7 +192,7 @@ class MecanismoBusca {
       const postagens = [];    // [radical, Map{documento: frequência}]
       const vistos = new Set();
       for (const termo of termos) {
-        const radical = this.radicalDaConsulta(termo);
+        const radical = this.preprocessador.radicalizar(termo);
         if (vistos.has(radical)) continue;   // "algoritmo algoritmos" é um termo só
         vistos.add(radical);
         const postagem = this.indice.porRadical.get(radical) || new Map();
@@ -290,44 +284,13 @@ class MecanismoBusca {
   }
 
   /**
-   * Radical com que um termo digitado consulta o índice.
-   *
-   * O RSLP olha o acento: "computação" vira "computac", mas "computacao",
-   * digitado sem acento, viraria "computaca" e não acharia documento nenhum.
-   * Quando a forma digitada não está no vocabulário, mas a Trie -- que não
-   * diferencia acentos -- conhece a palavra por outra grafia, o radical sai da
-   * grafia que os documentos usam, a mais frequente se houver mais de uma.
-   * Quem digita uma grafia que existe continua com o radical dela.
-   */
-  radicalDaConsulta(termo) {
-    const grafias = this.trie.formasDe(termo);   // já em ordem alfabética
-    let escolhida = termo;
-    if (grafias.length && !grafias.includes(termo)) {
-      escolhida = grafias[0];
-      for (const grafia of grafias) {
-        if ((this.frequencia.get(grafia) || 0) > (this.frequencia.get(escolhida) || 0)) {
-          escolhida = grafia;
-        }
-      }
-    }
-    return this.preprocessador.radicalizar(escolhida);
-  }
-
-  /**
-   * Documentos em que o termo aparece escrito como foi digitado, sem
-   * diferenciar acentos: "computacao" conta os arquivos que escrevem
-   * "computação". As grafias são as que a Trie guarda sob a mesma chave, e
-   * cada uma é uma consulta O(1) ao índice da forma exata.
+   * Documentos em que o termo aparece escrito exatamente como foi digitado,
+   * acentos incluídos: "computacao" não conta os arquivos que escrevem
+   * "computação", que é outra grafia. Uma consulta O(1) ao índice da forma
+   * exata.
    */
   documentosDaFormaExata(termo) {
-    const grafias = new Set([...this.trie.formasDe(termo), termo.toLowerCase()]);
-    const documentos = new Set();
-    for (const grafia of grafias) {
-      for (const documento of Object.keys(this.indice.buscar(grafia.toLowerCase(), false))) {
-        documentos.add(documento);
-      }
-    }
-    return ordenarNomes(documentos);
+    return ordenarNomes(Object.keys(this.indice.buscar(grafia(termo), false)));
   }
 
   /**
@@ -338,7 +301,7 @@ class MecanismoBusca {
   sugerirCorrecao(termo, limite = 5) {
     const sugestoes = [];
     for (const [palavra, distancia, peso] of this.trie.buscarAproximado(termo, null, null)) {
-      if (distancia === 0) continue;
+      if (palavra === grafia(termo)) continue;
       if (!this.indice.frequenciaDocumental(this.preprocessador.radicalizar(palavra))) continue;
       sugestoes.push([palavra, distancia, peso]);
       if (sugestoes.length >= limite) break;
@@ -357,9 +320,9 @@ class MecanismoBusca {
    * A etapa 2 consulta o índice da FORMA EXATA, e não o do radical, porque a
    * pergunta do enunciado é em que documentos cada termo aparece. Pelo
    * radical, "compara" herdaria os documentos de "comparação" e de
-   * "comparado". A Trie guarda sob a mesma chave as grafias que diferem só no
-   * acento ("análise" e "analise"), então cada termo consulta o índice uma vez
-   * por grafia registrada.
+   * "comparado". Pela mesma razão, as grafias que só diferem no acento são
+   * termos distintos: "continua" lista os arquivos que escrevem "continua", e
+   * "contínua", os que escrevem "contínua".
    *
    * O(m + p) na Trie, mais O(1) por termo no índice.
    *
@@ -369,33 +332,22 @@ class MecanismoBusca {
    */
   buscarPrefixo(prefixo, limite = 50) {
     const medida = medir(() => {
-      // As grafias de cada termo saem da mesma travessia da Trie: pedir depois
-      // com `formasDe` desceria a árvore de novo para cada um.
-      const comGrafias = this.trie.buscarPrefixoComGrafias(prefixo, limite);
-      const termos = comGrafias.map(([termo]) => termo);
+      const termos = this.trie.buscarPrefixo(prefixo, limite);
       const totalDisponivel = this.trie.contarPrefixo(prefixo);
       const sugestoes = this.trie.sugerir(prefixo, 10);
 
       const porTermo = {};
       const documentos = new Set();
-      const formas = new Set();
-      for (const [termo, grafias] of comGrafias) {
-        const encontrados = new Set();
-        for (const grafia of grafias) {
-          const forma = grafia.toLowerCase();
-          formas.add(forma);
-          for (const documento of Object.keys(this.indice.buscar(forma, false))) {
-            encontrados.add(documento);
-          }
-        }
+      for (const termo of termos) {
+        const encontrados = Object.keys(this.indice.buscar(termo, false));
         porTermo[termo] = ordenarNomes(encontrados);
         for (const documento of encontrados) documentos.add(documento);
       }
 
-      // O BM25 pontua as mesmas formas exatas, de modo que o ranking cobre
-      // exatamente os documentos listados acima, nem um a mais.
-      const ranking = formas.size
-        ? this.indice.ranquearBm25(ordenarNomes(formas), false)
+      // O BM25 pontua os mesmos termos, na forma exata, de modo que o ranking
+      // cobre exatamente os documentos listados acima, nem um a mais.
+      const ranking = termos.length
+        ? this.indice.ranquearBm25(ordenarNomes(termos), false)
         : [];
 
       return {
@@ -594,7 +546,7 @@ class Aplicacao {
       palavra,
       existe,
       formas,
-      continuacoes: Math.max(0, abaixo - (existe ? 1 : 0)),
+      continuacoes: Math.max(0, abaixo - formas.length),
       aproximadas: aproximacao.resultado,
       tempo: medida.tempo,
       repeticoes: medida.repeticoes,

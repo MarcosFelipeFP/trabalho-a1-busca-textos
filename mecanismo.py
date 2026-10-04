@@ -30,7 +30,7 @@ from estatisticas import Cronometro, Estatisticas
 from indice_invertido import IndiceInvertido
 from kmp import buscar_kmp, contexto_da_ocorrencia
 from preprocessamento import Preprocessador
-from trie import Trie, TrieComprimida, normalizar
+from trie import Trie, TrieComprimida, grafia
 
 __all__ = ["listar_documentos", "ler_texto", "MecanismoBusca"]
 
@@ -175,19 +175,12 @@ class MecanismoBusca:
 
         # --- fase 3: construção da Trie a partir do vocabulário ---
         # Ordenar antes de inserir mantém o resultado determinístico e permite
-        # repetir a medição de tempo em condições idênticas.
+        # repetir a medição de tempo em condições idênticas. Todas as palavras
+        # distintas entram, inclusive as que só diferem no acento ("análise" e
+        # "analise"): cada uma é uma palavra, com a sua própria frequência como
+        # peso, lida antes do cronômetro.
         vocabulario_ordenado = sorted(self.vocabulario)
-
-        # Duas grafias diferentes ("computação" e "computacao") viram a mesma
-        # chave na Trie; os pesos delas precisam somar, não competir. O peso de
-        # cada palavra fica pronto ANTES do cronômetro: normalizar a chave para
-        # consultar a soma não é trabalho da Trie e não deve entrar no tempo
-        # de construção dela.
-        peso_da_chave = {}
-        for token, ocorrencias in self.frequencia.items():
-            chave = normalizar(token)
-            peso_da_chave[chave] = peso_da_chave.get(chave, 0) + ocorrencias
-        pesos = [peso_da_chave.get(normalizar(palavra), 1) for palavra in vocabulario_ordenado]
+        pesos = [self.frequencia[palavra] for palavra in vocabulario_ordenado]
 
         with Cronometro() as relogio:
             for palavra, peso in zip(vocabulario_ordenado, pesos):
@@ -251,7 +244,7 @@ class MecanismoBusca:
             postagens = []      # (radical, {documento: frequência})
             vistos = set()
             for termo in termos:
-                radical = self.radical_da_consulta(termo)
+                radical = self.preprocessador.radicalizar(termo)
                 if radical in vistos:
                     continue    # "algoritmo algoritmos" é um termo só
                 vistos.add(radical)
@@ -330,35 +323,14 @@ class MecanismoBusca:
         )
         return resposta
 
-    def radical_da_consulta(self, termo):
-        """
-        Radical com que um termo digitado consulta o índice.
-
-        O RSLP olha o acento: "computação" vira "computac", mas "computacao",
-        digitado sem acento, viraria "computaca" e não acharia documento
-        nenhum. Quando a forma digitada não está no vocabulário, mas a Trie --
-        que não diferencia acentos -- conhece a palavra por outra grafia, o
-        radical sai da grafia que os documentos usam, a mais frequente se
-        houver mais de uma. Quem digita uma grafia que existe continua com o
-        radical dela.
-        """
-        grafias = self.trie.formas_de(termo)
-        if grafias and termo not in grafias:
-            termo = max(sorted(grafias), key=lambda grafia: self.frequencia.get(grafia, 0))
-        return self.preprocessador.radicalizar(termo)
-
     def documentos_da_forma_exata(self, termo):
         """
-        Documentos em que o termo aparece escrito como foi digitado, sem
-        diferenciar acentos: "computacao" conta os arquivos que escrevem
-        "computação". As grafias são as que a Trie guarda sob a mesma chave, e
-        cada uma é uma consulta O(1) ao índice da forma exata.
+        Documentos em que o termo aparece escrito exatamente como foi digitado,
+        acentos incluídos: "computacao" não conta os arquivos que escrevem
+        "computação", que é outra grafia. Uma consulta O(1) ao índice da forma
+        exata.
         """
-        grafias = self.trie.formas_de(termo) | {termo.lower()}
-        documentos = set()
-        for grafia in grafias:
-            documentos.update(self.indice.buscar(grafia.lower(), usar_radical=False))
-        return sorted(documentos)
+        return sorted(self.indice.buscar(grafia(termo), usar_radical=False))
 
     def sugerir_correcao(self, termo, limite=5):
         """
@@ -366,11 +338,13 @@ class MecanismoBusca:
 
         Só entram sugestões que de fato levam a algum documento -- uma palavra
         inserida em tempo de execução está na Trie, mas não no índice -- e que
-        não são o próprio termo. Devolve trios (palavra, distância, frequência).
+        não são o próprio termo. A mesma palavra com outra acentuação vem
+        primeiro, a zero edições: quem digita "computacao" recebe "computação".
+        Devolve trios (palavra, distância, frequência).
         """
         sugestoes = []
         for palavra, distancia, peso in self.trie.buscar_aproximado(termo, limite=None):
-            if distancia == 0:
+            if palavra == grafia(termo):
                 continue
             if not self.indice.frequencia_documental(self.preprocessador.radicalizar(palavra)):
                 continue
@@ -393,10 +367,10 @@ class MecanismoBusca:
         A etapa 2 consulta o índice da FORMA EXATA, e não o do radical, porque
         a pergunta do enunciado é em que documentos cada termo aparece. Pelo
         radical, "compara" herdaria os documentos de "comparação" e de
-        "comparado", e a lista apontaria arquivos em que a palavra não está. A
-        Trie guarda sob a mesma chave as grafias que diferem só no acento
-        ("análise" e "analise"), então cada termo consulta o índice uma vez por
-        grafia registrada, a O(1) cada.
+        "comparado", e a lista apontaria arquivos em que a palavra não está.
+        Pela mesma razão, as grafias que só diferem no acento são termos
+        distintos: "continua" lista os arquivos que escrevem "continua", e
+        "contínua", os que escrevem "contínua".
 
         Além da lista alfabética exigida pelo enunciado, a resposta traz as
         `sugestoes`: as palavras mais frequentes no corpus que começam com o
@@ -408,29 +382,22 @@ class MecanismoBusca:
         o tempo. Complexidade: O(m + p) na Trie, mais O(1) por termo no índice.
         """
         with Cronometro() as relogio:
-            # As grafias de cada termo saem da mesma travessia da Trie: pedir
-            # depois com `formas_de` desceria a árvore de novo para cada um.
-            com_grafias = self.trie.buscar_prefixo_com_grafias(prefixo, limite=limite)
-            termos = [termo for termo, _grafias in com_grafias]
+            termos = self.trie.buscar_prefixo(prefixo, limite=limite)
             total_disponivel = self.trie.contar_prefixo(prefixo)
             sugestoes = self.trie.sugerir(prefixo, limite=10)
 
             por_termo = {}
             documentos = set()
-            formas = set()
-            for termo, grafias in com_grafias:
-                encontrados = set()
-                for grafia in grafias:
-                    forma = grafia.lower()
-                    formas.add(forma)
-                    encontrados.update(self.indice.buscar(forma, usar_radical=False))
+            for termo in termos:
+                encontrados = self.indice.buscar(termo, usar_radical=False)
                 por_termo[termo] = sorted(encontrados)
                 documentos.update(encontrados)
 
-            # O BM25 pontua as mesmas formas exatas, de modo que o ranking cobre
-            # exatamente os documentos listados acima, nem um a mais.
-            ranking = (self.indice.ranquear_bm25(sorted(formas), usar_radical=False)
-                       if formas else [])
+            # O BM25 pontua os mesmos termos, na forma exata, de modo que o
+            # ranking cobre exatamente os documentos listados acima, nem um a
+            # mais.
+            ranking = (self.indice.ranquear_bm25(sorted(termos), usar_radical=False)
+                       if termos else [])
 
         resposta = {
             "prefixo": prefixo,
@@ -523,7 +490,7 @@ class MecanismoBusca:
         nova = self.trie.inserir(palavra)
         self.trie_comprimida.inserir(palavra)
         if nova:
-            self.vocabulario.add(palavra.strip())
+            self.vocabulario.add(grafia(palavra))
             self.estatisticas.palavras_na_trie = len(self.trie)
             self.estatisticas.nos_na_trie = self.trie.total_nos()
             self.estatisticas.termos_distintos = len(self.vocabulario)

@@ -21,7 +21,7 @@ from pathlib import Path
 
 from estatisticas import Cronometro, formatar_duracao, formatar_numero
 from mecanismo import MecanismoBusca
-from trie import Trie
+from trie import Trie, grafia
 
 RAIZ = Path(__file__).resolve().parent
 
@@ -175,6 +175,9 @@ def autocomplete_buscar(trie):
     O laço mantém a consulta ativa: depois de cada resposta o programa pergunta
     a próxima palavra, e só volta ao menu quando o usuário responde vazio. São
     as "sucessivas consultas" do item 4 sem obrigar a reescolher a opção.
+
+    A busca compara a grafia: "pais" não existe se só "país" foi cadastrada.
+    As palavras com outra acentuação aparecem logo abaixo da resposta.
     """
     print(AVISO_DE_VOLTA)
     while True:
@@ -185,18 +188,22 @@ def autocomplete_buscar(trie):
         with Cronometro() as relogio:
             existe = trie.buscar(palavra)
 
+        # Fora do cronômetro: o que a tela acrescenta à resposta é um serviço a
+        # mais, e não o custo O(m) da busca exata que o enunciado pede.
+        acentuadas = sorted(trie.formas_de(palavra) - {grafia(palavra)})
         if existe:
-            formas = sorted(trie.formas_de(palavra))
             print(f"\nA palavra '{palavra}' EXISTE na Trie.")
-            if formas != [palavra]:
-                print(f"Grafias registradas: {', '.join(formas)}")
         else:
             print(f"\nA palavra '{palavra}' NÃO está na Trie.")
-            sugestoes = trie.buscar_prefixo(palavra, limite=5)
-            if sugestoes:
-                print(f"Começam assim: {', '.join(sugestoes)}")
-            # Fora do cronômetro: a busca aproximada é um serviço a mais,
-            # e não o custo O(m) da busca exata que o enunciado pede.
+        if acentuadas:
+            print(f"Com outra acentuação: {', '.join(acentuadas)}")
+        if not existe:
+            # As grafias do próprio caminho saem primeiro na ordem da Trie; as
+            # palavras que continuam o que foi digitado vêm depois delas.
+            seguintes = trie.buscar_prefixo(palavra, limite=5 + len(acentuadas))
+            seguintes = seguintes[len(acentuadas):]
+            if seguintes:
+                print(f"Começam assim: {', '.join(seguintes)}")
             parecidas = [p for p, distancia, _ in trie.buscar_aproximado(palavra)
                          if distancia > 0]
             if parecidas:
@@ -359,6 +366,17 @@ def _mostrar_busca_palavra(mecanismo, palavra):
     informar_tempo(resposta["tempo"], custo=CUSTO_DA_CONSULTA["palavra"])
 
 
+def descrever_distancia(distancia):
+    """
+    "1 edição", "2 edições" ou, a zero edições, "outra acentuação": a distância
+    é medida sem acentos, então zero quer dizer a mesma palavra escrita com
+    outros acentos, como "computação" para quem digitou "computacao".
+    """
+    if distancia == 0:
+        return "outra acentuação"
+    return f"{distancia} {'edições' if distancia > 1 else 'edição'}"
+
+
 def mostrar_correcao(resposta):
     """
     O "você quis dizer?": sugestões por distância de edição para os termos que
@@ -366,9 +384,8 @@ def mostrar_correcao(resposta):
     """
     for termo, sugestoes in resposta["aproximadas"].items():
         if sugestoes:
-            lista = ", ".join(
-                f"{palavra} ({distancia} {'edições' if distancia > 1 else 'edição'})"
-                for palavra, distancia, _peso in sugestoes[:3])
+            lista = ", ".join(f"{palavra} ({descrever_distancia(distancia)})"
+                              for palavra, distancia, _peso in sugestoes[:3])
             print(f"\n  Nada para '{termo}'. Parecidas: {lista}")
     if resposta["correcao"]:
         print(f"  Você quis dizer: {resposta['correcao']}?")

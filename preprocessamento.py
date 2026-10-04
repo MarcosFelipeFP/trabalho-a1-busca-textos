@@ -17,10 +17,11 @@ tratamento de acentos vem de `trie.normalizar`, que usa `unicodedata`.
 --------------------------------------------------------------------------
 Por que o token guarda a forma acentuada
 --------------------------------------------------------------------------
-A tokenização preserva os acentos ("computação" continua "computação"). Quem
-normaliza é a Trie, ao montar a chave, e o stemmer, no último passo. Manter a
-forma original até o fim é o que permite ao autocomplete devolver a palavra
-escrita corretamente, em vez de uma versão descaracterizada.
+A tokenização preserva os acentos ("computação" continua "computação"),
+porque o acento distingue palavras: "contínua" não é "continua". Só tiram
+acentos o caminho da Trie, que navega sem eles mas guarda a grafia, e o
+stemmer, no último passo. Manter a forma original até o fim é o que permite
+ao autocomplete devolver a palavra escrita corretamente.
 """
 
 import re
@@ -165,14 +166,16 @@ class Preprocessador:
     def radicalizar(self, token):
         """
         Etapa 5: devolve o radical do token quando o stemming está ligado;
-        caso contrário devolve apenas a forma normalizada.
+        caso contrário devolve a própria palavra, em minúsculas e com os
+        acentos -- sem stemming, a consulta é pela palavra exata, e "continua"
+        não encontra "contínua".
 
         É este método que define a CHAVE do índice invertido, e ele precisa ser
         o mesmo na indexação e na consulta.
         """
         if self.usar_stemming:
             return self.stemmer.radicalizar(token)
-        return normalizar(token)
+        return token.lower()
 
     def processar_consulta(self, texto):
         """

@@ -124,14 +124,16 @@ class Preprocessador {
 
   /**
    * Etapa 5: o radical do token quando o stemming está ligado; caso
-   * contrário, apenas a forma normalizada.
+   * contrário, a própria palavra, em minúsculas e com os acentos -- sem
+   * stemming, a consulta é pela palavra exata, e "continua" não encontra
+   * "contínua".
    *
    * É este método que define a CHAVE do índice invertido, e ele precisa ser
    * o mesmo na indexação e na consulta.
    */
   radicalizar(token) {
     if (this.usarStemming) return this.stemmer.radicalizar(token);
-    return normalizar(token);
+    return String(token).toLowerCase();
   }
 
   /**

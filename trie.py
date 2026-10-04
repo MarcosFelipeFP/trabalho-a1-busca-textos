@@ -11,25 +11,26 @@ Referências:
         Coded in Alphanumeric". Journal of the ACM, 15(4):514-534, 1968.
 
 --------------------------------------------------------------------------
-Decisão de projeto: chave normalizada, exibição original
+Decisão de projeto: o caminho é sem acento, a palavra é a grafia
 --------------------------------------------------------------------------
-Palavras do português carregam acentos ("computação"). Se o acento fizesse
-parte da chave, o prefixo "computa" encontraria "computador", mas o usuário que
-digitasse "computacao" não encontraria nada.
+Palavras do português carregam acentos, e o acento distingue palavras:
+"país" e "pais", "análise" e "analise" (do verbo analisar), "contínua" e
+"continua" são palavras diferentes.
 
-A solução adotada separa as duas coisas:
+A solução adotada separa as duas funções da chave:
 
-  * a CHAVE que percorre a Trie é a forma normalizada (minúscula, sem acento);
-  * o NÓ FINAL guarda o conjunto das formas originais já inseridas.
+  * o CAMINHO percorrido na Trie é a forma normalizada (minúscula, sem
+    acento). É o que deixa o prefixo "computa" -- e também "computac",
+    digitado sem cedilha -- chegar a "computação";
+  * cada GRAFIA é uma palavra. O nó final guarda as grafias inseridas, cada
+    uma com o seu peso: "análise" e "analise" dividem o caminho "analise",
+    mas são duas palavras, contadas, listadas e buscadas uma a uma. A busca
+    exata compara a grafia: com só "país" inserida, "pais" não existe.
 
-Assim "computação" é armazenada sob a chave "computacao", e tanto o prefixo
-"computa" quanto "computaç" (normalizado para "computac") a encontram — mas o
-resultado devolvido ao usuário preserva a acentuação correta.
-
-Efeito colateral bem-vindo: ordenar pela chave normalizada reproduz exatamente
-a ordem do exemplo do enunciado
+Efeito colateral bem-vindo: percorrer o caminho sem acento em ordem
+alfabética reproduz exatamente a ordem do exemplo do enunciado
 (compilador, complexidade, computação, computacional, computador), porque
-"computacao" < "computacional" < "computador" na ordem alfabética.
+"computacao" < "computacional" < "computador".
 
 --------------------------------------------------------------------------
 Decisão de projeto: dois agregados por nó
@@ -58,8 +59,22 @@ paga esse preço muito menos vezes.
 import heapq
 import unicodedata
 
-__all__ = ["normalizar", "distancia_edicao", "NoTrie", "Trie",
+__all__ = ["normalizar", "grafia", "distancia_edicao", "NoTrie", "Trie",
            "NoTrieComprimida", "TrieComprimida"]
+
+
+def grafia(texto):
+    """
+    Devolve a palavra como ela é escrita, só que em minúsculas: os acentos
+    ficam. É a identidade de uma palavra na Trie -- "Computação" e
+    "computação" são a mesma palavra; "computacao" é outra.
+
+    A forma NFC junta letra e sinal num caractere só (c + cedilha -> ç), para
+    que a mesma palavra digitada de dois jeitos não vire duas.
+
+    Complexidade: O(m).
+    """
+    return unicodedata.normalize("NFC", texto.strip().lower())
 
 
 def normalizar(texto):
@@ -121,14 +136,13 @@ class NoTrie:
     """
 
     __slots__ = ("filhos", "fim_de_palavra", "formas",
-                 "peso", "palavras_abaixo", "melhor_peso")
+                 "palavras_abaixo", "melhor_peso")
 
     def __init__(self):
         self.filhos = {}             # caractere -> NoTrie
         self.fim_de_palavra = False  # marca o término de uma palavra válida
-        self.formas = None           # grafias originais associadas a esta chave
+        self.formas = None           # grafia -> peso, das palavras que terminam aqui
 
-        self.peso = 0                # relevância da palavra que termina aqui
         self.palavras_abaixo = 0     # palavras armazenadas nesta subárvore
         self.melhor_peso = 0         # maior peso encontrado nesta subárvore
 
@@ -147,8 +161,6 @@ class Trie:
         inserir(palavra)       O(m)
         buscar(palavra)        O(m)
         buscar_prefixo(pref)   O(m + p)  -- desce o prefixo e varre a subárvore
-        buscar_prefixo_com_grafias(pref)
-                               O(m + p)  -- a mesma varredura, com as grafias
         contar_prefixo(pref)   O(m)      -- lê o agregado do nó, não varre nada
         sugerir(pref, k)       O(m + k·h·σ·log(k·h·σ)) -- não depende de p
         buscar_aproximado(w)   O(n·m), n = nós que sobrevivem à poda
@@ -156,7 +168,7 @@ class Trie:
 
     def __init__(self, palavras=None):
         self.raiz = NoTrie()
-        self._total_palavras = 0   # chaves distintas armazenadas
+        self._total_palavras = 0   # palavras (grafias) armazenadas
         self._total_nos = 1        # a raiz já conta
         self.comparacoes = 0       # instrumentação usada nos experimentos
         self.nos_visitados = 0     # nós tocados pela última busca por prefixo
@@ -171,9 +183,10 @@ class Trie:
         """
         Insere uma palavra na Trie.
 
-        Percorre a chave normalizada caractere a caractere, criando os nós que
-        ainda não existirem. Devolve True se a palavra é nova e False se a
-        chave já existia — nesse caso apenas registra a nova grafia.
+        Percorre o caminho sem acento caractere a caractere, criando os nós que
+        ainda não existirem, e registra a grafia no nó final. Devolve True se a
+        palavra é nova e False se aquela grafia já estava lá. "analise" é nova
+        mesmo com "análise" inserida: divide o caminho, mas é outra palavra.
 
         `peso` é a relevância da palavra (no mecanismo de busca, a frequência
         dela no corpus). Reinserir a mesma palavra com peso maior atualiza o
@@ -184,11 +197,8 @@ class Trie:
         passada pelo MESMO caminho de m+1 nós já visitados, portanto o custo
         continua linear no tamanho da palavra.
         """
-        original = palavra.strip()
-        if not original:
-            return False
-
-        chave = normalizar(original)
+        forma = grafia(palavra)
+        chave = normalizar(forma)
         if not chave:
             return False
 
@@ -205,21 +215,22 @@ class Trie:
             no = proximo
             caminho.append(no)
 
-        nova = not no.fim_de_palavra
-        if nova:
+        if no.formas is None:
             no.fim_de_palavra = True
-            no.formas = set()
+            no.formas = {}
+        nova = forma not in no.formas
+        if nova:
+            no.formas[forma] = peso
             self._total_palavras += 1
-        no.formas.add(original)
-
-        if peso > no.peso:
-            no.peso = peso
+        elif peso > no.formas[forma]:
+            no.formas[forma] = peso
+        peso_da_forma = no.formas[forma]
 
         for ancestral in caminho:
             if nova:
                 ancestral.palavras_abaixo += 1
-            if no.peso > ancestral.melhor_peso:
-                ancestral.melhor_peso = no.peso
+            if peso_da_forma > ancestral.melhor_peso:
+                ancestral.melhor_peso = peso_da_forma
         return nova
 
     # ------------------------------------------------------------------ busca
@@ -249,13 +260,22 @@ class Trie:
         simples prefixo de outra — "comp" é caminho de "computador", mas só é
         palavra se tiver sido inserida.
 
+        Nem basta chegar ao nó: a grafia tem de ser a mesma. O caminho é sem
+        acento, então "pais" e "país" chegam ao mesmo nó, mas só existe a que
+        foi inserida. Maiúsculas não contam: "Computação" é "computação".
+
         Complexidade: O(m).
         """
-        no = self._descer(normalizar(palavra))
-        return no is not None and no.fim_de_palavra
+        forma = grafia(palavra)
+        no = self._descer(normalizar(forma))
+        return no is not None and no.fim_de_palavra and forma in no.formas
 
     def formas_de(self, palavra):
-        """Devolve as grafias originais registradas para uma chave, ou conjunto vazio."""
+        """
+        As palavras que dividem o caminho de `palavra`: as grafias inseridas
+        que só diferem dela no acento -- "pais" devolve {"país"} se só esta foi
+        inserida. Conjunto vazio se não houver nenhuma. O(m).
+        """
         no = self._descer(normalizar(palavra))
         if no is None or not no.fim_de_palavra:
             return set()
@@ -270,43 +290,28 @@ class Trie:
           2. varrer a subárvore restante  -> O(p), proporcional ao número de nós
                                              abaixo do prefixo
 
+        O prefixo é comparado sem acento, como o caminho: "computac" encontra
+        "computação". As palavras devolvidas são as grafias inseridas, uma a
+        uma -- "analise" e "análise" aparecem as duas.
+
         O parâmetro `limite` interrompe a coleta após k resultados, útil quando
         o prefixo é curto e a subárvore é enorme: digitar "a" pode alcançar
         milhares de palavras.
 
         Complexidade: O(m + p), ou O(m + k) quando `limite` é informado.
         """
-        return [min(no.formas) for no in self._nos_do_prefixo(prefixo, limite)]
-
-    def buscar_prefixo_com_grafias(self, prefixo, limite=None):
-        """
-        Como `buscar_prefixo`, mas devolve pares (palavra, grafias): a palavra
-        exibida e TODAS as grafias guardadas sob a mesma chave, em ordem
-        alfabética -- "analise" traz ["analise", "análise"].
-
-        É o que a consulta por prefixo da Parte II precisa para perguntar ao
-        índice da forma exata em que documentos cada termo aparece. Obter as
-        grafias depois, com `formas_de`, desceria a Trie de novo para cada
-        termo; aqui elas saem da mesma travessia, e o custo continua O(m + p).
-        """
-        return [(min(no.formas), sorted(no.formas))
-                for no in self._nos_do_prefixo(prefixo, limite)]
-
-    def _nos_do_prefixo(self, prefixo, limite):
-        """Desce o prefixo e devolve, em ordem alfabética, os nós de fim de palavra abaixo dele."""
-        chave = normalizar(prefixo)
-        no = self._descer(chave)
+        no = self._descer(normalizar(prefixo))
         if no is None:
             return []
 
         self.nos_visitados = 0      # instrumentação: contraste com `sugerir`
         encontradas = []
-        self._coletar(no, chave, encontradas, limite)
-        return [no for _, no in encontradas]
+        self._coletar(no, encontradas, limite)
+        return encontradas
 
-    def _coletar(self, no, prefixo_atual, saida, limite):
+    def _coletar(self, no, saida, limite):
         """
-        Busca em profundidade que acumula os nós de fim de palavra da subárvore.
+        Busca em profundidade que acumula as palavras da subárvore.
 
         Usa pilha explícita em vez de recursão para não esbarrar no limite de
         recursão do Python quando as chaves são muito longas. Os filhos são
@@ -324,22 +329,25 @@ class Trie:
         Isso importa quando há `limite`: os k primeiros resultados são de fato
         os k alfabeticamente menores, e não uma amostra arbitrária que ainda
         precisaria ser ordenada. Poupa a ordenação O(k log k) do fim.
+
+        As grafias de um mesmo nó, que só diferem no acento, saem em ordem
+        alfabética entre si: "analise" antes de "análise".
         """
-        pilha = [(no, prefixo_atual)]
+        pilha = [no]
         while pilha:
             if limite is not None and len(saida) >= limite:
                 return
-            atual, caminho = pilha.pop()
+            atual = pilha.pop()
             self.nos_visitados += 1
 
             if atual.fim_de_palavra:
-                # Uma mesma chave pode ter mais de uma grafia; quem chama
-                # decide o que tirar do nó -- a menor delas, como
-                # representante, ou todas.
-                saida.append((caminho, atual))
+                for forma in sorted(atual.formas):
+                    if limite is not None and len(saida) >= limite:
+                        return
+                    saida.append(forma)
 
             for caractere in sorted(atual.filhos, reverse=True):
-                pilha.append((atual.filhos[caractere], caminho + caractere))
+                pilha.append(atual.filhos[caractere])
 
     def contar_prefixo(self, prefixo):
         """
@@ -378,8 +386,8 @@ class Trie:
           * desempilha-se sempre o item de maior prioridade;
           * um item-PALAVRA no topo pode ser emitido com segurança, porque
             toda subárvore ainda fechada tem limite superior menor ou igual;
-          * um item-NÓ é expandido: gera o item-palavra dele (se for fim de
-            palavra) e um item por filho.
+          * um item-NÓ é expandido: gera um item-palavra por grafia que
+            termina nele e um item por filho.
 
         O laço para assim que k palavras saem. Subárvores cujo melhor peso é
         pior que o k-ésimo resultado NUNCA chegam a ser abertas.
@@ -399,9 +407,10 @@ class Trie:
         é por isso que o autocomplete responde igualmente rápido para "c" e
         para "computa".
 
-        Empates de peso são desfeitos pela ordem alfabética da chave, o que
-        mantém a saída determinística — condição para os testes automatizados e
-        para a comparação com o motor JavaScript.
+        Empates de peso são desfeitos pela ordem alfabética do caminho e, no
+        mesmo caminho, da grafia, o que mantém a saída determinística —
+        condição para os testes automatizados e para a comparação com o motor
+        JavaScript.
         """
         chave = normalizar(prefixo)
         no = self._descer(chave)
@@ -410,30 +419,31 @@ class Trie:
 
         self.nos_visitados = 0
 
-        # Itens da heap: (-peso, chave, tipo, nó). Os três primeiros campos
-        # bastam para ordenar e são únicos — cada nó gera no máximo um item de
-        # cada tipo —, de modo que a heap nunca precisa comparar dois objetos
-        # NoTrie, que não definem ordem entre si.
+        # Itens da heap: (-peso, caminho, tipo, grafia, nó). Os quatro
+        # primeiros campos bastam para ordenar e são únicos — cada nó gera um
+        # item-nó e um item-palavra por grafia —, de modo que a heap nunca
+        # precisa comparar dois objetos NoTrie, que não definem ordem entre si.
         TIPO_PALAVRA, TIPO_NO = 0, 1
-        fila = [(-no.melhor_peso, chave, TIPO_NO, no)]
+        fila = [(-no.melhor_peso, chave, TIPO_NO, "", no)]
         encontradas = []
 
         while fila and len(encontradas) < limite:
-            peso_negativo, caminho, tipo, atual = heapq.heappop(fila)
+            peso_negativo, caminho, tipo, forma, atual = heapq.heappop(fila)
 
             if tipo == TIPO_PALAVRA:
-                encontradas.append((min(atual.formas), -peso_negativo))
+                encontradas.append((forma, -peso_negativo))
                 continue
 
             self.nos_visitados += 1
 
             if atual.fim_de_palavra:
-                heapq.heappush(fila, (-atual.peso, caminho, TIPO_PALAVRA, atual))
+                for forma_do_no, peso in atual.formas.items():
+                    heapq.heappush(fila, (-peso, caminho, TIPO_PALAVRA, forma_do_no, atual))
 
             for caractere, filho in atual.filhos.items():
                 heapq.heappush(
                     fila,
-                    (-filho.melhor_peso, caminho + caractere, TIPO_NO, filho),
+                    (-filho.melhor_peso, caminho + caractere, TIPO_NO, "", filho),
                 )
 
         return encontradas
@@ -454,6 +464,11 @@ class Trie:
         vizinhos -- "algortimo" está a UMA edição de "algoritmo". É a distância
         de Damerau-Levenshtein restrita (optimal string alignment), a variante
         que conta a transposição, o erro de digitação mais comum.
+
+        A distância é medida no caminho sem acento: "computacao" está a zero
+        edições de "computação". É outra palavra, e por isso entra na lista --
+        a primeira sugestão para quem digitou sem acento. Quem chama descarta
+        a própria palavra digitada.
 
         --- O algoritmo: programação dinâmica sobre a própria Trie ---
         A distância entre duas cadeias é a última célula de uma matriz em que a
@@ -514,19 +529,21 @@ class Trie:
                 linha.append(valor)
 
             if no.fim_de_palavra and linha[m] <= distancia_maxima:
-                candidatas.append((linha[m], -no.peso, caminho, no))
+                for forma, peso in no.formas.items():
+                    candidatas.append((linha[m], -peso, caminho, forma))
 
             if min(linha) <= distancia_maxima:
                 for caractere, filho in no.filhos.items():
                     pilha.append((filho, caminho + caractere, linha, anterior))
 
-        # Mais perto primeiro; empate pela relevância e, por fim, pela chave,
-        # para a saída ser determinística (e igual à do motor JavaScript).
-        candidatas.sort(key=lambda item: (item[0], item[1], item[2]))
+        # Mais perto primeiro; empate pela relevância e, por fim, pelo caminho
+        # e pela grafia, para a saída ser determinística (e igual à do motor
+        # JavaScript).
+        candidatas.sort()
         if limite is not None:
             candidatas = candidatas[:limite]
-        return [(min(no.formas), distancia, -peso_negativo)
-                for distancia, peso_negativo, _caminho, no in candidatas]
+        return [(forma, distancia, -peso_negativo)
+                for distancia, peso_negativo, _caminho, forma in candidatas]
 
     # ---------------------------------------------------------------- métricas
 
@@ -547,6 +564,7 @@ class Trie:
         return maior
 
     def __len__(self):
+        """Palavras armazenadas -- cada grafia conta uma vez."""
         return self._total_palavras
 
     def __contains__(self, palavra):
@@ -571,15 +589,14 @@ class NoTrieComprimida:
     """
 
     __slots__ = ("rotulo", "filhos", "fim_de_palavra", "formas",
-                 "peso", "palavras_abaixo", "melhor_peso")
+                 "palavras_abaixo", "melhor_peso")
 
     def __init__(self, rotulo=""):
         self.rotulo = rotulo         # trecho da chave consumido nesta aresta
         self.filhos = {}             # primeiro caractere do rótulo -> nó filho
         self.fim_de_palavra = False
-        self.formas = None
+        self.formas = None           # grafia -> peso, das palavras que terminam aqui
 
-        self.peso = 0                # relevância da palavra que termina aqui
         self.palavras_abaixo = 0     # palavras armazenadas nesta subárvore
         self.melhor_peso = 0         # maior peso encontrado nesta subárvore
 
@@ -632,11 +649,8 @@ class TrieComprimida:
 
         Complexidade: O(m).
         """
-        original = palavra.strip()
-        if not original:
-            return False
-
-        chave = normalizar(original)
+        forma = grafia(palavra)
+        chave = normalizar(forma)
         if not chave:
             return False
 
@@ -648,26 +662,17 @@ class TrieComprimida:
 
         while True:
             if not resto:
-                nova = not no.fim_de_palavra
-                if nova:
-                    no.fim_de_palavra = True
-                    no.formas = set()
-                    self._total_palavras += 1
-                no.formas.add(original)
-                return self._propagar(caminho, no, peso, nova)
+                return self._registrar(caminho, no, forma, peso)
 
             filho = no.filhos.get(resto[0])
 
             if filho is None:
                 # Nada em comum: uma única aresta nova carrega todo o resto.
                 novo = NoTrieComprimida(resto)
-                novo.fim_de_palavra = True
-                novo.formas = {original}
                 no.filhos[resto[0]] = novo
                 self._total_nos += 1
-                self._total_palavras += 1
                 caminho.append(novo)
-                return self._propagar(caminho, novo, peso, True)
+                return self._registrar(caminho, novo, forma, peso)
 
             comum = self._prefixo_comum(resto, filho.rotulo)
 
@@ -695,38 +700,40 @@ class TrieComprimida:
 
             if comum == len(resto):
                 # Caso 2: a chave termina exatamente no ponto da divisão.
-                intermediario.fim_de_palavra = True
-                intermediario.formas = {original}
-                self._total_palavras += 1
-                return self._propagar(caminho, intermediario, peso, True)
+                return self._registrar(caminho, intermediario, forma, peso)
 
             # Caso 3: sobra chave — vira um segundo filho do intermediário.
             sobra = resto[comum:]
             novo = NoTrieComprimida(sobra)
-            novo.fim_de_palavra = True
-            novo.formas = {original}
             intermediario.filhos[sobra[0]] = novo
             self._total_nos += 1
-            self._total_palavras += 1
             caminho.append(novo)
-            return self._propagar(caminho, novo, peso, True)
+            return self._registrar(caminho, novo, forma, peso)
 
-    @staticmethod
-    def _propagar(caminho, destino, peso, nova):
+    def _registrar(self, caminho, destino, forma, peso):
         """
-        Atualiza os agregados da raiz até o nó de destino e devolve `nova`.
+        Registra a grafia no nó de destino, atualiza os agregados da raiz até
+        ele e devolve se a palavra é nova -- a mesma regra da Trie tradicional.
 
         `caminho` termina no próprio destino, de modo que ele também recebe o
         incremento. Custo O(m), o mesmo da descida que já foi feita.
         """
-        if peso > destino.peso:
-            destino.peso = peso
+        if destino.formas is None:
+            destino.fim_de_palavra = True
+            destino.formas = {}
+        nova = forma not in destino.formas
+        if nova:
+            destino.formas[forma] = peso
+            self._total_palavras += 1
+        elif peso > destino.formas[forma]:
+            destino.formas[forma] = peso
+        peso_da_forma = destino.formas[forma]
 
         for ancestral in caminho:
             if nova:
                 ancestral.palavras_abaixo += 1
-            if destino.peso > ancestral.melhor_peso:
-                ancestral.melhor_peso = destino.peso
+            if peso_da_forma > ancestral.melhor_peso:
+                ancestral.melhor_peso = peso_da_forma
         return nova
 
     def _descer(self, texto):
@@ -764,13 +771,15 @@ class TrieComprimida:
         Busca exata. Complexidade: O(m).
 
         Exige sobra de rótulo vazia — caso contrário a palavra é apenas um
-        prefixo de alguma chave, e não uma chave armazenada.
+        prefixo de alguma chave, e não uma chave armazenada — e a mesma grafia,
+        como na Trie tradicional.
         """
-        achado = self._descer(normalizar(palavra))
+        forma = grafia(palavra)
+        achado = self._descer(normalizar(forma))
         if achado is None:
             return False
         no, sobra = achado
-        return sobra == "" and no.fim_de_palavra
+        return sobra == "" and no.fim_de_palavra and forma in no.formas
 
     def buscar_prefixo(self, prefixo, limite=None):
         """
@@ -779,31 +788,31 @@ class TrieComprimida:
         Complexidade: O(m + p), a mesma da Trie tradicional — mas com p menor,
         já que a estrutura tem menos nós para visitar.
         """
-        chave = normalizar(prefixo)
-        achado = self._descer(chave)
+        achado = self._descer(normalizar(prefixo))
         if achado is None:
             return []
 
-        no, sobra = achado
         encontradas = []
-        pilha = [(no, chave + sobra)]
-
-        while pilha:
-            if limite is not None and len(encontradas) >= limite:
-                break
-            atual, caminho = pilha.pop()
-
-            if atual.fim_de_palavra:
-                encontradas.append((caminho, min(atual.formas)))
-
-            for inicial in sorted(atual.filhos, reverse=True):
-                filho = atual.filhos[inicial]
-                pilha.append((filho, caminho + filho.rotulo))
+        pilha = [achado[0]]
 
         # A travessia em pré-ordem já sai em ordem alfabética, pelo mesmo
         # argumento da Trie tradicional: rótulos irmãos começam por caracteres
         # distintos, então ordená-los pela inicial é ordená-los por inteiro.
-        return [forma for _, forma in encontradas]
+        while pilha:
+            if limite is not None and len(encontradas) >= limite:
+                break
+            atual = pilha.pop()
+
+            if atual.fim_de_palavra:
+                for forma in sorted(atual.formas):
+                    if limite is not None and len(encontradas) >= limite:
+                        break
+                    encontradas.append(forma)
+
+            for inicial in sorted(atual.filhos, reverse=True):
+                pilha.append(atual.filhos[inicial])
+
+        return encontradas
 
     def contar_prefixo(self, prefixo):
         """

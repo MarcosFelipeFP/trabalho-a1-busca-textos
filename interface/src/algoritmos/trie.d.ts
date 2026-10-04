@@ -1,6 +1,7 @@
 // Tipos de trie.js, para a interface em TypeScript.
 
 export function normalizar(texto: string): string;
+export function grafia(texto: string): string;
 export function ordemDeTexto(a: string, b: string): number;
 export function distanciaEdicao(a: string, b: string): number;
 
@@ -24,7 +25,6 @@ export class Trie {
   buscar(palavra: string): boolean;
   formasDe(palavra: string): string[];
   buscarPrefixo(prefixo: string, limite?: number | null): string[];
-  buscarPrefixoComGrafias(prefixo: string, limite?: number | null): [string, string[]][];
   contarPrefixo(prefixo: string): number;
   sugerir(prefixo: string, limite?: number): [string, number][];
   buscarAproximado(

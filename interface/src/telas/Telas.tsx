@@ -107,7 +107,7 @@ const OPERACOES: { valor: Operacao; titulo: string; pergunta: string }[] = [
 ];
 
 type RespostaParteUm =
-  | { tipo: 'buscar'; r: RespostaLexico; comecos: string[] }
+  | { tipo: 'buscar'; r: RespostaLexico; acentuadas: string[]; comecos: string[] }
   | { tipo: 'prefixo'; r: RespostaAutocomplete }
   | { tipo: 'inserir'; r: RespostaInsercao };
 
@@ -148,10 +148,15 @@ export function ParteUm() {
     try {
       if (tipo === 'buscar') {
         const r = await motor.buscarNoLexico(palavra);
-        // Fora do tempo da busca exata, como no terminal: as palavras que
-        // continuam o que foi digitado, quando ele não é palavra.
-        const comecos = r.existe ? [] : (await motor.autocompletar(palavra, 5)).palavras;
-        setResposta({ tipo, r, comecos });
+        // Fora do tempo da busca exata, como no terminal: as palavras do mesmo
+        // caminho, que só diferem no acento, e -- quando a digitada não existe
+        // -- as que a continuam. As do caminho saem primeiro na Trie.
+        const digitada = palavra.toLowerCase().normalize('NFC');
+        const acentuadas = r.formas.filter((forma) => forma !== digitada);
+        const comecos = r.existe
+          ? []
+          : (await motor.autocompletar(palavra, 5 + acentuadas.length)).palavras.slice(acentuadas.length);
+        setResposta({ tipo, r, acentuadas, comecos });
       } else if (tipo === 'prefixo') {
         setMostradas(POR_PAGINA);
         setResposta({ tipo, r: await motor.autocompletar(palavra, null) });
@@ -213,21 +218,14 @@ export function ParteUm() {
 
       {resposta?.tipo === 'buscar' && (
         <div className="mt-6 space-y-1.5 text-[1rem] text-grafite">
-          {resposta.r.existe ? (
-            <p>
-              A palavra “{resposta.r.palavra}” <b className="text-tinta">existe</b> na Trie.
-              {resposta.r.formas.length > 0 && resposta.r.formas.join() !== resposta.r.palavra && (
-                <> Grafias registradas: {resposta.r.formas.join(', ')}.</>
-              )}
-            </p>
-          ) : (
-            <>
-              <p>A palavra “{resposta.r.palavra}” <b className="text-tinta">não está</b> na Trie.</p>
-              {resposta.comecos.length > 0 && <p>Começam assim: {resposta.comecos.join(', ')}.</p>}
-              {resposta.r.aproximadas.length > 0 && (
-                <p>Você quis dizer: {resposta.r.aproximadas.map(([palavra]) => palavra).join(', ')}?</p>
-              )}
-            </>
+          <p>
+            A palavra “{resposta.r.palavra}”{' '}
+            <b className="text-tinta">{resposta.r.existe ? 'existe' : 'não está'}</b> na Trie.
+          </p>
+          {resposta.acentuadas.length > 0 && <p>Com outra acentuação: {resposta.acentuadas.join(', ')}.</p>}
+          {resposta.comecos.length > 0 && <p>Começam assim: {resposta.comecos.join(', ')}.</p>}
+          {resposta.r.aproximadas.length > 0 && (
+            <p>Você quis dizer: {resposta.r.aproximadas.map(([palavra]) => palavra).join(', ')}?</p>
           )}
           <TempoDaOperacao segundos={resposta.r.tempo} custo="O(m)" />
         </div>

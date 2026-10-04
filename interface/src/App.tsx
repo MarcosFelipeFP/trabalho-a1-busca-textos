@@ -15,7 +15,6 @@ import { Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Aplicacao } from './algoritmos/mecanismo.js';
-import { normalizar } from './algoritmos/trie.js';
 import { Leitor, Resultados, type Abertura, type Resultado } from './busca/Resultados';
 import { DADOS } from './dados';
 import { construirAplicacao, ProvedorDoMotor, useMotor } from './motor/contexto';
@@ -175,11 +174,13 @@ function Pagina({ segundos }: { segundos: number }) {
     const antes = partes?.[1] ?? '';
     const ultima = partes?.[2] ?? '';
     if (!ultima) return [];
-    const chave = normalizar(ultima);
+    // Só sai da lista a própria palavra digitada: "analise" ainda sugere
+    // "análise", que é outra palavra.
+    const digitada = ultima.toLowerCase().normalize('NFC');
     return aplicacao.mecanismo.trie
       .sugerir(ultima, 7)
       .map(([palavra]) => palavra)
-      .filter((palavra) => normalizar(palavra) !== chave)
+      .filter((palavra) => palavra !== digitada)
       .map((palavra) => antes + palavra);
   }, [consulta, modo, aplicacao]);
 

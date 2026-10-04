@@ -43,7 +43,6 @@ export class MecanismoBusca {
   construirEmEtapas(): Generator<EtapaDeConstrucao, number, void>;
   construir(): number;
   buscarPalavra(consulta: string, ranquear?: boolean): RespostaPalavra;
-  radicalDaConsulta(termo: string): string;
   documentosDaFormaExata(termo: string): string[];
   sugerirCorrecao(termo: string, limite?: number): [string, number, number][];
   buscarPrefixo(prefixo: string, limite?: number | null): RespostaPrefixo;

@@ -40,7 +40,7 @@ from indice_invertido import IndiceInvertido, TabelaHash
 from kmp import buscar_ingenuo, buscar_kmp, tabela_falha
 from estatisticas import formatar_duracao, formatar_numero
 from main import (AVISO_DE_VOLTA, PALAVRAS_POR_PAGINA, RAIZ, analisar_argumentos,
-                  executar_parte1, executar_parte2)
+                  carregar_lexico, executar_parte1, executar_parte2)
 from mecanismo import MecanismoBusca
 from preprocessamento import Preprocessador, remover_pontuacao, tokenizar
 from servidor import Aplicacao, criar_servidor
@@ -109,8 +109,12 @@ class TesteTrie(unittest.TestCase):
         self.assertFalse(self.trie.buscar("comp"))
         self.assertTrue(self.trie.buscar_prefixo("comp"))
 
-    def test_busca_ignora_acento(self):
-        self.assertTrue(self.trie.buscar("computacao"))
+    def test_busca_compara_a_grafia(self):
+        """
+        O acento faz parte da palavra: só "computação" foi cadastrada, e
+        "computacao" é outra grafia. Maiúsculas não contam.
+        """
+        self.assertFalse(self.trie.buscar("computacao"))
         self.assertTrue(self.trie.buscar("COMPUTAÇÃO"))
 
     def test_resultado_preserva_acento(self):
@@ -125,16 +129,25 @@ class TesteTrie(unittest.TestCase):
     def test_limite_trunca(self):
         self.assertEqual(len(self.trie.buscar_prefixo("comp", limite=2)), 2)
 
-    def test_prefixo_com_grafias_traz_todas_as_formas_da_chave(self):
-        trie = Trie(["análise", "analise", "anel", "computação"])
-        self.assertEqual(trie.buscar_prefixo_com_grafias("ana"),
-                         [("analise", ["analise", "análise"])])
-        # Mesmas palavras, na mesma ordem e com o mesmo limite, que buscar_prefixo.
-        for prefixo in ["", "a", "an", "comp", "comp", "x"]:
-            for limite in [None, 1, 2]:
-                self.assertEqual(
-                    [palavra for palavra, _ in trie.buscar_prefixo_com_grafias(prefixo, limite)],
-                    trie.buscar_prefixo(prefixo, limite))
+    def test_grafias_que_so_diferem_no_acento_sao_palavras_distintas(self):
+        """
+        "análise" e "analise" (do verbo analisar) dividem o caminho sem acento,
+        mas são duas palavras: as duas contam, aparecem e existem.
+        """
+        trie = Trie(["análise", "analise", "anel", "país"])
+        self.assertEqual(len(trie), 4)
+        self.assertEqual(trie.buscar_prefixo("ana"), ["analise", "análise"])
+        self.assertEqual(trie.contar_prefixo("ana"), 2)
+        self.assertTrue(trie.buscar("analise"))
+        self.assertTrue(trie.buscar("análise"))
+        # O limite conta palavras, não caminhos.
+        self.assertEqual(trie.buscar_prefixo("an", limite=2), ["analise", "análise"])
+
+        # Com só "país" cadastrada, "pais" não existe -- é outra palavra --, e
+        # a grafia que existe é a primeira parecida, a zero edições.
+        self.assertFalse(trie.buscar("pais"))
+        self.assertEqual(trie.formas_de("pais"), {"país"})
+        self.assertEqual(trie.buscar_aproximado("pais")[0], ("país", 0, 1))
 
     def test_contar_prefixo(self):
         self.assertEqual(self.trie.contar_prefixo("comp"), 5)
@@ -238,6 +251,8 @@ class TesteAgregadosDaTrie(unittest.TestCase):
         """
         A busca best-first tem de devolver exatamente o topo da lista ordenada
         por (peso decrescente, palavra) -- é o que justifica podar a subárvore.
+        Grafias que só diferem no acento ("çab" e "cab") são palavras
+        distintas, cada uma com o seu peso.
         """
         random.seed(11)
         for _ in range(30):
@@ -245,17 +260,17 @@ class TesteAgregadosDaTrie(unittest.TestCase):
             for _ in range(random.randint(1, 60)):
                 palavra = "".join(random.choice("abcç")
                                   for _ in range(random.randint(1, 7)))
-                dados[normalizar(palavra)] = (palavra, random.randint(1, 50))
+                dados[palavra] = random.randint(1, 50)
 
             trie = Trie()
-            for palavra, peso in dados.values():
+            for palavra, peso in dados.items():
                 trie.inserir(palavra, peso=peso)
 
             for prefixo in ["", "a", "b", "c", "ab", "cc", "zz"]:
                 esperado = sorted(
-                    (par for par in dados.values()
+                    (par for par in dados.items()
                      if normalizar(par[0]).startswith(normalizar(prefixo))),
-                    key=lambda par: (-par[1], normalizar(par[0])),
+                    key=lambda par: (-par[1], normalizar(par[0]), par[0]),
                 )[:5]
                 self.assertEqual(trie.sugerir(prefixo, limite=5), esperado,
                                  f"prefixo '{prefixo}' divergiu")
@@ -337,23 +352,18 @@ class TesteBuscaAproximada(unittest.TestCase):
             for palavra, peso in pesos.items():
                 trie.inserir(palavra, peso=peso)
 
-            # Grafias que colidem na mesma chave somam uma entrada só na Trie,
-            # com o maior peso; a força bruta precisa enxergar o mesmo.
-            por_chave = {}
-            for palavra, peso in pesos.items():
-                chave = normalizar(palavra)
-                forma, maior = por_chave.get(chave, (palavra, 0))
-                por_chave[chave] = (min(forma, palavra), max(maior, peso))
-
+            # Cada grafia é uma palavra, com o seu peso, e a distância é medida
+            # sem acentos, no caminho da Trie: "çã" e "ca" ficam a zero edições.
             for _ in range(5):
                 consulta = "".join(random.choice("abcd")
                                    for _ in range(random.randint(1, 6)))
+                alvo = normalizar(consulta)
                 for limite in (0, 1, 2):
                     esperado = sorted(
-                        ((forma, distancia_edicao(chave, normalizar(consulta)), peso)
-                         for chave, (forma, peso) in por_chave.items()
-                         if distancia_edicao(chave, normalizar(consulta)) <= limite),
-                        key=lambda trio: (trio[1], -trio[2], normalizar(trio[0])),
+                        ((palavra, distancia_edicao(normalizar(palavra), alvo), peso)
+                         for palavra, peso in pesos.items()
+                         if distancia_edicao(normalizar(palavra), alvo) <= limite),
+                        key=lambda trio: (trio[1], -trio[2], normalizar(trio[0]), trio[0]),
                     )
                     self.assertEqual(
                         trie.buscar_aproximado(consulta, limite, limite=None), esperado,
@@ -383,7 +393,7 @@ class TesteTrieComprimida(unittest.TestCase):
         self.assertEqual(self.comprimida.buscar_prefixo("comp"), esperado)
 
     def test_busca_exata_igual_a_tradicional(self):
-        for palavra in EXEMPLO_ENUNCIADO + ["comp", "xyz", "computadores"]:
+        for palavra in EXEMPLO_ENUNCIADO + ["comp", "xyz", "computadores", "computacao"]:
             self.assertEqual(
                 self.comprimida.buscar(palavra),
                 self.trie.buscar(palavra),
@@ -395,19 +405,23 @@ class TesteTrieComprimida(unittest.TestCase):
         Duas implementações independentes precisam concordar em toda entrada.
 
         Gera vocabulários aleatórios com muitos prefixos compartilhados, que é
-        onde a divisão de arestas da PATRICIA tem mais chance de errar.
+        onde a divisão de arestas da PATRICIA tem mais chance de errar. O "ç"
+        produz grafias que dividem o caminho ("çab" e "cab").
         """
         random.seed(7)
         for _ in range(40):
             palavras = list({
-                "".join(random.choice("abc") for _ in range(random.randint(1, 8)))
+                "".join(random.choice("abcç") for _ in range(random.randint(1, 8)))
                 for _ in range(random.randint(1, 40))
             })
             tradicional = Trie(palavras)
             comprimida = TrieComprimida(palavras)
 
             self.assertEqual(len(tradicional), len(comprimida))
-            for prefixo in ["", "a", "b", "ab", "abc", "ca", "zzz"]:
+            for palavra in palavras + ["ab", "çç", "zzz"]:
+                self.assertEqual(tradicional.buscar(palavra), comprimida.buscar(palavra),
+                                 f"busca por '{palavra}' divergiu em {sorted(palavras)}")
+            for prefixo in ["", "a", "b", "ab", "abc", "ca", "ç", "zzz"]:
                 self.assertEqual(
                     tradicional.buscar_prefixo(prefixo),
                     comprimida.buscar_prefixo(prefixo),
@@ -439,6 +453,35 @@ class TesteTrieComprimida(unittest.TestCase):
         comprimida.inserir("comp")     # a palavra cai exatamente na bifurcação
         self.assertEqual(comprimida.contar_prefixo("comp"), 3)
         self.assertEqual(comprimida.contar_prefixo(""), 3)
+
+
+class TesteLexicoDaParteI(unittest.TestCase):
+    """
+    O `palavras.txt` do repositório: palavras do português, como as do exemplo
+    da seção 2.2, sem os nomes próprios, as siglas e o inglês dos artigos.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.palavras = carregar_lexico(RAIZ / "palavras.txt")
+
+    def test_traz_as_palavras_do_enunciado(self):
+        for palavra in EXEMPLO_ENUNCIADO:
+            self.assertIn(palavra, self.palavras)
+
+    def test_sem_repeticao(self):
+        self.assertEqual(len(self.palavras), len(set(self.palavras)))
+
+    def test_sem_ingles_nomes_proprios_nem_siglas(self):
+        for palavra in ["computer", "computing", "compiler", "programming",
+                        "compaq", "turing", "abnt", "aplicá"]:
+            self.assertNotIn(palavra, self.palavras)
+
+    def test_prefixo_prog_traz_as_palavras_do_exemplo(self):
+        """Seção 2.4: "prog" devolve programa, programador, programação e programar."""
+        encontradas = Trie(self.palavras).buscar_prefixo("prog")
+        for palavra in ["programa", "programador", "programação", "programar"]:
+            self.assertIn(palavra, encontradas)
 
 
 class TesteStemmerRSLP(unittest.TestCase):
@@ -530,9 +573,11 @@ class TestePreprocessamento(unittest.TestCase):
         da_consulta = self.pre.radicalizar(self.pre.processar_consulta("Algoritmo")[0])
         self.assertEqual(do_documento, da_consulta)
 
-    def test_sem_stemming_devolve_forma_normalizada(self):
+    def test_sem_stemming_a_chave_e_a_palavra_exata(self):
+        """Sem o RSLP, a consulta é pela palavra exata, acentos incluídos."""
         pre = Preprocessador(usar_stemming=False)
-        self.assertEqual(pre.radicalizar("Computação"), "computacao")
+        self.assertEqual(pre.radicalizar("Computação"), "computação")
+        self.assertNotEqual(pre.radicalizar("contínua"), pre.radicalizar("continua"))
 
 
 class TesteKMP(unittest.TestCase):
@@ -788,16 +833,18 @@ class TesteMecanismoPontaAPonta(unittest.TestCase):
         self.assertTrue(resposta["documentos"])
         self.assertEqual(resposta["todos"], [])
 
-    def test_sem_acento_acha_a_grafia_dos_documentos(self):
+    def test_palavra_sem_acento_e_outra_grafia(self):
         """
-        O texto traz "execução". Digitada sem acento, a palavra daria outro
-        radical no RSLP ("execuca", e não "execuc") e não acharia nada; a Trie,
-        que não diferencia acentos, aponta a grafia certa.
+        O texto traz "execução". "execucao" é outra grafia: não está em
+        documento nenhum, nem pelo radical do RSLP ("execuca", e não "execuc").
+        O programa não troca a palavra digitada por outra em silêncio; sugere a
+        grafia dos documentos, a zero edições.
         """
         resposta = self.mecanismo.buscar_palavra("execucao")
-        self.assertEqual([d for d, _ in resposta["documentos"]], ["algoritmos.txt"])
-        self.assertEqual(resposta["radical"], self.mecanismo.preprocessador.radicalizar("execução"))
-        self.assertEqual(resposta["aproximadas"], {})
+        self.assertEqual(resposta["documentos"], [])
+        palavra, distancia, _frequencia = resposta["aproximadas"]["execucao"][0]
+        self.assertEqual((palavra, distancia), ("execução", 0))
+        self.assertEqual(resposta["correcao"], "execução")
 
     def test_sem_sugestao_quando_nada_parece(self):
         resposta = self.mecanismo.buscar_palavra("xyzkw")
@@ -913,11 +960,25 @@ class TestePrefixoPelaFormaExata(unittest.TestCase):
         self.assertEqual(por_termo, {"compara": ["singular.txt"],
                                      "comparações": ["plural.txt"]})
 
-    def test_grafias_da_mesma_chave_somam_os_documentos(self):
-        """'análise' e 'analise' são uma chave só na Trie: o termo leva as duas."""
+    def test_grafias_com_e_sem_acento_sao_termos_distintos(self):
+        """
+        "análise" e "analise" dividem o caminho na Trie, mas são dois termos,
+        cada um com os documentos em que aparece escrito assim.
+        """
         resposta = self.mecanismo.buscar_prefixo("anal", limite=None)
-        self.assertEqual(resposta["termos"], ["analise"])
-        self.assertEqual(resposta["por_termo"]["analise"], ["plural.txt", "singular.txt"])
+        self.assertEqual(resposta["termos"], ["analise", "análise"])
+        self.assertEqual(resposta["por_termo"], {"analise": ["plural.txt"],
+                                                 "análise": ["singular.txt"]})
+
+    def test_trie_guarda_o_vocabulario_inteiro(self):
+        """
+        Seção 3.4: o vocabulário inteiro vai para a Trie -- "análise" e
+        "analise" inclusive --, e as duas contagens da seção 3.9 batem.
+        """
+        e = self.mecanismo.estatisticas
+        self.assertEqual(e.palavras_na_trie, e.termos_distintos)
+        for palavra in self.mecanismo.vocabulario:
+            self.assertTrue(self.mecanismo.trie.buscar(palavra), palavra)
 
     def test_consulta_por_palavra_continua_pelo_radical(self):
         """Na seção 3.7.1 o radical segue reunindo singular e plural."""
@@ -933,16 +994,20 @@ class TestePrefixoPelaFormaExata(unittest.TestCase):
         self.assertEqual(termo["com_forma_exata"], ["singular.txt"])
         self.assertEqual(termo["exatos"], 1)
 
-    def test_forma_exata_nao_diferencia_acentos(self):
-        """'análise' e 'analise' contam como a mesma palavra escrita."""
+    def test_forma_exata_diferencia_acentos(self):
+        """
+        Só plural.txt escreve "analise"; singular.txt traz "análise". O radical
+        do RSLP alcança os dois, mas só um tem a forma exata.
+        """
         termo = self.mecanismo.buscar_palavra("analise")["termos"][0]
-        self.assertEqual(termo["com_forma_exata"], ["plural.txt", "singular.txt"])
+        self.assertEqual(termo["documentos"], 2)
+        self.assertEqual(termo["com_forma_exata"], ["plural.txt"])
 
     def test_lista_confere_com_os_tokens_de_cada_documento(self):
         """
         Propriedade: um documento está na lista de um termo se, e somente se,
-        algum token dele é uma das grafias desse termo. O ranking cobre os
-        mesmos documentos que a lista, nem um a mais.
+        o termo é um dos tokens dele, escrito igual. O ranking cobre os mesmos
+        documentos que a lista, nem um a mais.
         """
         preprocessador = self.mecanismo.preprocessador
         tokens = {nome: set(preprocessador.processar(texto))
@@ -951,9 +1016,8 @@ class TestePrefixoPelaFormaExata(unittest.TestCase):
         for prefixo in ["", "a", "al", "an", "c", "co", "r", "x"]:
             resposta = self.mecanismo.buscar_prefixo(prefixo, limite=None)
             for termo in resposta["termos"]:
-                grafias = self.mecanismo.trie.formas_de(termo)
                 esperado = sorted(nome for nome, conjunto in tokens.items()
-                                  if conjunto & grafias)
+                                  if termo in conjunto)
                 self.assertEqual(resposta["por_termo"][termo], esperado,
                                  f"prefixo {prefixo!r}, termo {termo!r}")
 
@@ -1113,6 +1177,17 @@ class TesteInterfaceTerminal(unittest.TestCase):
                               self.lexico_longo)
         self.assertEqual(self.palavras_listadas(saida), self.palavras_longas)
 
+    def test_busca_da_parte1_compara_a_grafia(self):
+        """
+        Seção 2.3, "informar se ela existe": só "computação" foi cadastrada.
+        "computacao" é outra grafia, e a resposta mostra a que existe.
+        """
+        saida = self.conduzir(executar_parte1, ["1", "computacao", "computação", "", "4"],
+                              self.lexico_do_enunciado)
+        self.assertIn("A palavra 'computacao' NÃO está na Trie.\n"
+                      "Com outra acentuação: computação\n", saida)
+        self.assertIn("A palavra 'computação' EXISTE na Trie.\n\nTempo da consulta", saida)
+
     def test_paginacao_pode_ser_encerrada(self):
         saida = self.conduzir(executar_parte1, ["2", "prefixo", "0", "", "4"],
                               self.lexico_longo)
@@ -1213,6 +1288,16 @@ class TesteInterfaceTerminal(unittest.TestCase):
         saida = self.conduzir(executar_parte2, ["1", "dados", "", "6"], self.documentos, True)
         self.assertIn("Encontrada em 3 arquivo(s):", saida)
         self.assertNotIn("forma exata", saida)
+
+    def test_palavra_sem_acento_sugere_a_grafia_dos_documentos(self):
+        """
+        O texto traz "ordenação". "ordenacao" é outra grafia: não está em
+        documento nenhum, e a sugestão diz que a diferença é só o acento.
+        """
+        saida = self.conduzir(executar_parte2, ["1", "ordenacao", "", "6"], self.documentos, True)
+        self.assertIn("'ordenacao' não foi encontrada em nenhum documento.", saida)
+        self.assertIn("Parecidas: ordenação (outra acentuação)", saida)
+        self.assertIn("Você quis dizer: ordenação?", saida)
 
     def test_padroes_seguem_a_pasta_do_programa(self):
         """
@@ -1371,6 +1456,12 @@ class TesteServidorWeb(unittest.TestCase):
         self.assertTrue(palavra["existe"])
         self.assertEqual(palavra["formas"], ["grafo"])
         self.assertEqual(palavra["aproximadas"], [])
+
+    def test_grafia_sem_acento_nao_existe_no_lexico(self):
+        """O léxico de teste tem "computação"; "computacao" é outra grafia."""
+        resposta = self.obter("/api/parte1/palavra", q="computacao")
+        self.assertFalse(resposta["existe"])
+        self.assertEqual(resposta["formas"], ["computação"])
 
     def test_palavra_ausente_traz_parecidas(self):
         resposta = self.obter("/api/parte1/palavra", q="compiladro")

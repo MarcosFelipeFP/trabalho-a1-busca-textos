@@ -9,18 +9,21 @@
            Coded in Alphanumeric". Journal of the ACM, 15(4):514-534, 1968.
 
    ---------------------------------------------------------------------------
-   Decisão de projeto: chave normalizada, exibição original
+   Decisão de projeto: o caminho é sem acento, a palavra é a grafia
    ---------------------------------------------------------------------------
-   Palavras do português carregam acentos ("computação"). Se o acento fizesse
-   parte da chave, o prefixo "computa" encontraria "computador", mas quem
-   digitasse "computacao" não encontraria nada.
+   O acento distingue palavras do português: "país" e "pais", "análise" e
+   "analise" (do verbo analisar), "contínua" e "continua".
 
-     * a CHAVE que percorre a Trie é a forma normalizada (minúscula, sem acento);
-     * o NÓ FINAL guarda o conjunto das formas originais já inseridas.
+     * o CAMINHO percorrido na Trie é a forma normalizada (minúscula, sem
+       acento) -- é o que deixa "computa", e também "computac", chegar a
+       "computação";
+     * cada GRAFIA é uma palavra: o nó final guarda as grafias inseridas, cada
+       uma com o seu peso, contadas, listadas e buscadas uma a uma. Com só
+       "país" inserida, "pais" não existe.
 
-   Ordenar pela chave normalizada reproduz a ordem do exemplo do enunciado
-   (compilador, complexidade, computação, computacional, computador), porque
-   "computacao" < "computacional" < "computador" na ordem alfabética.
+   Percorrer o caminho sem acento em ordem alfabética reproduz a ordem do
+   exemplo do enunciado (compilador, complexidade, computação, computacional,
+   computador), porque "computacao" < "computacional" < "computador".
 
    ---------------------------------------------------------------------------
    Equivalência com a versão Python
@@ -50,18 +53,24 @@ function normalizar(texto) {
   return String(texto).trim().toLowerCase().normalize('NFD').replace(DIACRITICOS, '');
 }
 
+/**
+ * A palavra como é escrita, só que em minúsculas: os acentos ficam. É a
+ * identidade de uma palavra na Trie -- "Computação" e "computação" são a mesma
+ * palavra; "computacao" é outra. A forma NFC junta letra e sinal num caractere
+ * só, para a mesma palavra digitada de dois jeitos não virar duas. O(m).
+ */
+function grafia(texto) {
+  return String(texto).trim().toLowerCase().normalize('NFC');
+}
+
 /** Ordem por ponto de código, a mesma que o `sorted` do Python aplica. */
 function ordemDeTexto(a, b) {
   return a < b ? -1 : (a > b ? 1 : 0);
 }
 
-/** Menor string de um conjunto, equivalente ao `min(...)` do Python. */
-function menorForma(formas) {
-  let menor = null;
-  for (const forma of formas) {
-    if (menor === null || forma < menor) menor = forma;
-  }
-  return menor;
+/** As grafias de um nó em ordem alfabética: "analise" antes de "análise". */
+function grafiasEmOrdem(formas) {
+  return Array.from(formas.keys()).sort(ordemDeTexto);
 }
 
 /**
@@ -159,13 +168,15 @@ class FilaDePrioridade {
 
 /**
  * Ordem dos itens da busca best-first, idêntica à da tupla
- * `(-peso, chave, tipo, no)` que o Python empilha no `heapq`:
- * peso decrescente, chave alfabética, palavra antes de nó.
+ * `(-peso, caminho, tipo, grafia, no)` que o Python empilha no `heapq`:
+ * peso decrescente, caminho alfabético, palavra antes de nó e, por fim, a
+ * grafia.
  */
 function ordemDaFila(a, b) {
   if (a.peso !== b.peso) return b.peso - a.peso;
   if (a.chave !== b.chave) return ordemDeTexto(a.chave, b.chave);
-  return a.tipo - b.tipo;
+  if (a.tipo !== b.tipo) return a.tipo - b.tipo;
+  return ordemDeTexto(a.forma, b.forma);
 }
 
 const TIPO_PALAVRA = 0;
@@ -183,12 +194,32 @@ class NoTrie {
   constructor() {
     this.filhos = new Map();     // caractere -> NoTrie
     this.fimDePalavra = false;   // marca o término de uma palavra válida
-    this.formas = null;          // grafias originais associadas a esta chave
+    this.formas = null;          // grafia -> peso, das palavras que terminam aqui
 
-    this.peso = 0;               // relevância da palavra que termina aqui
     this.palavrasAbaixo = 0;     // palavras armazenadas nesta subárvore
     this.melhorPeso = 0;         // maior peso encontrado nesta subárvore
   }
+}
+
+/**
+ * Registra a grafia no nó final e atualiza os agregados do caminho, da raiz
+ * até ele. Devolve se a palavra é nova. É a mesma regra nas duas Tries: a
+ * grafia é a palavra, e reinserir com peso maior atualiza o peso. O(m).
+ */
+function registrarGrafia(caminho, destino, forma, peso) {
+  if (destino.formas === null) {
+    destino.fimDePalavra = true;
+    destino.formas = new Map();
+  }
+  const nova = !destino.formas.has(forma);
+  if (nova || peso > destino.formas.get(forma)) destino.formas.set(forma, peso);
+  const pesoDaForma = destino.formas.get(forma);
+
+  for (const ancestral of caminho) {
+    if (nova) ancestral.palavrasAbaixo += 1;
+    if (pesoDaForma > ancestral.melhorPeso) ancestral.melhorPeso = pesoDaForma;
+  }
+  return nova;
 }
 
 /**
@@ -209,7 +240,7 @@ class NoTrie {
 class Trie {
   constructor(palavras) {
     this.raiz = new NoTrie();
-    this._totalPalavras = 0;   // chaves distintas armazenadas
+    this._totalPalavras = 0;   // palavras (grafias) armazenadas
     this._totalNos = 1;        // a raiz já conta
     this.comparacoes = 0;      // instrumentação usada nos experimentos
     this.nosVisitados = 0;     // nós tocados pela última busca por prefixo
@@ -222,9 +253,10 @@ class Trie {
   /* -------------------------------------------------------------- inserção */
 
   /**
-   * Insere uma palavra. Percorre a chave normalizada caractere a caractere,
-   * criando os nós que faltarem. Devolve true se a palavra é nova e false se
-   * a chave já existia -- nesse caso apenas registra a nova grafia.
+   * Insere uma palavra. Percorre o caminho sem acento caractere a caractere,
+   * criando os nós que faltarem, e registra a grafia no nó final. Devolve
+   * true se a palavra é nova e false se aquela grafia já estava lá: "analise"
+   * é nova mesmo com "análise" inserida.
    *
    * `peso` é a relevância da palavra (no mecanismo, a frequência dela no
    * corpus); reinserir com peso maior atualiza o valor. Os dois agregados são
@@ -232,10 +264,8 @@ class Trie {
    * custo continua O(m).
    */
   inserir(palavra, peso) {
-    const original = String(palavra).trim();
-    if (!original) return false;
-
-    const chave = normalizar(original);
+    const forma = grafia(palavra);
+    const chave = normalizar(forma);
     if (!chave) return false;
 
     const relevancia = (peso === undefined) ? 1 : peso;
@@ -255,20 +285,8 @@ class Trie {
       caminho.push(no);
     }
 
-    const nova = !no.fimDePalavra;
-    if (nova) {
-      no.fimDePalavra = true;
-      no.formas = new Set();
-      this._totalPalavras += 1;
-    }
-    no.formas.add(original);
-
-    if (relevancia > no.peso) no.peso = relevancia;
-
-    for (const ancestral of caminho) {
-      if (nova) ancestral.palavrasAbaixo += 1;
-      if (no.peso > ancestral.melhorPeso) ancestral.melhorPeso = no.peso;
-    }
+    const nova = registrarGrafia(caminho, no, forma, relevancia);
+    if (nova) this._totalPalavras += 1;
     return nova;
   }
 
@@ -295,18 +313,24 @@ class Trie {
    * Não basta o caminho existir: o nó final precisa estar marcado como fim de
    * palavra. É o que distingue uma palavra armazenada de um simples prefixo
    * de outra -- "comp" é caminho de "computador", mas só é palavra se tiver
-   * sido inserida. O(m).
+   * sido inserida. Nem basta chegar ao nó: a grafia tem de ser a mesma --
+   * "pais" e "país" chegam ao mesmo nó, mas só existe a que foi inserida.
+   * Maiúsculas não contam. O(m).
    */
   buscar(palavra) {
-    const no = this.descer(normalizar(palavra));
-    return no !== null && no.fimDePalavra;
+    const forma = grafia(palavra);
+    const no = this.descer(normalizar(forma));
+    return no !== null && no.fimDePalavra && no.formas.has(forma);
   }
 
-  /** Grafias originais registradas para uma chave, em ordem alfabética. */
+  /**
+   * As palavras que dividem o caminho de `palavra` -- as grafias que só
+   * diferem dela no acento --, em ordem alfabética. O(m).
+   */
   formasDe(palavra) {
     const no = this.descer(normalizar(palavra));
     if (no === null || !no.fimDePalavra) return [];
-    return Array.from(no.formas).sort(ordemDeTexto);
+    return grafiasEmOrdem(no.formas);
   }
 
   /**
@@ -316,48 +340,31 @@ class Trie {
    *   1. descer o prefixo            -> O(m)
    *   2. varrer a subárvore restante -> O(p), nós abaixo do prefixo
    *
+   * O prefixo é comparado sem acento, como o caminho: "computac" encontra
+   * "computação". As palavras devolvidas são as grafias, uma a uma.
+   *
    * `limite` interrompe a coleta após k resultados, útil quando o prefixo é
    * curto e a subárvore é enorme. O(m + p), ou O(m + k) com limite.
    */
   buscarPrefixo(prefixo, limite) {
-    return this.nosDoPrefixo(prefixo, limite).map((no) => menorForma(no.formas));
-  }
-
-  /**
-   * Como `buscarPrefixo`, mas devolve pares [palavra, grafias]: a palavra
-   * exibida e TODAS as grafias guardadas sob a mesma chave, em ordem
-   * alfabética -- "analise" traz ["analise", "análise"].
-   *
-   * É o que a consulta por prefixo da Parte II precisa para perguntar ao
-   * índice da forma exata em que documentos cada termo aparece. Obter as
-   * grafias depois, com `formasDe`, desceria a Trie de novo para cada termo;
-   * aqui elas saem da mesma travessia, e o custo continua O(m + p).
-   */
-  buscarPrefixoComGrafias(prefixo, limite) {
-    return this.nosDoPrefixo(prefixo, limite).map((no) => [
-      menorForma(no.formas), Array.from(no.formas).sort(ordemDeTexto),
-    ]);
-  }
-
-  /** Desce o prefixo e devolve, em ordem alfabética, os nós de fim de palavra abaixo dele. */
-  nosDoPrefixo(prefixo, limite) {
-    const chave = normalizar(prefixo);
-    const no = this.descer(chave);
+    const no = this.descer(normalizar(prefixo));
     if (no === null) return [];
 
     this.nosVisitados = 0;       // instrumentação: contraste com `sugerir`
     const encontradas = [];
-    const pilha = [[no, chave]];
+    const pilha = [no];
 
     while (pilha.length) {
       if (limite != null && encontradas.length >= limite) break;
-      const [atual, caminho] = pilha.pop();
+      const atual = pilha.pop();
       this.nosVisitados += 1;
 
       if (atual.fimDePalavra) {
-        // Uma mesma chave pode ter mais de uma grafia; quem chama decide o
-        // que tirar do nó -- a menor delas, como representante, ou todas.
-        encontradas.push(atual);
+        // As grafias do mesmo nó saem em ordem alfabética entre si.
+        for (const forma of grafiasEmOrdem(atual.formas)) {
+          if (limite != null && encontradas.length >= limite) break;
+          encontradas.push(forma);
+        }
       }
 
       // Empilhados em ordem decrescente para que o menor caractere seja
@@ -365,9 +372,7 @@ class Trie {
       // ordem alfabética -- o nó vem antes dos descendentes, e toda chave da
       // subárvore tem a dele como prefixo --, e não é preciso ordenar no fim.
       const iniciais = Array.from(atual.filhos.keys()).sort(ordemDeTexto).reverse();
-      for (const caractere of iniciais) {
-        pilha.push([atual.filhos.get(caractere), caminho + caractere]);
-      }
+      for (const caractere of iniciais) pilha.push(atual.filhos.get(caractere));
     }
 
     return encontradas;
@@ -405,22 +410,25 @@ class Trie {
     this.nosVisitados = 0;
 
     const fila = new FilaDePrioridade(ordemDaFila);
-    fila.inserir({ peso: no.melhorPeso, chave: chave, tipo: TIPO_NO, no: no });
+    fila.inserir({ peso: no.melhorPeso, chave: chave, tipo: TIPO_NO, forma: '', no: no });
 
     const encontradas = [];
     while (fila.tamanho && encontradas.length < k) {
       const item = fila.remover();
 
       if (item.tipo === TIPO_PALAVRA) {
-        encontradas.push([menorForma(item.no.formas), item.peso]);
+        encontradas.push([item.forma, item.peso]);
         continue;
       }
 
       this.nosVisitados += 1;
       const atual = item.no;
 
+      // Um item-palavra por grafia que termina no nó, cada uma com o seu peso.
       if (atual.fimDePalavra) {
-        fila.inserir({ peso: atual.peso, chave: item.chave, tipo: TIPO_PALAVRA, no: atual });
+        for (const [forma, peso] of atual.formas) {
+          fila.inserir({ peso, chave: item.chave, tipo: TIPO_PALAVRA, forma, no: atual });
+        }
       }
 
       for (const [caractere, filho] of atual.filhos) {
@@ -428,6 +436,7 @@ class Trie {
           peso: filho.melhorPeso,
           chave: item.chave + caractere,
           tipo: TIPO_NO,
+          forma: '',
           no: filho,
         });
       }
@@ -443,6 +452,10 @@ class Trie {
    *
    * Sem `distanciaMaxima`, a tolerância acompanha o tamanho da palavra: uma
    * edição até quatro letras, duas acima disso. `limite` null devolve todas.
+   *
+   * A distância é medida no caminho sem acento: "computacao" fica a zero
+   * edições de "computação", que é outra palavra e por isso entra na lista.
+   * Quem chama descarta a própria palavra digitada.
    *
    * Programação dinâmica sobre a própria Trie: a linha i da matriz de edição
    * depende só das linhas i-1 e i-2, e todas as palavras abaixo de um nó
@@ -495,7 +508,9 @@ class Trie {
       }
 
       if (item.no.fimDePalavra && linha[m] <= tolerancia) {
-        candidatas.push({ distancia: linha[m], peso: item.no.peso, caminho: item.caminho, no: item.no });
+        for (const [forma, peso] of item.no.formas) {
+          candidatas.push({ distancia: linha[m], peso, caminho: item.caminho, forma });
+        }
       }
 
       if (menor <= tolerancia) {
@@ -508,11 +523,11 @@ class Trie {
       }
     }
 
-    // A mesma ordem da tupla (distância, -peso, chave) do Python.
+    // A mesma ordem da tupla (distância, -peso, caminho, grafia) do Python.
     candidatas.sort((a, b) => (a.distancia - b.distancia) || (b.peso - a.peso) ||
-      ordemDeTexto(a.caminho, b.caminho));
+      ordemDeTexto(a.caminho, b.caminho) || ordemDeTexto(a.forma, b.forma));
     const escolhidas = limite == null ? candidatas : candidatas.slice(0, limite);
-    return escolhidas.map((c) => [menorForma(c.no.formas), c.distancia, c.peso]);
+    return escolhidas.map((c) => [c.forma, c.distancia, c.peso]);
   }
 
   /* -------------------------------------------------------------- métricas */
@@ -534,6 +549,7 @@ class Trie {
     return maior;
   }
 
+  /** Palavras armazenadas -- cada grafia conta uma vez. */
   get tamanho() {
     return this._totalPalavras;
   }
@@ -555,9 +571,8 @@ class NoTrieComprimida {
     this.rotulo = rotulo || '';  // trecho da chave consumido nesta aresta
     this.filhos = new Map();     // primeiro caractere do rótulo -> nó filho
     this.fimDePalavra = false;
-    this.formas = null;
+    this.formas = null;          // grafia -> peso, das palavras que terminam aqui
 
-    this.peso = 0;               // relevância da palavra que termina aqui
     this.palavrasAbaixo = 0;     // palavras armazenadas nesta subárvore
     this.melhorPeso = 0;         // maior peso encontrado nesta subárvore
   }
@@ -603,10 +618,8 @@ class TrieComprimida {
    * O(m).
    */
   inserir(palavra, peso) {
-    const original = String(palavra).trim();
-    if (!original) return false;
-
-    const chave = normalizar(original);
+    const forma = grafia(palavra);
+    const chave = normalizar(forma);
     if (!chave) return false;
 
     const relevancia = (peso === undefined) ? 1 : peso;
@@ -616,29 +629,17 @@ class TrieComprimida {
     let resto = chave;
 
     for (;;) {
-      if (!resto) {
-        const nova = !no.fimDePalavra;
-        if (nova) {
-          no.fimDePalavra = true;
-          no.formas = new Set();
-          this._totalPalavras += 1;
-        }
-        no.formas.add(original);
-        return TrieComprimida.propagar(caminho, no, relevancia, nova);
-      }
+      if (!resto) return this.registrar(caminho, no, forma, relevancia);
 
       const filho = no.filhos.get(resto[0]);
 
       if (filho === undefined) {
         // Nada em comum: uma única aresta nova carrega todo o resto.
         const novo = new NoTrieComprimida(resto);
-        novo.fimDePalavra = true;
-        novo.formas = new Set([original]);
         no.filhos.set(resto[0], novo);
         this._totalNos += 1;
-        this._totalPalavras += 1;
         caminho.push(novo);
-        return TrieComprimida.propagar(caminho, novo, relevancia, true);
+        return this.registrar(caminho, novo, forma, relevancia);
       }
 
       const comum = TrieComprimida.prefixoComum(resto, filho.rotulo);
@@ -667,36 +668,26 @@ class TrieComprimida {
 
       if (comum === resto.length) {
         // Caso 2: a chave termina exatamente no ponto da divisão.
-        intermediario.fimDePalavra = true;
-        intermediario.formas = new Set([original]);
-        this._totalPalavras += 1;
-        return TrieComprimida.propagar(caminho, intermediario, relevancia, true);
+        return this.registrar(caminho, intermediario, forma, relevancia);
       }
 
       // Caso 3: sobra chave -- vira um segundo filho do intermediário.
       const sobra = resto.slice(comum);
       const novo = new NoTrieComprimida(sobra);
-      novo.fimDePalavra = true;
-      novo.formas = new Set([original]);
       intermediario.filhos.set(sobra[0], novo);
       this._totalNos += 1;
-      this._totalPalavras += 1;
       caminho.push(novo);
-      return TrieComprimida.propagar(caminho, novo, relevancia, true);
+      return this.registrar(caminho, novo, forma, relevancia);
     }
   }
 
   /**
-   * Atualiza os agregados da raiz até o nó de destino e devolve `nova`.
-   * `caminho` termina no próprio destino, que também recebe o incremento.
+   * Registra a grafia no nó de destino e atualiza os agregados da raiz até
+   * ele, pela mesma regra da Trie tradicional. Devolve se a palavra é nova.
    */
-  static propagar(caminho, destino, peso, nova) {
-    if (peso > destino.peso) destino.peso = peso;
-
-    for (const ancestral of caminho) {
-      if (nova) ancestral.palavrasAbaixo += 1;
-      if (destino.peso > ancestral.melhorPeso) ancestral.melhorPeso = destino.peso;
-    }
+  registrar(caminho, destino, forma, peso) {
+    const nova = registrarGrafia(caminho, destino, forma, peso);
+    if (nova) this._totalPalavras += 1;
     return nova;
   }
 
@@ -737,10 +728,11 @@ class TrieComprimida {
    * apenas prefixo de alguma chave, e não uma chave armazenada. O(m).
    */
   buscar(palavra) {
-    const achado = this.descer(normalizar(palavra));
+    const forma = grafia(palavra);
+    const achado = this.descer(normalizar(forma));
     if (achado === null) return false;
     const [no, sobra] = achado;
-    return sobra === '' && no.fimDePalavra;
+    return sobra === '' && no.fimDePalavra && no.formas.has(forma);
   }
 
   /**
@@ -748,32 +740,30 @@ class TrieComprimida {
    * mesma da Trie tradicional, mas com p menor, já que há menos nós.
    */
   buscarPrefixo(prefixo, limite) {
-    const chave = normalizar(prefixo);
-    const achado = this.descer(chave);
+    const achado = this.descer(normalizar(prefixo));
     if (achado === null) return [];
 
-    const [no, sobra] = achado;
     const encontradas = [];
-    const pilha = [[no, chave + sobra]];
-
-    while (pilha.length) {
-      if (limite != null && encontradas.length >= limite) break;
-      const [atual, caminho] = pilha.pop();
-
-      if (atual.fimDePalavra) {
-        encontradas.push([caminho, menorForma(atual.formas)]);
-      }
-
-      const iniciais = Array.from(atual.filhos.keys()).sort(ordemDeTexto).reverse();
-      for (const inicial of iniciais) {
-        const filho = atual.filhos.get(inicial);
-        pilha.push([filho, caminho + filho.rotulo]);
-      }
-    }
+    const pilha = [achado[0]];
 
     // Já sai ordenado: rótulos irmãos começam por caracteres distintos, então
     // ordená-los pela inicial é ordená-los por inteiro.
-    return encontradas.map((par) => par[1]);
+    while (pilha.length) {
+      if (limite != null && encontradas.length >= limite) break;
+      const atual = pilha.pop();
+
+      if (atual.fimDePalavra) {
+        for (const forma of grafiasEmOrdem(atual.formas)) {
+          if (limite != null && encontradas.length >= limite) break;
+          encontradas.push(forma);
+        }
+      }
+
+      const iniciais = Array.from(atual.filhos.keys()).sort(ordemDeTexto).reverse();
+      for (const inicial of iniciais) pilha.push(atual.filhos.get(inicial));
+    }
+
+    return encontradas;
   }
 
   /**
@@ -798,5 +788,5 @@ class TrieComprimida {
 }
 
 export {
-  normalizar, ordemDeTexto, distanciaEdicao, NoTrie, Trie, NoTrieComprimida, TrieComprimida,
+  normalizar, grafia, ordemDeTexto, distanciaEdicao, NoTrie, Trie, NoTrieComprimida, TrieComprimida,
 };

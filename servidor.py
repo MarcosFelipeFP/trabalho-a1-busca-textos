@@ -155,9 +155,12 @@ class Aplicacao:
         """
         Parte I, seção 2.3: a palavra existe no léxico? Custo O(m).
 
-        Quando não existe, a resposta traz também as palavras parecidas, pela
-        busca aproximada na mesma Trie -- cronometrada à parte, porque não faz
-        parte do custo da busca exata.
+        A busca compara a grafia. `formas` traz as palavras do mesmo caminho,
+        as que só diferem no acento, para a página mostrar "com outra
+        acentuação"; `continuacoes` conta as mais longas que começam com o que
+        foi digitado. Quando a palavra não existe, a resposta traz também as
+        parecidas, pela busca aproximada na mesma Trie -- cronometrada à parte,
+        porque não faz parte do custo da busca exata.
         """
         with Cronometro() as relogio:
             existe = self.trie.buscar(palavra)
@@ -173,7 +176,7 @@ class Aplicacao:
             "palavra": palavra,
             "existe": existe,
             "formas": formas,
-            "continuacoes": max(0, abaixo - (1 if existe else 0)),
+            "continuacoes": max(0, abaixo - len(formas)),
             "aproximadas": aproximadas,
             "tempo": relogio.decorrido,
             "tempo_aproximacao": relogio_aproximacao.decorrido,
