@@ -84,14 +84,18 @@ raiz do repositório.
 
 ### Parte I — Autocomplete com Trie
 
-Uma Trie construída do zero armazena um léxico de mais de 10 mil palavras em
-português e responde a três operações:
+Uma Trie construída do zero armazena um léxico de 8.641 palavras do português
+e responde a três operações:
 
 | Operação | O que faz | Custo |
 |---|---|---|
 | `inserir(palavra)` | acrescenta uma palavra ao léxico | O(m) |
 | `buscar(palavra)` | informa se a palavra existe | O(m) |
 | `buscar_prefixo(prefixo)` | lista todas as palavras que começam com o prefixo | O(m + p) |
+
+O caminho na Trie é a palavra sem acento, para o prefixo `computac` chegar a
+*computação*. Mas cada grafia é uma palavra: com só *país* cadastrada, a
+busca por `pais` responde que ela não existe e mostra a grafia registrada.
 | `sugerir(prefixo, k)` | as *k* palavras mais frequentes, por busca best-first | não depende de *p* |
 | `buscar_aproximado(palavra)` | "você quis dizer?" por distância de edição | O(n·m), *n* = nós após a poda |
 
@@ -151,7 +155,7 @@ lista o tempo de cada consulta e compara as médias dos três tipos.
 ├── gerar_pendrive.py        copia a interface de um arquivo só para o pendrive
 ├── gerar_lexico.py          regera palavras.txt a partir do corpus
 ├── preparar_corpus.py       rebaixa os documentos da Wikipédia
-├── palavras.txt             léxico da Parte I (~10.500 palavras)
+├── palavras.txt             léxico da Parte I (8.641 palavras)
 ├── stopwords.txt            stopwords do português
 ├── README.md                este arquivo
 └── Relatório Técnico (ABNT) - Trabalho A1 - versão reduzida.pdf    relatório técnico (ABNT)
@@ -189,7 +193,10 @@ Coloque arquivos `.txt` dentro de `documentos/`, em UTF-8 ou no ANSI que o
 Bloco de Notas oferece, e rode o programa. Eles serão descobertos, processados
 e indexados automaticamente.
 
-Para regerar o léxico da Parte I a partir dos novos documentos:
+Para regerar o léxico da Parte I a partir dos novos documentos (ele guarda só
+as palavras que o dicionário de português do Microsoft Word reconhece, sem
+nomes próprios, siglas nem termos em inglês, por isso exige Windows com o
+Word):
 
 ```bash
 python gerar_lexico.py
@@ -322,7 +329,7 @@ direto.
 ============================================================
                    AUTOCOMPLETE COM TRIE
 ============================================================
-Palavras cadastradas: 10.474
+Palavras cadastradas: 8.641
 
 1 - Buscar palavra
 2 - Buscar por prefixo
@@ -338,14 +345,13 @@ Palavras encontradas:
   compacta
   compacto
   companhia
-  compaq
   compara
   comparação
   ...
-  competição
-  -- 40 de 151 palavras. Enter mostra mais; 0 encerra a lista: 0
+  competitiva
+  -- 40 de 142 palavras. Enter mostra mais; 0 encerra a lista: 0
 
-Tempo da consulta: 183,9 µs (custo previsto: O(m + p))
+Tempo da consulta: 134,4 µs (custo previsto: O(m + p))
 Digite o prefixo:
 ```
 
@@ -418,8 +424,8 @@ Tempo da consulta: 61,5 µs (custo previsto: O(1) por termo)
 
 O índice é consultado pelo radical, que reúne as variantes da palavra; os
 arquivos marcados com `*` não têm a forma exata digitada, só variantes como
-*algoritmos*. Uma palavra digitada sem acento, como `computacao`, acha os
-arquivos que escrevem *computação*.
+*algoritmos*. Uma palavra digitada sem acento, como `computacao`, é outra
+grafia: não aparece em documento nenhum, e o programa sugere *computação*.
 
 ### Busca por sequência com KMP
 
@@ -510,7 +516,7 @@ python testes.py        # resumo
 python testes.py -v     # detalhado
 ```
 
-146 testes cobrindo os exemplos do enunciado, casos de borda e testes de
+154 testes cobrindo os exemplos do enunciado, casos de borda e testes de
 propriedade com entradas aleatórias — o KMP é comparado contra a busca ingênua
 em 2.000 casos, a Trie comprimida contra a tradicional em 40 vocabulários
 aleatórios, a busca aproximada contra a distância de edição calculada palavra
