@@ -125,7 +125,8 @@ def exibir_em_paginas(itens, exibir_item, por_pagina, unidade):
 
         exibidos = min(inicio + por_pagina, total)
         if exibidos < total:
-            resposta = perguntar(f"  -- {exibidos} de {total} {unidade}. "
+            resposta = perguntar(f"  -- {formatar_numero(exibidos)} de "
+                                 f"{formatar_numero(total)} {unidade}. "
                                  f"Enter mostra mais; 0 encerra a lista: ")
             if resposta != "":
                 return
@@ -294,7 +295,7 @@ def executar_parte1(caminho_lexico):
 
 def mostrar_progresso(nome, posicao, total):
     """Callback de progresso da indexação."""
-    print(f"  [{posicao:>2}/{total}] {nome}")
+    print(f"  [{formatar_numero(posicao):>2}/{formatar_numero(total)}] {nome}")
 
 
 def exibir_busca_palavra(mecanismo):
@@ -339,14 +340,15 @@ def _mostrar_busca_palavra(mecanismo, palavra):
         print("\nTermos da consulta:")
         for termo in termos:
             print(f"  {termo['termo']:<20} radical '{termo['radical']}' "
-                  f"-> {termo['documentos']} arquivo(s)")
-        print(f"\nArquivos com todos os termos: {len(resposta['todos'])} "
-              f"(com algum deles: {len(documentos)})")
+                  f"-> {formatar_numero(termo['documentos'])} arquivo(s)")
+        print(f"\nArquivos com todos os termos: {formatar_numero(len(resposta['todos']))} "
+              f"(com algum deles: {formatar_numero(len(documentos))})")
     elif so_variantes:
-        print(f"\nEncontrada em {len(documentos)} arquivo(s), "
-              f"{len(exatos) or 'nenhum'} com a forma exata '{resposta['termo']}':")
+        print(f"\nEncontrada em {formatar_numero(len(documentos))} arquivo(s), "
+              f"{formatar_numero(len(exatos)) if exatos else 'nenhum'} "
+              f"com a forma exata '{resposta['termo']}':")
     else:
-        print(f"\nEncontrada em {len(documentos)} arquivo(s):")
+        print(f"\nEncontrada em {formatar_numero(len(documentos))} arquivo(s):")
 
     for documento, pontuacao in documentos:
         frequencia = resposta["frequencias"][documento]
@@ -421,7 +423,7 @@ def _mostrar_busca_prefixo(mecanismo, prefixo):
 
     def exibir_termo(termo):
         documentos = resposta["por_termo"][termo]
-        print(f"  {termo:<26} -> {len(documentos):>2} documento(s)")
+        print(f"  {termo:<26} -> {formatar_numero(len(documentos)):>2} documento(s)")
         # Os nomes quebram em linhas de até 72 colunas, sem partir nenhum nome.
         for linha in textwrap.wrap(", ".join(documentos), width=66,
                                    break_long_words=False, break_on_hyphens=False):
@@ -439,7 +441,8 @@ def _mostrar_busca_prefixo(mecanismo, prefixo):
             print(f"  {posicao}. {palavra:<26} {formatar_numero(ocorrencias):>5} ocorrência(s)")
 
     ranking = resposta["ranking"]
-    print(f"\nDocumentos que contêm algum desses termos: {len(resposta['documentos'])}")
+    print(f"\nDocumentos que contêm algum desses termos: "
+          f"{formatar_numero(len(resposta['documentos']))}")
     if len(ranking) > 8:
         print("Os 8 mais relevantes pelo BM25:")
     for documento, pontuacao in ranking[:8]:
@@ -470,7 +473,7 @@ def _mostrar_busca_sequencia(mecanismo, sequencia):
         print(f"\nA sequência '{sequencia}' não aparece em nenhum documento.")
     else:
         print(f"\n{formatar_numero(resposta['total_ocorrencias'])} ocorrência(s) em "
-              f"{len(resultados)} arquivo(s):")
+              f"{formatar_numero(len(resultados))} arquivo(s):")
         for item in resultados:
             print(f"\n  {item['documento']} ({formatar_numero(item['ocorrencias'])} ocorrência(s))")
             for trecho in item["contextos"]:
@@ -488,7 +491,7 @@ def exibir_documentos(mecanismo):
         print("\nNenhum documento indexado.")
         return
 
-    secao(f"DOCUMENTOS INDEXADOS ({len(linhas)})")
+    secao(f"DOCUMENTOS INDEXADOS ({formatar_numero(len(linhas))})")
     print(f"  {'arquivo':<44}{'KB':>8}{'tokens':>10}")
     for linha in linhas:
         print(f"  {linha['documento']:<44}"
@@ -555,7 +558,8 @@ def exibir_estatisticas(mecanismo):
         def exibir_consulta(item):
             posicao, (tipo, texto, resultados, segundos) = item
             consulta = f"'{texto[:26]}'"
-            print(f"  {posicao:>4}. {NOMES_DAS_CONSULTAS.get(tipo, tipo):<10} {consulta:<28}"
+            print(f"  {formatar_numero(posicao):>4}. "
+                  f"{NOMES_DAS_CONSULTAS.get(tipo, tipo):<10} {consulta:<28}"
                   f"{formatar_numero(resultados):>6} resultado(s){formatar_duracao(segundos):>12}")
 
         exibir_em_paginas(list(enumerate(e.consultas, start=1)), exibir_consulta,
