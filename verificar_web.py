@@ -15,7 +15,7 @@ ninguém perceba até a apresentação.
 
 A resposta não é confiar na tradução, é medir. Este script roda as duas
 implementações sobre o MESMO corpus e o MESMO léxico e exige resultado
-idêntico em doze frentes:
+idêntico em treze frentes:
 
     1. normalização de acentos           todas as palavras do léxico
     2. tokenização                       os 24 documentos, token a token
@@ -24,13 +24,15 @@ idêntico em doze frentes:
     5. Trie comprimida (PATRICIA)        mesmos prefixos, contagens e nós
     6. autocomplete por relevância       ordem e pesos da busca best-first
     7. busca aproximada                  palavras, distâncias e pesos
-    8. índice invertido                  frequência documental de cada radical
-    9. consultas com vários termos       BM25 (tolerância 1e-9), interseção e
+    8. vocabulário do corpus             palavras e nós das duas Tries da
+                                         Parte II
+    9. índice invertido                  frequência documental de cada radical
+   10. consultas com vários termos       BM25 (tolerância 1e-9), interseção e
                                          "você quis dizer?"
-   10. consultas por prefixo             termos da Trie, documentos de cada
+   11. consultas por prefixo             termos da Trie, documentos de cada
                                          termo e BM25
-   11. KMP                               posições e número de comparações
-   12. tabela hash                       dispersão, colisões e maior cadeia
+   12. KMP                               posições e número de comparações
+   13. tabela hash                       dispersão, colisões e maior cadeia
 
 Requer o Node.js apenas aqui -- a página no navegador não precisa dele. Se o
 `node` não estiver instalado, o script diz isso e sai sem falhar.
@@ -267,7 +269,7 @@ class Relatorio:
 
         `casos` é quantas unidades foram confrontadas -- palavras, tokens,
         documentos --, porque "stemming: igual" diz muito menos que "stemming:
-        14.812 palavras, nenhuma divergência".
+        10.656 palavras, nenhuma divergência".
         """
         igual = esperado == obtido
         self.frentes.append((nome, igual, casos, amostra if not igual else None))

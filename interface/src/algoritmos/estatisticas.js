@@ -122,7 +122,7 @@ function decimalBrasileiro(valor, casas) {
  * ou "812.000,0 µs" -- nenhum dos dois ajuda a ler o resultado.
  *
  * O número segue o padrão brasileiro, com uma casa decimal, igual ao
- * `formatar_duracao` do Python: "28,8 µs", "330,8 ms".
+ * `formatar_duracao` do Python: "28,3 µs", "325,8 ms".
  */
 function formatarDuracao(segundos) {
   if (segundos >= 1) return `${decimalBrasileiro(segundos, 2)} s`;

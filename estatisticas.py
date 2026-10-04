@@ -88,7 +88,7 @@ def formatar_duracao(segundos):
     ou "812.000,0 µs" -- nenhum dos dois ajuda a ler o resultado.
 
     O número segue o padrão brasileiro, com uma casa decimal, como no
-    relatório: "28,8 µs", "330,8 ms".
+    relatório: "28,3 µs", "325,8 ms".
     """
     if segundos >= 1.0:
         return f"{formatar_numero(segundos, 2)} s"
