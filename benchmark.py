@@ -34,7 +34,7 @@ import time
 
 from estatisticas import formatar_numero
 from indice_invertido import TabelaHash
-from kmp import buscar_ingenuo, buscar_kmp
+from kmp import buscar_forca_bruta, buscar_kmp
 from mecanismo import MecanismoBusca
 from trie import Trie, TrieComprimida, distancia_edicao, normalizar
 
@@ -357,36 +357,36 @@ def experimento_kmp(mecanismo):
     No pior caso construído, a diferença entre O(n+m) e O(n*m) fica explícita.
     Em texto natural a vantagem é modesta, porque falhas em texto real
     costumam ocorrer no primeiro ou segundo caractere -- e é justamente por
-    isso que a busca ingênua sobrevive na prática apesar do pior caso ruim.
+    isso que a força bruta sobrevive na prática apesar do pior caso ruim.
     """
     titulo("EXPERIMENTO 4 - Casamento de cadeias: KMP contra força bruta")
 
     subtitulo("Pior caso construído: texto 'aaa...a', padrão 'aaa...ab'")
-    print(f"  {'n':>10}{'m':>6}{'KMP (comp.)':>16}{'ingênuo (comp.)':>18}{'razão':>10}")
+    print(f"  {'n':>10}{'m':>6}{'KMP (comp.)':>16}{'força bruta':>18}{'razão':>10}")
     print("  " + "-" * (LARGURA - 4))
     for n in (2000, 4000, 8000, 16000):
         m = 60
         texto = "a" * n
         padrao = "a" * (m - 1) + "b"
         k = buscar_kmp(texto, padrao)
-        i = buscar_ingenuo(texto, padrao)
+        i = buscar_forca_bruta(texto, padrao)
         razao = i.comparacoes / k.comparacoes
         print(f"  {formatar_numero(n):>10}{m:>6}{formatar_numero(k.comparacoes):>16}"
               f"{formatar_numero(i.comparacoes):>18}{formatar_numero(razao, 1):>9}x")
 
-    print("\n  As comparações do KMP crescem como 2n (linear); as do ingênuo")
-    print("  crescem como n*m. Dobrar n dobra o KMP e dobra o ingênuo, mas a")
+    print("\n  As comparações do KMP crescem como 2n (linear); as da força bruta")
+    print("  crescem como n*m. Dobrar n dobra o KMP e dobra a força bruta, mas a")
     print("  razão entre eles permanece próxima de m/2 -- o fator perdido.")
 
     subtitulo("Texto natural: corpus real do trabalho")
     corpus = "\n".join(mecanismo.conteudo.values()).lower()
     print(f"  Tamanho do corpus: {formatar_numero(len(corpus))} caracteres\n")
-    print(f"  {'padrão':<28}{'ocorr.':>8}{'KMP':>14}{'ingênuo':>14}{'razão':>9}")
+    print(f"  {'padrão':<28}{'ocorr.':>8}{'KMP':>14}{'força bruta':>14}{'razão':>9}")
     print("  " + "-" * (LARGURA - 4))
     for padrao in ["rede neural", "chave pública", "algoritmo de busca",
                    "complexidade computacional", "aprendizado"]:
         k = buscar_kmp(corpus, padrao)
-        i = buscar_ingenuo(corpus, padrao)
+        i = buscar_forca_bruta(corpus, padrao)
         razao = i.comparacoes / k.comparacoes if k.comparacoes else 0
         print(f"  {padrao:<28}{len(k.ocorrencias):>8}"
               f"{formatar_numero(k.comparacoes):>14}{formatar_numero(i.comparacoes):>14}"

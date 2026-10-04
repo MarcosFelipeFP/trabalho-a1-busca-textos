@@ -29,7 +29,7 @@ usados em bioinformática.
 --------------------------------------------------------------------------
 A ideia, em uma frase
 --------------------------------------------------------------------------
-A busca ingênua, ao falhar na posição j do padrão, joga fora tudo o que já
+A busca por força bruta, ao falhar na posição j do padrão, joga fora tudo o que já
 tinha descoberto e recomeça uma posição adiante no texto. O KMP observa que os
 j caracteres já casados SÃO CONHECIDOS -- são exatamente os j primeiros do
 padrão -- e portanto dá para calcular de antemão, olhando só o padrão, quanto
@@ -62,12 +62,12 @@ detalhe mais elegante do algoritmo. Duas observações bastam:
 Como `j` nunca fica negativo, o total de retrocessos não pode exceder o total
 de incrementos. Somando, o laço executa no máximo 2n vezes: O(n).
 
-A busca ingênua, em contraste, é O(n * m) no pior caso -- fácil de exibir com
+A busca por força bruta, em contraste, é O(n * m) no pior caso -- fácil de exibir com
 texto "aaaa...a" e padrão "aaa...ab", em que toda tentativa avança quase até o
 fim do padrão antes de falhar no último caractere.
 """
 
-__all__ = ["tabela_falha", "buscar_kmp", "buscar_ingenuo", "ResultadoBusca"]
+__all__ = ["tabela_falha", "buscar_kmp", "buscar_forca_bruta", "ResultadoBusca"]
 
 
 class ResultadoBusca:
@@ -139,7 +139,7 @@ def buscar_kmp(texto, padrao, primeira_apenas=False):
 
     Devolve um `ResultadoBusca` com as posições iniciais e o número de
     comparações de caractere efetuadas -- a instrumentação existe para o
-    experimento do relatório, que compara o custo real contra a busca ingênua.
+    experimento do relatório, que compara o custo real contra a busca por força bruta.
 
     Ocorrências sobrepostas são todas encontradas: procurar "aa" em "aaa"
     devolve as posições 0 e 1. Após um casamento completo o algoritmo continua
@@ -176,7 +176,7 @@ def buscar_kmp(texto, padrao, primeira_apenas=False):
     return ResultadoBusca(ocorrencias, comparacoes)
 
 
-def buscar_ingenuo(texto, padrao, primeira_apenas=False):
+def buscar_forca_bruta(texto, padrao, primeira_apenas=False):
     """
     Busca por força bruta, implementada apenas como termo de comparação.
 
@@ -184,7 +184,7 @@ def buscar_ingenuo(texto, padrao, primeira_apenas=False):
     zero a cada falha. Complexidade O(n * m) no pior caso.
 
     O contraste com o KMP fica evidente no experimento do `benchmark.py`: com
-    texto "aaa...a" e padrão "aaa...ab", o número de comparações do ingênuo
+    texto "aaa...a" e padrão "aaa...ab", o número de comparações da força bruta
     cresce com o produto n*m, enquanto o do KMP cresce linearmente com n.
     """
     n, m = len(texto), len(padrao)

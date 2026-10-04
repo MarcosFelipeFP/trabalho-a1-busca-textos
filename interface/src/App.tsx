@@ -19,7 +19,7 @@ import { Leitor, Resultados, type Abertura, type Resultado } from './busca/Resul
 import { DADOS } from './dados';
 import { construirAplicacao, ProvedorDoMotor, useMotor } from './motor/contexto';
 import type { Metodo } from './motor/tipos';
-import { buscaIngenuaNoCorpus, varrerVocabulario } from './motor/varreduras';
+import { buscaForcaBrutaNoCorpus, varrerVocabulario } from './motor/varreduras';
 import { Documentos, Estatisticas, Navegacao, ParteUm, type Tela } from './telas/Telas';
 import { numero, tempo } from './util/formato';
 
@@ -68,8 +68,8 @@ const MODOS: { valor: Modo; titulo: string; exemplos: string[]; metodos: Metodo[
     metodos: [
       { id: 'kmp', rotulo: 'KMP no texto', custo: 'O(n + m)' },
       {
-        id: 'ingenua',
-        rotulo: 'busca ingênua',
+        id: 'forca-bruta',
+        rotulo: 'força bruta',
         custo: 'O(n·m)',
         nota: 'Em texto natural os dois quase empatam, porque as falhas ocorrem nas primeiras '
           + 'letras; o ganho do KMP é a garantia no pior caso.',
@@ -153,8 +153,8 @@ function Pagina({ segundos }: { segundos: number }) {
             resposta: varredura ? { ...resposta, ...varredura } : resposta,
             metodo: escolhido,
           });
-        } else if (escolhido.id === 'ingenua') {
-          setResultado({ modo: 'sequencia', resposta: buscaIngenuaNoCorpus(aplicacao, limpo), metodo: escolhido });
+        } else if (escolhido.id === 'forca-bruta') {
+          setResultado({ modo: 'sequencia', resposta: buscaForcaBrutaNoCorpus(aplicacao, limpo), metodo: escolhido });
         } else {
           setResultado({ modo: 'sequencia', resposta: await motor.buscarSequencia(limpo), metodo: escolhido });
         }

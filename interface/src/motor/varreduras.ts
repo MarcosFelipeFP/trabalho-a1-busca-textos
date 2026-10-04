@@ -13,7 +13,7 @@
  * de 100 µs) e uma varredura de 2 ms mediria 0 ou 100 µs.
  */
 import { medir } from '../algoritmos/estatisticas.js';
-import { buscarIngenuo, contextoDaOcorrencia } from '../algoritmos/kmp.js';
+import { buscarForcaBruta, contextoDaOcorrencia } from '../algoritmos/kmp.js';
 import type { Aplicacao } from '../algoritmos/mecanismo';
 import { normalizar, ordemDeTexto } from '../algoritmos/trie.js';
 import type { Medida, OcorrenciasNoDocumento, RespostaSequencia } from './tipos';
@@ -38,12 +38,12 @@ export function varrerVocabulario(aplicacao: Aplicacao, prefixo: string): Medida
 }
 
 /**
- * Procura a sequência com a busca ingênua: ao falhar, ela recomeça uma posição
+ * Procura a sequência com a busca por força bruta: ao falhar, ela recomeça uma posição
  * adiante e descarta o que já havia casado -- o oposto do KMP, que aproveita.
  * Devolve a mesma resposta de `buscarSequencia`, para a tela não precisar saber
  * qual dos dois respondeu.
  */
-export function buscaIngenuaNoCorpus(
+export function buscaForcaBrutaNoCorpus(
   aplicacao: Aplicacao,
   sequencia: string,
   maxContextos = 3,
@@ -57,7 +57,7 @@ export function buscaIngenuaNoCorpus(
     let totalComparacoes = 0;
 
     for (const documento of [...mecanismo.conteudo.keys()].sort(ordemDeTexto)) {
-      const achado = buscarIngenuo(mecanismo.conteudoMinusculo.get(documento)!, padrao);
+      const achado = buscarForcaBruta(mecanismo.conteudoMinusculo.get(documento)!, padrao);
       totalComparacoes += achado.comparacoes;
       if (!achado.ocorrencias.length) continue;
 

@@ -11,7 +11,7 @@ cobrem quatro frentes:
   * casos de borda (entrada vazia, prefixo inexistente, padrão maior que o
     texto), onde implementações de Trie e KMP costumam quebrar;
   * testes de propriedade com entradas aleatórias, comparando o KMP contra a
-    busca ingênua e a Trie comprimida contra a tradicional -- duas
+    busca por força bruta e a Trie comprimida contra a tradicional -- duas
     implementações independentes que precisam concordar sempre;
   * um teste ponta a ponta que monta um índice em uma pasta temporária.
 
@@ -37,7 +37,7 @@ from pathlib import Path
 from unittest import mock
 
 from indice_invertido import IndiceInvertido, TabelaHash
-from kmp import buscar_ingenuo, buscar_kmp, tabela_falha
+from kmp import buscar_forca_bruta, buscar_kmp, tabela_falha
 from estatisticas import formatar_duracao, formatar_numero
 from main import (AVISO_DE_VOLTA, PALAVRAS_POR_PAGINA, RAIZ, analisar_argumentos,
                   carregar_lexico, executar_parte1, executar_parte2)
@@ -609,7 +609,7 @@ class TesteKMP(unittest.TestCase):
     def test_primeira_apenas(self):
         self.assertEqual(buscar_kmp("aaaa", "aa", primeira_apenas=True).ocorrencias, [0])
 
-    def test_equivalencia_com_busca_ingenua(self):
+    def test_equivalencia_com_forca_bruta(self):
         """
         Teste de propriedade: KMP e força bruta são implementações
         independentes do mesmo problema e precisam concordar em toda entrada.
@@ -620,13 +620,13 @@ class TesteKMP(unittest.TestCase):
             padrao = "".join(random.choice("abc") for _ in range(random.randint(1, 5)))
             self.assertEqual(
                 buscar_kmp(texto, padrao).ocorrencias,
-                buscar_ingenuo(texto, padrao).ocorrencias,
+                buscar_forca_bruta(texto, padrao).ocorrencias,
                 f"divergiram em texto='{texto}' padrao='{padrao}'",
             )
 
     def test_custo_linear_no_pior_caso(self):
         """
-        No pior caso o KMP faz O(n) comparações, e a busca ingênua O(n*m).
+        No pior caso o KMP faz O(n) comparações, e a força bruta O(n*m).
 
         A verificação é sobre o CRESCIMENTO: dobrando n, as comparações do KMP
         devem dobrar, mantendo a razão comparações/n praticamente constante.

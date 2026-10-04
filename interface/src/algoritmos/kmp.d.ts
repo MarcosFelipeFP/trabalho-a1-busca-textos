@@ -19,7 +19,7 @@ export interface PassoKmp {
 
 export function tabelaFalha(padrao: string): number[];
 export function buscarKmp(texto: string, padrao: string, primeiraApenas?: boolean): Achado;
-export function buscarIngenuo(texto: string, padrao: string, primeiraApenas?: boolean): Achado;
+export function buscarForcaBruta(texto: string, padrao: string, primeiraApenas?: boolean): Achado;
 export function tracarKmp(
   texto: string,
   padrao: string,
