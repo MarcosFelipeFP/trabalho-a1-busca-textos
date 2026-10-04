@@ -85,24 +85,24 @@ raiz do repositório.
 ### Parte I — Autocomplete com Trie
 
 Uma Trie construída do zero armazena um léxico de 8.641 palavras do português
-e responde a três operações:
+e responde às três operações do enunciado, mais duas extensões:
 
 | Operação | O que faz | Custo |
 |---|---|---|
 | `inserir(palavra)` | acrescenta uma palavra ao léxico | O(m) |
 | `buscar(palavra)` | informa se a palavra existe | O(m) |
 | `buscar_prefixo(prefixo)` | lista todas as palavras que começam com o prefixo | O(m + p) |
+| `sugerir(prefixo, k)` | as *k* palavras mais frequentes, por busca best-first | não depende de *p* |
+| `buscar_aproximado(palavra)` | "você quis dizer?" por distância de edição | O(n·m), *n* = nós após a poda |
+
+Com *m* = tamanho da palavra e *p* = número de nós abaixo do prefixo. Para as
+duas extensões, cada nó mantém a contagem e a maior frequência da própria
+subárvore, e a distância de edição (com transposição) é calculada sobre a
+Trie, uma linha da matriz por nó.
 
 O caminho na Trie é a palavra sem acento, para o prefixo `computac` chegar a
 *computação*. Mas cada grafia é uma palavra: com só *país* cadastrada, a
 busca por `pais` responde que ela não existe e mostra a grafia registrada.
-| `sugerir(prefixo, k)` | as *k* palavras mais frequentes, por busca best-first | não depende de *p* |
-| `buscar_aproximado(palavra)` | "você quis dizer?" por distância de edição | O(n·m), *n* = nós após a poda |
-
-Com *m* = tamanho da palavra e *p* = número de nós abaixo do prefixo. As duas
-últimas operações são extensões: cada nó mantém a contagem e a maior
-frequência da própria subárvore, e a distância de edição (com transposição) é
-calculada sobre a Trie, uma linha da matriz por nó.
 
 ### Parte II — Mecanismo de busca em documentos
 
@@ -138,6 +138,8 @@ lista o tempo de cada consulta e compara as médias dos três tipos.
 │   ├── dist/index.html      a interface compilada: um arquivo só, com tudo dentro
 │   ├── src/algoritmos/      os módulos Python portados para JavaScript
 │   ├── src/dados/           corpus, léxico e stopwords em JSON
+│   ├── src/motor/           quem responde: o JavaScript ou, com o servidor, o Python
+│   ├── src/telas/           as telas da Parte I, de documentos e de estatísticas
 │   └── src/busca/           a página de busca: resultados, trechos e leitor
 ├── main.py                  interface de linha de comando (Partes I e II)
 ├── servidor.py              serve a interface e expõe as consultas em JSON
@@ -194,9 +196,10 @@ Bloco de Notas oferece, e rode o programa. Eles serão descobertos, processados
 e indexados automaticamente.
 
 Para regerar o léxico da Parte I a partir dos novos documentos (ele guarda só
-as palavras que o dicionário de português do Microsoft Word reconhece, sem
-nomes próprios, siglas nem termos em inglês, por isso exige Windows com o
-Word):
+as palavras que o dicionário de português (Brasil) do Microsoft Word
+reconhece, por isso exige Windows com o Word; saem os nomes próprios, as
+siglas e os termos em inglês que o dicionário não registra, e ficam os
+estrangeirismos que ele registra, como *software*):
 
 ```bash
 python gerar_lexico.py
@@ -228,7 +231,7 @@ Drive, com um nome legível e um LEIA-ME ao lado:
 python gerar_pendrive.py
 ```
 
-Sai `pendrive/Busca em textos - Trabalho A1.html` (cerca de 1,6 MB). Vindo do
+Sai `pendrive/Busca em textos - Trabalho A1.html` (cerca de 1,5 MB). Vindo do
 Drive, baixe o arquivo antes de abrir: a pré-visualização do Drive não executa
 páginas.
 
@@ -304,10 +307,10 @@ python verificar_web.py
 ```
 
 Ele roda o Python e o JavaScript sobre o mesmo corpus e exige resultado
-idêntico em doze frentes — normalização, tokenização, stemming, Trie, Trie
-comprimida, autocomplete por relevância, busca aproximada, índice invertido,
-consultas com BM25 e vários termos, consultas por prefixo, KMP e tabela hash —,
-mais de 120 mil casos comparados um a um.
+idêntico em treze frentes — normalização, tokenização, stemming, Trie, Trie
+comprimida, autocomplete por relevância, busca aproximada, vocabulário, índice
+invertido, consultas com BM25 e vários termos, consultas por prefixo, KMP e
+tabela hash —, mais de 120 mil casos comparados um a um.
 
 Uma ressalva de método: o navegador arredonda o relógio por segurança (em
 `file://`, para cerca de 100 µs). Por isso cada consulta barata é repetida em
@@ -351,7 +354,7 @@ Palavras encontradas:
   competitiva
   -- 40 de 142 palavras. Enter mostra mais; 0 encerra a lista: 0
 
-Tempo da consulta: 134,4 µs (custo previsto: O(m + p))
+Tempo da consulta: 170,5 µs (custo previsto: O(m + p))
 Digite o prefixo:
 ```
 
@@ -393,7 +396,7 @@ Documentos que contêm algum desses termos: 4
   - estruturas_de_dados.txt                    BM25 2,044
   - sistemas_operacionais.txt                  BM25 1,783
 
-Tempo da consulta: 123,8 µs (custo previsto: O(m + p))
+Tempo da consulta: 128,8 µs (custo previsto: O(m + p))
 ```
 
 Cada termo vem com os documentos em que aquela palavra aparece, consultados no
@@ -419,7 +422,7 @@ Encontrada em 19 arquivo(s), 14 com a forma exata 'algoritmo':
   * sem a forma exata 'algoritmo': o radical 'algoritm' (RSLP)
     alcança esses arquivos pelas variantes da palavra.
 
-Tempo da consulta: 61,5 µs (custo previsto: O(1) por termo)
+Tempo da consulta: 96,0 µs (custo previsto: O(1) por termo)
 ```
 
 O índice é consultado pelo radical, que reúne as variantes da palavra; os
@@ -437,21 +440,23 @@ Digite a sequência: chave pública
 31 ocorrência(s) em 2 arquivo(s):
 
   criptografia.txt (29 ocorrência(s))
-      ...métricos. Os sistemas assimétricos usam uma "chave pública" para cifrar...
-      ...A vantagem dos sistemas assimétricos é que a chave pública pode ser...
+      ...métricos. Os sistemas assimétricos usam uma "chave pública" para cifrar uma mensagem e uma "chave priva...
+      ...A vantagem dos sistemas assimétricos é que a chave pública pode ser publicada livremente, permitindo qu...
+      ...ar uma camada de segurança. Criptografia de chave pública Os criptossistemas de chave simétrica usam...
 
   computacao_quantica.txt (2 ocorrência(s))
-      ...implicações profundas para a criptografia de chave pública, já que...
+      ...implicações profundas para a criptografia de chave pública, já que muitos sistemas de segurança atuais,...
+      ...Shor de quebrar sistemas de criptografia de chave pública como RSA e ECC, que protegem a vasta maioria...
 
   Comparações de caractere feitas pelo KMP: 697.716
 
-Tempo da consulta: 53,1 ms (custo previsto: O(N))
+Tempo da consulta: 54,4 ms (custo previsto: O(N))
 ```
 
 O contraste entre os dois últimos exemplos é o ponto central do trabalho: a
 consulta indexada leva microssegundos, e a varredura do corpus inteiro,
 dezenas de milissegundos. Nas medianas do relatório (Tabela 3), são
-**31,0 µs** contra **57,7 ms**, cerca de 1.900 vezes. É a diferença entre O(1)
+**31,4 µs** contra **58,5 ms**, cerca de 1.900 vezes. É a diferença entre O(1)
 e O(N), medida na prática.
 
 ### Estatísticas: o tempo medido ao lado do custo previsto
@@ -460,22 +465,22 @@ e O(N), medida na prática.
 CONSULTAS REALIZADAS (5)
 ------------------------------------------------------------
   tipo          qtd   tempo médio   custo previsto
-  palavra         3       95,0 µs   O(1) por termo
-  prefixo         1      133,2 µs   O(m + p)
-  sequência       1       85,8 ms   O(N)
+  palavra         3       72,2 µs   O(1) por termo
+  prefixo         1      128,8 µs   O(m + p)
+  sequência       1       54,4 ms   O(N)
 
-  Em média, a busca por sequência levou 904 vezes o tempo
+  Em média, a busca por sequência levou 753 vezes o tempo
   da busca por palavra: O(N) contra O(1).
 
   m = tamanho da palavra ou do prefixo; p = nós da Trie
   abaixo do prefixo; N = caracteres de todos os documentos.
 
   Tempo de cada consulta:
-     1. palavra    'algoritmo'                     19 resultado(s)    112,8 µs
-     2. palavra    'rede neural'                   17 resultado(s)     93,8 µs
-     3. palavra    'dados'                         24 resultado(s)     78,3 µs
-     4. prefixo    'compil'                        13 resultado(s)    133,2 µs
-     5. sequência  'chave pública'                  2 resultado(s)     85,8 ms
+     1. palavra    'algoritmo'                     19 resultado(s)     96,0 µs
+     2. palavra    'rede neural'                   17 resultado(s)     60,9 µs
+     3. palavra    'dados'                         24 resultado(s)     59,7 µs
+     4. prefixo    'compil'                        13 resultado(s)    128,8 µs
+     5. sequência  'chave pública'                  2 resultado(s)     54,4 ms
 ```
 
 A opção 5 mostra as estatísticas da seção 3.9 e, ao final, esse bloco. Os
@@ -491,8 +496,8 @@ referência.
 python benchmark.py
 ```
 
-Nove experimentos que confrontam o custo assintótico previsto com o tempo
-medido:
+Nove experimentos que confrontam o custo assintótico previsto com o que se
+mede na prática — tempo, nós visitados, comparações de caractere ou colisões:
 
 1. Busca por prefixo: Trie contra varredura sequencial
 2. Autocomplete top-k: busca best-first contra varredura da subárvore
@@ -504,8 +509,10 @@ medido:
 8. Efeito do stemming RSLP na cobertura das consultas
 9. Busca aproximada: Trie contra comparação palavra a palavra
 
-Os resultados estão discutidos no
-[relatório técnico](Relat%C3%B3rio%20T%C3%A9cnico%20%28ABNT%29%20-%20Trabalho%20A1%20-%20vers%C3%A3o%20reduzida.pdf).
+Os experimentos 1, 3, 4 e 5 sustentam a análise do
+[relatório técnico](Relat%C3%B3rio%20T%C3%A9cnico%20%28ABNT%29%20-%20Trabalho%20A1%20-%20vers%C3%A3o%20reduzida.pdf)
+(seção 2.4 e Tabela 2). Os outros cinco medem as extensões da Trie (2 e 9), a
+escalabilidade da indexação (6), o ranqueamento (7) e o efeito do stemming (8).
 
 ---
 
@@ -543,8 +550,9 @@ Todas as estruturas foram implementadas do zero, e tudo vem da biblioteca
 padrão do Python, dentro do que o enunciado autoriza. O programa usa `re`,
 `unicodedata`, `heapq`, `math`, `time`, `textwrap`, `pathlib`, `argparse` e
 `sys`. Os scripts de apoio acrescentam `statistics` e `random` (experimentos),
-`unittest` (testes), `http.server`, `threading`, `webbrowser` e `mimetypes`
-(servidor), além de `json`, `urllib`, `subprocess`, `shutil` e `tempfile`.
+`unittest`, `io`, `contextlib` e `http.client` (testes), `http.server`,
+`threading`, `webbrowser` e `mimetypes` (servidor), além de `json`, `urllib`,
+`subprocess`, `shutil` e `tempfile`.
 
 ---
 
