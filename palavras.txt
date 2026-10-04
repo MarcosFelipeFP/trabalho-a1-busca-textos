@@ -3,10 +3,11 @@
 # Vocabulario extraido dos documentos de 'documentos/' apos o
 # pre-processamento (minusculas, remocao de pontuacao, tokenizacao e
 # remocao de stopwords), so com as palavras que o dicionario de
-# portugues (Brasil) do Microsoft Word reconhece -- ficam de fora nomes
-# proprios, siglas e termos em ingles --, acrescido das palavras usadas
-# como exemplo no enunciado. Uma palavra por linha; linhas com # sao
-# comentarios.
+# portugues (Brasil) do Microsoft Word reconhece, acrescido das palavras
+# usadas como exemplo no enunciado. Ficam de fora os nomes proprios, as
+# siglas e os termos em ingles que o dicionario nao registra; os
+# estrangeirismos que ele registra, como software, ficam. Uma palavra
+# por linha; linhas com # sao comentarios.
 #
 # Total: 8641 palavras
 #

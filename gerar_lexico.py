@@ -14,8 +14,16 @@ Os artigos, porém, também trazem nomes próprios (turing), siglas (abnt),
 termos em inglês (computer, programming) e pedaços como "aplicá", de
 "aplicá-lo". Como o léxico é uma lista de palavras do português, como as do
 exemplo do enunciado, só ficam as que o dicionário de português (Brasil) do
-Microsoft Word reconhece. Por isso regerar o léxico exige Windows com o Word;
-sem eles, o script para e não mexe no `palavras.txt` do repositório.
+Microsoft Word reconhece. Os estrangeirismos que esse dicionário registra,
+como software, download e marketing, continuam no léxico. Regerar o léxico
+exige Windows com o Word; sem eles, o script para e não mexe no
+`palavras.txt` do repositório.
+
+As palavras vão para um documento do Word com o texto marcado como português
+(Brasil), e ficam as que o corretor não sublinha. Marcar o texto é o que fixa
+o idioma: o dicionário passado ao `Application.CheckSpelling` não muda a
+resposta -- até o de inglês aceita "computação" --, que passaria a depender do
+idioma padrão da instalação do Word.
 
 As oito palavras usadas como exemplo na seção 2.2 do enunciado são acrescidas
 explicitamente, para que a consulta de demonstração funcione mesmo que alguma
@@ -28,6 +36,7 @@ Uso:
 import subprocess
 import sys
 import tempfile
+import unicodedata
 from pathlib import Path
 
 from estatisticas import formatar_numero
@@ -49,34 +58,57 @@ EXEMPLO_ENUNCIADO = [
 TAMANHO_MINIMO = 3
 DESTINO = Path(__file__).parent / "palavras.txt"
 
-# Consulta o corretor ortográfico de português (Brasil) do Word, palavra por
-# palavra: lê as candidatas do primeiro arquivo e grava as aceitas no segundo.
+# Consulta o corretor ortográfico de português (Brasil) do Word: lê as
+# candidatas do primeiro arquivo e grava as aceitas no segundo. As palavras vão
+# para documentos de 500 linhas, uma por parágrafo, com o texto marcado como
+# português (Brasil) -- idioma 1046 -- e sem a detecção automática de idioma,
+# que poderia remarcar "computer" como inglês. Ficam as que o corretor não
+# aponta em `SpellingErrors`. Os lotes mantêm cada documento pequeno, longe do
+# limite de erros a partir do qual o Word para de verificar.
 SCRIPT_DO_CORRETOR = r"""
 $ErrorActionPreference = 'Stop'
-$palavras = [IO.File]::ReadAllLines($args[0], [Text.Encoding]::UTF8)
+$palavras = @([IO.File]::ReadAllLines($args[0], [Text.Encoding]::UTF8) | Where-Object { $_ })
+$aceitas = New-Object 'System.Collections.Generic.List[string]'
 $word = New-Object -ComObject Word.Application
 try {
   $word.Visible = $false
-  $documento = $word.Documents.Add()
-  $portugues = $word.Languages.Item(1046).Name
-  $sem = [Type]::Missing
-  $maiusculas = $false
-  $aceitas = @($palavras | Where-Object {
-    $word.CheckSpelling($_, [ref]$sem, [ref]$maiusculas, [ref]$portugues) })
-  [IO.File]::WriteAllLines($args[1], [string[]]$aceitas, (New-Object Text.UTF8Encoding($false)))
-  $documento.Close(0)
+  $word.DisplayAlerts = 0
+  for ($inicio = 0; $inicio -lt $palavras.Count; $inicio += 500) {
+    $fim = [Math]::Min($inicio + 499, $palavras.Count - 1)
+    $lote = @($palavras[$inicio..$fim])
+    $documento = $word.Documents.Add()
+    $documento.Content.Text = ($lote -join "`r")
+    $documento.Content.LanguageID = 1046
+    $documento.Content.NoProofing = $false
+    $documento.Content.LanguageDetected = $true
+    $apontadas = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    foreach ($erro in $documento.SpellingErrors) { [void]$apontadas.Add($erro.Text) }
+    foreach ($palavra in $lote) { if (-not $apontadas.Contains($palavra)) { $aceitas.Add($palavra) } }
+    $documento.Close(0)
+  }
+  [IO.File]::WriteAllLines($args[1], $aceitas.ToArray(), (New-Object Text.UTF8Encoding($false)))
 } finally {
   $word.Quit()
 }
 """
 
 
+def escrita_latina(palavra):
+    """
+    Só letras do alfabeto latino, com ou sem acento. Uma palavra em outra
+    escrita, como o grego "κρυπτός" da etimologia de criptografia, não seria
+    barrada pelo corretor do Word, que não aponta o que não verifica.
+    """
+    return all(unicodedata.name(letra, "").startswith("LATIN") for letra in palavra)
+
+
 def palavras_do_portugues(palavras):
     """
     As palavras que o dicionário de português (Brasil) do Word reconhece.
 
-    O Word é chamado pelo PowerShell, uma vez para a lista inteira. Levanta
-    OSError ou CalledProcessError quando não há PowerShell ou Word.
+    O Word é chamado pelo PowerShell, uma vez para a lista inteira, e verifica
+    as palavras em lotes (ver `SCRIPT_DO_CORRETOR`). Levanta OSError ou
+    CalledProcessError quando não há PowerShell ou Word.
     """
     with tempfile.TemporaryDirectory() as pasta:
         entrada = Path(pasta) / "candidatas.txt"
@@ -103,7 +135,8 @@ def main():
         print("Rode antes: python preparar_corpus.py")
         return 1
 
-    vocabulario = {p for p in mecanismo.vocabulario if len(p) >= TAMANHO_MINIMO}
+    vocabulario = {p for p in mecanismo.vocabulario
+                   if len(p) >= TAMANHO_MINIMO and escrita_latina(p)}
     try:
         portuguesas = palavras_do_portugues(sorted(vocabulario))
     except (OSError, subprocess.CalledProcessError):
@@ -124,10 +157,11 @@ def main():
         "# Vocabulario extraido dos documentos de 'documentos/' apos o\n"
         "# pre-processamento (minusculas, remocao de pontuacao, tokenizacao e\n"
         "# remocao de stopwords), so com as palavras que o dicionario de\n"
-        "# portugues (Brasil) do Microsoft Word reconhece -- ficam de fora nomes\n"
-        "# proprios, siglas e termos em ingles --, acrescido das palavras usadas\n"
-        "# como exemplo no enunciado. Uma palavra por linha; linhas com # sao\n"
-        "# comentarios.\n"
+        "# portugues (Brasil) do Microsoft Word reconhece, acrescido das palavras\n"
+        "# usadas como exemplo no enunciado. Ficam de fora os nomes proprios, as\n"
+        "# siglas e os termos em ingles que o dicionario nao registra; os\n"
+        "# estrangeirismos que ele registra, como software, ficam. Uma palavra\n"
+        "# por linha; linhas com # sao comentarios.\n"
         "#\n"
         f"# Total: {len(palavras)} palavras\n"
         "#\n"
@@ -136,7 +170,7 @@ def main():
     DESTINO.write_text(cabecalho + "\n".join(palavras) + "\n", encoding="utf-8")
 
     print(f"{formatar_numero(len(palavras))} palavras gravadas em '{DESTINO.name}'")
-    print(f"{formatar_numero(fora)} fora do dicionário de português ficaram de fora")
+    print(f"{formatar_numero(fora)} que o dicionário de português não reconhece ficaram de fora")
     print(f"Origem: {documentos} documento(s) de '{pasta}/'")
     return 0
 
