@@ -55,7 +55,7 @@ O fluxo de controle entre os passos é o descrito no artigo original:
                           Passo 6: redução de sufixo verbal
         se o passo 6 também não mudou:
                           Passo 7: remoção da vogal temática final
-                          Passo 8: remoção de acentos
+    sempre, no fim:       Passo 8: remoção de acentos
 
 --------------------------------------------------------------------------
 Observação honesta sobre a implementação

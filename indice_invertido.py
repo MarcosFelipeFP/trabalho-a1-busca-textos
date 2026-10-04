@@ -166,7 +166,12 @@ class TabelaHash:
                 self.inserir(chave, valor)
 
     def estatisticas(self):
-        """Métricas de dispersão, usadas na seção de hash do relatório."""
+        """
+        Métricas de dispersão, usadas na seção de hash do relatório.
+
+        A "cadeia media" é a média das listas NÃO vazias. Contadas também as
+        posições vazias, a média seria o próprio fator de carga.
+        """
         ocupados = [len(b) for b in self.baldes if b]
         return {
             "chaves": self.n,

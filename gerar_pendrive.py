@@ -52,7 +52,8 @@ COMO USAR
 Digite na caixa e aperte Enter. Enquanto você digita, a Trie sugere palavras;
 os resultados vêm do índice invertido, com as palavras encontradas realçadas.
 As abas Palavra, Prefixo e Sequência trocam a modalidade de busca, e clicar
-num resultado abre o texto inteiro.
+num resultado abre o texto inteiro. Os botões no alto, à direita, levam às
+outras telas: Autocomplete (Parte I), Documentos e Estatísticas.
 """
 
 

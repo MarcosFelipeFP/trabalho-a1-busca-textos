@@ -26,6 +26,7 @@ Uso:
 """
 
 import argparse
+import math
 import random
 import statistics
 import sys
@@ -413,8 +414,8 @@ def experimento_hash(mecanismo):
     termos = list(mecanismo.indice.por_radical)
     print(f"\n  Termos indexados: {formatar_numero(len(termos))}\n")
 
-    print(f"  {'capacidade':>12}{'carga':>10}{'colisões':>12}"
-          f"{'maior cadeia':>15}{'cadeia média':>15}")
+    print(f"  {'capacidade':>12}{'carga':>9}{'colisões':>10}"
+          f"{'maior cadeia':>14}{'média ocupadas':>16}{'esperado':>11}")
     print("  " + "-" * (LARGURA - 4))
 
     for capacidade in (512, 2048, 8192, 32768):
@@ -426,14 +427,23 @@ def experimento_hash(mecanismo):
             tabela.inserir(termo, None)
 
         e = tabela.estatisticas()
+        # Com n chaves espalhadas ao acaso por C posições, a fração de posições
+        # ocupadas tende a 1 - e^(-α); a média das listas não vazias é então
+        # α dividido por essa fração.
+        alfa = e["chaves"] / e["capacidade"]
+        esperado = alfa / (1.0 - math.exp(-alfa))
         print(f"  {formatar_numero(e['capacidade']):>12}"
-              f"{formatar_numero(e['fator de carga'], 3):>10}"
-              f"{formatar_numero(e['colisoes']):>12}{e['maior cadeia']:>15}"
-              f"{formatar_numero(e['cadeia media'], 3):>15}")
+              f"{formatar_numero(e['fator de carga'], 3):>9}"
+              f"{formatar_numero(e['colisoes']):>10}{e['maior cadeia']:>14}"
+              f"{formatar_numero(e['cadeia media'], 3):>16}"
+              f"{formatar_numero(esperado, 3):>11}")
 
-    print("\n  A cadeia média acompanha o fator de carga: é o α da análise")
-    print("  clássica, e o custo médio da busca é O(1 + α). Com a tabela")
-    print("  redimensionando para manter α abaixo de 0.75, o custo fica O(1).")
+    print("\n  Contadas as posições vazias, o comprimento médio das listas é o")
+    print("  próprio fator de carga α, e o custo médio da busca é O(1 + α). A")
+    print("  coluna 'média ocupadas' ignora as vazias e fica muito perto da")
+    print("  coluna 'esperado', α/(1 - e^-α), a média prevista quando a função")
+    print("  hash espalha as chaves de modo uniforme. Com a tabela redimensionando")
+    print("  para manter α abaixo de 0,75, o custo fica O(1).")
 
     subtitulo("Comparação com o dict do Python")
     tabela = TabelaHash(capacidade=1024)

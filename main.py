@@ -11,6 +11,7 @@ Uso:
     python main.py --parte 1            vai direto para o autocomplete
     python main.py --parte 2            vai direto para a busca em documentos
     python main.py --pasta meus_txt     usa outra pasta de documentos
+    python main.py --lexico outra.txt   usa outro léxico na Parte I
     python main.py --sem-stemming       desliga o RSLP, para comparação
 """
 
