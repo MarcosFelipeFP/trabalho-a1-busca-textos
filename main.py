@@ -671,9 +671,10 @@ def analisar_argumentos():
     argumentos = analisador.parse_args()
 
     # Os padrões seguem a pasta do main.py, e não o diretório de onde o comando
-    # foi chamado: `python "C:\\...\\Trabalho A1\\main.py"` funciona de qualquer
-    # lugar. Caminhos informados pelo usuário continuam relativos ao diretório
-    # atual, como manda o costume de qualquer programa de linha de comando.
+    # foi chamado: `python "C:\\...\\Grupo 4 - Marcos Felipe\\main.py"` funciona
+    # de qualquer lugar. Caminhos informados pelo usuário continuam relativos
+    # ao diretório atual, como manda o costume de qualquer programa de linha
+    # de comando.
     if argumentos.pasta is None:
         argumentos.pasta = RAIZ / "documentos"
     if argumentos.lexico is None:
