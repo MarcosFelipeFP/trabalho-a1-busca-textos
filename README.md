@@ -160,7 +160,7 @@ lista o tempo de cada consulta e compara as médias dos três tipos.
 ├── palavras.txt             léxico da Parte I (8.641 palavras)
 ├── stopwords.txt            stopwords do português
 ├── README.md                este arquivo
-└── Relatório Técnico (ABNT) - Trabalho A1 - versão reduzida.pdf    relatório técnico (ABNT)
+└── Relatório Técnico (ABNT) - Trabalho A1.pdf    relatório técnico (ABNT)
 ```
 
 ---
@@ -510,7 +510,7 @@ mede na prática — tempo, nós visitados, comparações de caractere ou colis�
 9. Busca aproximada: Trie contra comparação palavra a palavra
 
 Os experimentos 1, 3, 4 e 5 sustentam a análise do
-[relatório técnico](Relat%C3%B3rio%20T%C3%A9cnico%20%28ABNT%29%20-%20Trabalho%20A1%20-%20vers%C3%A3o%20reduzida.pdf)
+[relatório técnico](Relat%C3%B3rio%20T%C3%A9cnico%20%28ABNT%29%20-%20Trabalho%20A1.pdf)
 (seção 2.4 e Tabela 2). Os outros cinco medem as extensões da Trie (2 e 9), a
 escalabilidade da indexação (6), o ranqueamento (7) e o efeito do stemming (8).
 

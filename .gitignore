@@ -32,7 +32,7 @@ $RECYCLE.BIN/
 *.doc
 *.pdf
 # O relatorio tecnico entregue vai versionado, em PDF.
-!Relatório Técnico (ABNT) - Trabalho A1 - versão reduzida.pdf
+!Relatório Técnico (ABNT) - Trabalho A1.pdf
 
 # --- Saidas geradas em tempo de execucao ---
 *.log
